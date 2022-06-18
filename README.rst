@@ -11,7 +11,7 @@ Conserved water molecules can be further classified into 3 distinct conserved wa
 We support many different density based clustering approaches using standard OPTICS and HDBSCAN procedures as well as multi stage re-clustering approach using either of the two algorithms for very precise (and slow) determination of conserved water molecules.
 
 .. image:: docs/source/figs/WaterTypes.png
-  :width: 800
+  :width: 600
 
 
 Important links
