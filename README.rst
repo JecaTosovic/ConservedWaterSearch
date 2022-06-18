@@ -34,7 +34,7 @@ The easiest ways to install **ConservedWaterSearch** is using pip:
 
 .. code:: bash
 
-   pip install conservedwatersearch
+   pip install ConservedWaterSearch
 
 Conda builds will be available soon.
 
@@ -56,7 +56,7 @@ The easiest way to use CWS is by calling WaterNetworkAnalysis (WNA) package. How
    print(res[0][2])
 
 
-For more complex usecases, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`.
+For more complex usecases, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_.
 
 
 
