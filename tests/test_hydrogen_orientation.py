@@ -67,7 +67,6 @@ def test_conserved_FCW():
     orientations = np.loadtxt("tests/data/conserved_sample_FCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiFCW=[0.03],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -82,7 +81,6 @@ def test_conserved_FCW2():
     orientations = np.loadtxt("tests/data/conserved_sample_FCW2.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiFCW=[0.03],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -97,7 +95,6 @@ def test_dispersed_HCW():
     orientations = np.loadtxt("tests/data/dispersed_sample_HCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiHCW=[0.01],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -112,7 +109,6 @@ def test_dispersed_HCW2():
     orientations = np.loadtxt("tests/data/dispersed_sample_HCW2.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiHCW=[0.01],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -127,7 +123,6 @@ def test_circular_HCW():
     orientations = np.loadtxt("tests/data/circ_sample_HCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiHCW=[0.05],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -142,7 +137,6 @@ def test_circular_HCW2():
     orientations = np.loadtxt("tests/data/circ_sample_HCW2.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiHCW=[0.05],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -157,7 +151,6 @@ def test_circular_HCW3():
     orientations = np.loadtxt("tests/data/circ_sample_HCW3.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiHCW=[0.05],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -172,7 +165,6 @@ def test_WCW():
     orientations = np.loadtxt("tests/data/sample_WCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiWCW=[0.05, 0.001],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -187,7 +179,6 @@ def test_circular_only():
     orientations = np.loadtxt("tests/data/sample_circular_only.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -202,7 +193,6 @@ def test_dispersed_WCW():
     orientations = np.loadtxt("tests/data/dispersed_sample_WCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
@@ -217,7 +207,6 @@ def test_2x2_WCW():
     orientations = np.loadtxt("tests/data/2_by_2_WCW.dat")
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
-        # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
