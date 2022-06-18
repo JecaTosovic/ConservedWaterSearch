@@ -1,12 +1,12 @@
 """
-Unit and regression test for the conservedwatersearch package.
+Unit and regression test for the ConservedWaterSearch package.
 """
 
 import numpy as np
 import pytest
 
 # Import package, test suite, and other packages as needed
-import conservedwatersearch.hydrogen_orientation
+import ConservedWaterSearch.hydrogen_orientation
 
 make_ho_plots = 0
 
@@ -14,10 +14,10 @@ make_ho_plots = 0
 def test_orientation_normalization():
     orientations = np.asarray([[1, 0, 0], [-0.25038 * 2, 0.96814764 * 2, 0]])
     orientations2 = np.asarray([[1, 0, 0], [-0.25038, 0.96814764, 0]])
-    w1 = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    w1 = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations, normalize_orientations=True
     )
-    w2 = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    w2 = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations2
     )
     print(w1, w2)
@@ -27,7 +27,7 @@ def test_orientation_normalization():
 def test_orientation_shape():
     orientations = np.asarray([[[1]]])
     with pytest.raises(ValueError):
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
 
@@ -35,14 +35,14 @@ def test_orientation_shape():
 def test_orientation_dimensions():
     orientations = np.asarray([[1, 0], [0, 1]])
     with pytest.raises(ValueError):
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
 
 
 def test_orientation_valid_input():
     orientations = np.asarray([[1, 0, 0], [0, 1, 0]])
-    conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations
     )
 
@@ -50,7 +50,7 @@ def test_orientation_valid_input():
 def test_orientation_size():
     orientations = np.asarray([[1, 0, 0]])
     with pytest.raises(ValueError):
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
 
@@ -58,14 +58,14 @@ def test_orientation_size():
 def test_orientation_array_odd():
     orientations = np.asarray([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     with pytest.raises(ValueError):
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
 
 
 def test_conserved_FCW():
     orientations = np.loadtxt("tests/data/conserved_sample_FCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiFCW=[0.03],
         debugH=make_ho_plots,
@@ -80,7 +80,7 @@ def test_conserved_FCW():
 
 def test_conserved_FCW2():
     orientations = np.loadtxt("tests/data/conserved_sample_FCW2.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiFCW=[0.03],
         debugH=make_ho_plots,
@@ -95,7 +95,7 @@ def test_conserved_FCW2():
 
 def test_dispersed_HCW():
     orientations = np.loadtxt("tests/data/dispersed_sample_HCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiHCW=[0.01],
         debugH=make_ho_plots,
@@ -110,7 +110,7 @@ def test_dispersed_HCW():
 
 def test_dispersed_HCW2():
     orientations = np.loadtxt("tests/data/dispersed_sample_HCW2.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiHCW=[0.01],
         debugH=make_ho_plots,
@@ -125,7 +125,7 @@ def test_dispersed_HCW2():
 
 def test_circular_HCW():
     orientations = np.loadtxt("tests/data/circ_sample_HCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiHCW=[0.05],
         debugH=make_ho_plots,
@@ -140,7 +140,7 @@ def test_circular_HCW():
 
 def test_circular_HCW2():
     orientations = np.loadtxt("tests/data/circ_sample_HCW2.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiHCW=[0.05],
         debugH=make_ho_plots,
@@ -155,7 +155,7 @@ def test_circular_HCW2():
 
 def test_circular_HCW3():
     orientations = np.loadtxt("tests/data/circ_sample_HCW3.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiHCW=[0.05],
         debugH=make_ho_plots,
@@ -170,7 +170,7 @@ def test_circular_HCW3():
 
 def test_WCW():
     orientations = np.loadtxt("tests/data/sample_WCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiWCW=[0.05, 0.001],
         debugH=make_ho_plots,
@@ -185,7 +185,7 @@ def test_WCW():
 
 def test_circular_only():
     orientations = np.loadtxt("tests/data/sample_circular_only.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
@@ -200,7 +200,7 @@ def test_circular_only():
 
 def test_dispersed_WCW():
     orientations = np.loadtxt("tests/data/dispersed_sample_WCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
@@ -215,7 +215,7 @@ def test_dispersed_WCW():
 
 def test_2x2_WCW():
     orientations = np.loadtxt("tests/data/2_by_2_WCW.dat")
-    res = conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations,
         # xiWCW=[0.05,0.001],
         debugH=make_ho_plots,
@@ -231,7 +231,7 @@ def test_2x2_WCW():
 def test_not_conserved():
     orientations = np.loadtxt("tests/data/dispersed_sample_not_conserved.dat")
     res = (
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations,
             debugH=make_ho_plots,
         )
@@ -246,7 +246,7 @@ def test_not_conserved():
 def test_not_conserved2():
     orientations = np.loadtxt("tests/data/not_conserved.dat")
     res = (
-        conservedwatersearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations,
             debugH=make_ho_plots,
             verbose=2,

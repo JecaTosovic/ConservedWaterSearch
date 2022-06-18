@@ -1,7 +1,7 @@
-conservedwatersearch
+ConservedWaterSearch
 ===========================
 
 .. toctree::
    :maxdepth: 4
 
-   conservedwatersearch
+   ConservedWaterSearch

@@ -21,7 +21,7 @@ except:
 
 setup(
     # Self-descriptive entries which should always be present
-    name="conservedwatersearch",
+    name="ConservedWaterSearch",
     # version=0.0.1,
     author="Domagoj Fijan, Jelena Tosovic, Marko Jukic, Urban Bren",
     author_email="jecat_90@live.com",
