@@ -45,12 +45,18 @@ The easiest way to use CWS is by calling WaterNetworkAnalysis (WNA) package. How
 
 .. code:: python
 
-   import conservedwatersearch
-   # load some example?
+   import ConservedWaterSearch.hydrogen_orientation as HO
+   # load some example
+   orientations = np.loadtxt("tests/data/conserved_sample_FCW.dat")
    # Run classification
+   res = HO.hydrogen_orientation_analysis(
+        orientations,
+   )
+   # print the water type
+   print(res[0][2])
 
 
-Afterwards use WaterNetworkAnalysis to analyse the results:
-???
+For more complex usecases, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`.
+
 
 
