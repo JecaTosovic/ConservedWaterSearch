@@ -1,99 +1,109 @@
-from typing import List
+from __future__ import annotations
 
+import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.axes import Axes
+from matplotlib.figure import Figure
+from numpy.typing import NDArray
 from sklearn.cluster import OPTICS, KMeans
-
-from ConservedWaterSearch.utils import hydrogen_orient_plots, plot3Dorients
-
-
-def __return_normalized_orientation_pair(
-    orientations: np.ndarray, labels: np.ndarray, i: int, j: int, typel: str
-) -> List:
-    """
-    returns normalized orientations.
-    """
-    v1 = np.mean(orientations[labels == i], axis=0)
-    v2 = np.mean(orientations[labels == j], axis=0)
-    return [
-        v1 / np.linalg.norm(v1) * np.linalg.norm(orientations[0]),
-        v2 / np.linalg.norm(v2) * np.linalg.norm(orientations[0]),
-        typel,
-    ]
 
 
 def hydrogen_orientation_analysis(
-    orientations: np.ndarray,
+    orientations: NDArray[np.float_],
     pct_size_buffer: float = 0.85,
     kmeans_ang_cutoff: float = 120,
     kmeans_inertia_cutoff: float = 0.4,
-    conserved_angdiff_cutoff: float = 5,
-    conserved_angstd_cutoff: float = 17,
+    FCW_angdiff_cutoff: float = 5,
+    FCW_angstd_cutoff: float = 17,
     min_samp_data_size_pct: float = 0.15,
-    noncon_angdiff_cutoff: float = 15,
-    halfcon_angstd_cutoff: float = 17,
-    wigcon_angstd_cutoff: float = 20,
+    nonFCW_angdiff_cutoff: float = 15,
+    HCW_angstd_cutoff: float = 17,
+    WCW_angstd_cutoff: float = 20,
     weakly_explained: float = 0.7,
-    xiFCW: List = [0.03],
-    xiHCW: List = [0.05, 0.01],
-    xiWCW: List = [0.05, 0.001],
+    xiFCW: list = [0.03],
+    xiHCW: list = [0.05, 0.01],
+    xiWCW: list = [0.05, 0.001],
     njobs: int = 1,
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
     which=["FCW", "HCW", "WCW"],
     normalize_orientations=True,
-) -> List:
-    """High level function that does hydrogen orientation analysis.
+) -> list:
+    """Determines if the water cluster is conserved and of what type.
 
-    Checks if the water cluster belongs into one of the following groups by analizing hydrogen orientations:
+    High level function that does hydrogen orientation analysis. Checks
+    if the water cluster belongs into one of the following groups by
+    analizing hydrogen orientations:
+            FCW (Fully Conserved Water) - hydrogens are strongly
+                oriented in two directions with angle of 104.5
+            HCW (Half Conserved Water) - one set (cluster) of hydrogens is
+                oriented in certain directions and other are spread into
+                different orientations with angle of 104.5
+            WCW (weakly Conserved Water) - several orientation
+                combinations exsist with satisfying angles
+    If orientations don't satisfy the criteria for any of the waters, an
+    empty list is returned.
 
-            FCW (Fully Conserved Water) - hydrogens are strongly oriented in two directions with angle of 104.5
+    Args:
+        orientations (NDArray[np.float_]): array of hydrogen
+            orientations in space
+        pct_size_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.85.
+        kmeans_ang_cutoff (float, optional): Maximum value of angle (in
+            deg) allowed for FCW in kmeans clustering to be considered
+            correct water angle. Defaults to 120.
+        kmeans_inertia_cutoff (float, optional): upper limit allowed on
+            kmeans inertia (measure of spread of data in a cluster).
+            Defaults to 0.4.
+        FCW_angdiff_cutoff (float, optional): Maximum value of angle (in
+            deg) allowed for FCW in OPTICS/HDBSCAN clustering to be
+            considered correct water angle. Defaults to 5.
+        FCW_angstd_cutoff (float, optional): Maximal standard deviation
+            of angle distribution of orientations of two hydrogens
+            allowed for water to be considered FCW. Defaults to 17.
+        min_samp_data_size_pct (float, optional): Minimum samples to
+            choose for OPTICS or HDBSCAN clustering as percentage of
+            number of water molecules considered for HCW and WCW.
+            Defaults to 0.15.
+        nonFCW_angdiff_cutoff (float, optional): Maximum standard
+            deviation of angle allowed for HCW and WCW to be considered
+            correct water angle. Defaults to 15.
+        HCW_angstd_cutoff (float, optional): Maximum standard deviation
+            cutoff for WCW angles to be considered correct water angles.
+            Defaults to 17.
+        WCW_angstd_cutoff (float, optional): Maximum standard deviation
+            cutoff for WCW angles to be considered correct water angles.
+            Defaults to 20.
+        weakly_explained (float, optional): percentage of explained
+            hydrogen orientations for water to be considered WCW.
+            Defaults to 0.7.
+        xiFCW (list, optional): Xi value for OPTICS clustering for FCW. Don't
+            touch this unless you know what you are doing. Defaults to [0.03].
+        xiHCW (list, optional): Xi value for OPTICS clustering for HCW. Don't
+            touch this unless you know what you are doing.
+            Defaults to [0.05, 0.01].
+        xiWCW (list, optional): Xi value for OPTICS clustering for WCW. Don't
+            touch this unless you know what you are doing.
+            Defaults to [0.05, 0.001].
+        njobs (int, optional): how many cpu cores to use for clustering.
+            Defaults to 1.
+        verbose (int, optional): verbosity of output. Defaults to 0.
+        debugH (int, optional): debug level for orientations. Defaults to 0.
+        plotreach (bool, optional): weather to plot the reachability
+            plot for OPTICS when debuging. Defaults to False.
+        which (list, optional): list of strings denoting which water types to
+            search for. Allowed is any combination of FCW (fully
+            conserved waters), HCW (half conserved waters) and WCW
+            (weakly conserved waters). Defaults to ["FCW", "HCW",
+            "WCW"].
+        normalize_orientations (bool, optional): weather to normalize
+            the orientation vectors to unit distance. Defaults to True.
 
-            HCW (Half Conserved Water) - one set (cluster) of hydrogens is oriented in certain directions and other are spread int odifferent orientations with angle of 104.5
-
-            WCW (weakly Conserved Water) - several orientation combinations exsist with satisfying angles
-
-    If orientations don't satisfy the criteria for any of the waters, an empty list is returned.
-
-    Parameters
-    ----------
-    orientations : np.ndarray
-        array of hydrogen orientations for given oxygen clustering
-    pct_size_buffer : float, optional
-        [description], by default 0.85
-    kmeans_ang_cutoff : float, optional
-        [description], by default 120
-    kmeans_inertia_cutoff : float, optional
-        [description], by default 0.4
-    conserved_angdiff_cutoff : float, optional
-        [description], by default 5
-    conserved_angstd_cutoff : float, optional
-        [description], by default 17
-    min_samp_data_size_pct : float, optional
-        [description], by default 0.15
-    noncon_angdiff_cutoff : float, optional
-        [description], by default 15
-    noncon_angstd_cutoff : float, optional
-        [description], by default 17
-    xi : float, optional
-        [description], by default 0.01
-    njobs : int, optional
-        [description], by default 1
-    verbose : int, optional
-        [description], by default 0
-    debugH : int, optional
-        [description], by default 0
-    plotreach : bool, optional
-        [description], by default False
-    which : list, optional
-        list of strings denoting which waters to search for. Options: any combination of FCW (fully conserved waters), HCW (half conserved waters) and WCW (weakly conserved waters), by default ["FCW", "HCW", "WCW"]
-    normalize_orientations : bool, optional
-        [description], by default False
-
-    Returns
-    -------
-    waters : List
-        returns list with valid clustered hydrogen orientations
+    Returns:
+        list: returns a list containing two orientations of hydrogens
+            and water classification string ("FCW", "HCW", "WCW"), if
+            not conserved returns an empty list
     """
     orientations = np.array(orientations)
     # check length of orientations - it has to be bigger then 1 and even
@@ -122,8 +132,8 @@ def hydrogen_orientation_analysis(
                 pct_size_buffer=pct_size_buffer,
                 kmeans_ang_cutoff=kmeans_ang_cutoff,
                 kmeans_inertia_cutoff=kmeans_inertia_cutoff,
-                angdiff_cutoff=conserved_angdiff_cutoff,
-                angstd_cutoff=conserved_angstd_cutoff,
+                angdiff_cutoff=FCW_angdiff_cutoff,
+                angstd_cutoff=FCW_angstd_cutoff,
                 xi=xi,
                 njobs=njobs,
                 verbose=verbose,
@@ -138,8 +148,8 @@ def hydrogen_orientation_analysis(
                 orientations,
                 pct_size_buffer=pct_size_buffer,
                 min_samp_data_size_pct=min_samp_data_size_pct,
-                angdiff_cutoff=noncon_angdiff_cutoff,
-                angstd_cutoff=halfcon_angstd_cutoff,
+                angdiff_cutoff=nonFCW_angdiff_cutoff,
+                angstd_cutoff=HCW_angstd_cutoff,
                 xi=xi,
                 njobs=njobs,
                 verbose=verbose,
@@ -155,8 +165,8 @@ def hydrogen_orientation_analysis(
                 pct_size_buffer=pct_size_buffer,
                 min_samp_data_size_pct=min_samp_data_size_pct,
                 pct_explained=weakly_explained,
-                angdiff_cutoff=noncon_angdiff_cutoff,
-                angstd_cutoff=wigcon_angstd_cutoff,
+                angdiff_cutoff=nonFCW_angdiff_cutoff,
+                angstd_cutoff=WCW_angstd_cutoff,
                 xi=xi,
                 njobs=njobs,
                 verbose=verbose,
@@ -170,7 +180,7 @@ def hydrogen_orientation_analysis(
 
 
 def find_fully_conserved_orientations(
-    orientations: np.ndarray,
+    orientations: NDArray[np.float_],
     pct_size_buffer: float = 0.85,
     kmeans_ang_cutoff: float = 120,
     kmeans_inertia_cutoff: float = 0.4,
@@ -181,20 +191,50 @@ def find_fully_conserved_orientations(
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-) -> List:
-    """
-    Checks if given oxygen cluster can be considered as a fully conserved water based on hydrogen orientations. Fully conserved water is one which has well defined hydrogen orientations in two distinctive groups (ie strongly hydrogen bonded for both hydrogens). To check if water is conserved, one first checks if k means clustering of hydrogen orientations gives two destinctive clusters with low inertia and required angle between the clusters. Afterwards more rigorous check is carried out with OPTICS clustering where again the sperad of orientations and angle is considered.
+) -> list:
+    """Check if orientations belong to FCW.
 
-    Parameters
-    ----------
-    orientations: numpy.ndarray
-        orientations of hydrogen atoms around studied oxygen cluster
+    Checks if given oxygen cluster can be considered as a fully
+    conserved water based on hydrogen orientations. Fully conserved
+    water is one which has well defined hydrogen orientations in two
+    distinctive groups (ie strongly hydrogen bonded for both hydrogens).
+    To check if water is conserved, one first checks if k means
+    clustering of hydrogen orientations gives two destinctive clusters
+    with low inertia and required angle between the clusters. Afterwards
+    more rigorous check is carried out with OPTICS clustering where
+    again the sperad of orientations and angle is considered.
 
-    Returns
-    -------
-    waters : List
-        returns list of lists which contains orientations of hydrogen atom orientations (in xyz) wrt to oxygen and string conserved
+    Args:
+        orientations (NDArray[np.float_]): array of hydrogen
+            orientations in space
+        pct_size_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.85.
+        kmeans_ang_cutoff (float, optional): Maximum value of angle (in
+            deg) allowed for FCW in kmeans clustering to be considered
+            correct water angle. Defaults to 120.
+        kmeans_inertia_cutoff (float, optional): upper limit allowed on
+            kmeans inertia (measure of spread of data in a cluster).
+            Defaults to 0.4.
+        angdiff_cutoff (float, optional): Maximum value of angle (in
+            deg) allowed for FCW in OPTICS/HDBSCAN clustering to be
+            considered correct water angle. Defaults to 5.
+        angstd_cutoff (float, optional): Maximal standard deviation
+            of angle distribution of orientations of two hydrogens
+            allowed for water to be considered FCW. Defaults to 17.
+        xi (float, optional): Xi value for OPTICS clustering for FCW. Don't
+            touch this unless you know what you are doing.
+            Defaults to 0.03.
+        njobs (int, optional): how many cpu cores to use for clustering.
+            Defaults to 1.
+        verbose (int, optional): verbosity of output. Defaults to 0.
+        debugH (int, optional): debug level for orientations. Defaults to 0.
+        plotreach (bool, optional): weather to plot the reachability
+            plot for OPTICS when debuging. Defaults to False.
 
+    Returns:
+        list: returns a list containing two orientations of hydrogens
+            and water classification string "FCW", if not FCW returns
+            empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)
@@ -223,7 +263,10 @@ def find_fully_conserved_orientations(
             / (2.0 * np.pi)
             * np.arccos(
                 np.clip(
-                    np.dot(Kcv1 / np.linalg.norm(Kcv1), Kcv2 / np.linalg.norm(Kcv2)),
+                    np.dot(
+                        Kcv1 / np.linalg.norm(Kcv1),
+                        Kcv2 / np.linalg.norm(Kcv2),
+                    ),
                     -1.0,
                     1.0,
                 )
@@ -241,7 +284,9 @@ def find_fully_conserved_orientations(
             cc.fit(orientations)
             labels = cc.labels_
             # Calculate number of elements in each cluster
-            (values, counts) = np.unique(labels[labels != -1], return_counts=True)
+            (values, counts) = np.unique(
+                labels[labels != -1], return_counts=True
+            )
             # if number of optics clusters for hydrogen clustering is >0
             if len(np.sort(np.unique(labels[labels != -1]))) == 2:
                 # find two biggest clusters
@@ -253,29 +298,37 @@ def find_fully_conserved_orientations(
                     <= neioc * (2 - pct_size_buffer)
                     and len(orientations[labels == secondbiggest])
                     <= neioc * (2 - pct_size_buffer)
-                    and len(orientations[labels == biggest]) > neioc * pct_size_buffer
+                    and len(orientations[labels == biggest])
+                    > neioc * pct_size_buffer
                     and len(orientations[labels == secondbiggest])
                     > neioc * pct_size_buffer
                 ):
                     # calculate the average orientation of two biggest clusters
                     avang1 = np.mean(orientations[labels == biggest], axis=0)
-                    avang2 = np.mean(orientations[labels == secondbiggest], axis=0)
+                    avang2 = np.mean(
+                        orientations[labels == secondbiggest], axis=0
+                    )
                     # calculate average angle between average orientation of one cluster with elements(orientations) of the other cluster
                     angs12 = (
                         np.arccos(
-                            np.dot(orientations[labels == secondbiggest], avang1.T)
+                            np.dot(
+                                orientations[labels == secondbiggest], avang1.T
+                            )
                         )
                         * 360.0
                         / (2.0 * np.pi)
                     )
                     angs21 = (
-                        np.arccos(np.dot(orientations[labels == biggest], avang2.T))
+                        np.arccos(
+                            np.dot(orientations[labels == biggest], avang2.T)
+                        )
                         * 360.0
                         / (2.0 * np.pi)
                     )
                     # check if average angles are low and that their std. deviation is low
                     if (
-                        np.abs(np.mean(angs21) - np.mean(angs12)) < angdiff_cutoff
+                        np.abs(np.mean(angs21) - np.mean(angs12))
+                        < angdiff_cutoff
                         and np.std(angs12) < angstd_cutoff
                         and np.std(angs21) < angstd_cutoff
                     ):
@@ -284,7 +337,11 @@ def find_fully_conserved_orientations(
                             print("conserved found")
                         fully_conserved.append(
                             __return_normalized_orientation_pair(
-                                orientations, labels, biggest, secondbiggest, "FCW"
+                                orientations,
+                                labels,
+                                biggest,
+                                secondbiggest,
+                                "FCW",
                             )
                         )
     # Debug needs neoic,orientations,kmeans,ang,k,counts,biggest,secondbiggest,angs12,angs21,cc
@@ -295,7 +352,7 @@ def find_fully_conserved_orientations(
             f"angle - mean: {ang:.2f}(calced)<{kmeans_ang_cutoff:.2f}; inertia per H: {kmeans.inertia_/len(orientations):.2f}(calced)<{kmeans_inertia_cutoff:.2f}\n"
         )
     if debugH == 2 or (debugH == 1 and len(fully_conserved) > 0):
-        plot3Dorients(111, kmeans.labels_, orientations, sk)
+        __plot3Dorients(111, kmeans.labels_, orientations, sk)
     # OPTICS
     if debugH > 0 or verbose > 0:
         ss = (
@@ -308,7 +365,7 @@ def find_fully_conserved_orientations(
     if verbose == 2 or (verbose == 1 and len(fully_conserved) > 0):
         print(sk + ss)
     # Debug plots
-    hydrogen_orient_plots(
+    __hydrogen_orient_plots(
         labels,
         orientations,
         cc,
@@ -323,7 +380,7 @@ def find_fully_conserved_orientations(
 
 
 def find_half_conserved_orientations(
-    orientations: np.ndarray,
+    orientations: NDArray[np.float_],
     pct_size_buffer: float = 0.85,
     min_samp_data_size_pct: float = 0.35,
     angdiff_cutoff: float = 15,
@@ -333,20 +390,48 @@ def find_half_conserved_orientations(
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-) -> List:
-    """
-    Checks if given oxygen cluster can be considered as a half conserved water based on hydrogen orientations. Half conserved water is one which has one well defined hydrogen orientation (ie one strongly hydrogen bonded hydrogen). To check if water is half conserved, one calculates OPTICS clustering of hydrogen orientations. One then loops over clusters in an atempt to find a hydrogen orientation cluster which is the size of oxygen cluster and weather the angle between that cluster with all other orientations is of right angle and if spread of orientations is sufficiently low.
+) -> list:
+    """Checks if given orientations belong to HCW.
 
-    Parameters
-    ----------
-    orientations: numpy.ndarray
-        orientations of hydrogen atoms around studied oxygen cluster
+    Checks if given oxygen cluster can be considered as a half conserved
+    water based on hydrogen orientations. Half conserved water is one
+    which has one well defined hydrogen orientation (ie one strongly
+    hydrogen bonded hydrogen). To check if water is half conserved, one
+    calculates OPTICS clustering of hydrogen orientations. One then
+    loops over clusters in an atempt to find a hydrogen orientation
+    cluster which is the size of oxygen cluster and weather the angle
+    between that cluster with all other orientations is of right angle
+    and if spread of orientations is sufficiently low.
 
-    Returns
-    -------
-    waters : List
-        returns list of lists which contains orientations of hydrogen atom orientations (in xyz) wrt to oxygen and string conserved type
+    Args:
+        orientations (NDArray[np.float_]): array of hydrogen
+            orientations in space
+        pct_size_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.85.
+        min_samp_data_size_pct (float, optional): Minimum samples to
+            choose for OPTICS or HDBSCAN clustering as percentage of
+            number of water molecules considered for HCW and WCW.
+            Defaults to 0.15.
+        angdiff_cutoff (float, optional): Maximum standard
+            deviation of angle allowed for HCW to be considered
+            correct water angle. Defaults to 15.
+        HCW_angstd_cutoff (float, optional): Maximum standard deviation
+            cutoff for WCW angles to be considered correct water angles.
+            Defaults to 17.
+        xi (float, optional): Xi value for OPTICS clustering for HCW. Don't
+            touch this unless you know what you are doing.
+            Defaults to 0.01.
+        njobs (int, optional): how many cpu cores to use for clustering.
+            Defaults to 1.
+        verbose (int, optional): verbosity of output. Defaults to 0.
+        debugH (int, optional): debug level for orientations. Defaults to 0.
+        plotreach (bool, optional): weather to plot the reachability
+            plot for OPTICS when debuging. Defaults to False.
 
+    Returns:
+        list: returns a list containing two orientations of hydrogens
+            and water classification string "HCW", if not HCW returns
+            an empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)
@@ -413,7 +498,7 @@ def find_half_conserved_orientations(
     if verbose == 2 or (verbose == 1 and len(half_conserved) > 0):
         print(ss + sk)
     # Debug plots
-    hydrogen_orient_plots(
+    __hydrogen_orient_plots(
         labels,
         orientations,
         cc,
@@ -428,7 +513,7 @@ def find_half_conserved_orientations(
 
 
 def find_weakly_conserved_orientations(
-    orientations: np.ndarray,
+    orientations: NDArray[np.float_],
     pct_size_buffer: float = 0.85,
     lower_bound_pct_buffer: float = 0.35,
     min_samp_data_size_pct: float = 0.15,
@@ -440,19 +525,54 @@ def find_weakly_conserved_orientations(
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-) -> List:
-    """
-    Checks if given oxygen cluster can be considered as a weakly conserved water based on hydrogen orientations. weakly conserved water is one which has no well defined hydrogen orientation (ie no strongly hydrogen bonded hydrogen) but still has distinct hydrogen orientational clusters. To check if water is weakly conserved, one calculates OPTICS clustering of hydrogen orientations. One then loops over clusters in an atempt to find a pair of hydrogen orientation clusters which is of the same size and weather the angle between the two clusters is of right angle and if spread of orientations is sufficiently low. Aditionally triplets are checked as well. Here we do the same check but we are looking at cluster one vs two other clusters combined.
+) -> list:
+    """Checks if given orientations belong to WCW.
 
-    Parameters
-    ----------
-    orientations: numpy.ndarray
-        orientations of hydrogen atoms around studied oxygen cluster
+    Checks if given oxygen cluster can be considered as a weakly
+    conserved water based on hydrogen orientations. weakly conserved
+    water is one which has no well defined hydrogen orientation (ie no
+    strongly hydrogen bonded hydrogen) but still has distinct hydrogen
+    orientational clusters. To check if water is weakly conserved, one
+    calculates OPTICS clustering of hydrogen orientations. One then
+    loops over clusters in an atempt to find a pair of hydrogen
+    orientation clusters which is of the same size and weather the angle
+    between the two clusters is of right angle and if spread of
+    orientations is sufficiently low. Aditionally triplets are checked
+    as well. Here we do the same check but we are looking at cluster one
+    vs two other clusters combined.
 
-    Returns
-    -------
-    waters : List
-        returns list of lists which contains orientations of hydrogen atom orientations (in xyz) wrt to oxygen and string conserved type
+    Args:
+        orientations (NDArray[np.float_]): array of hydrogen
+            orientations in space
+        pct_size_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.85.
+        min_samp_data_size_pct (float, optional): Minimum samples to
+            choose for OPTICS or HDBSCAN clustering as percentage of
+            number of water molecules considered for HCW and WCW.
+            Defaults to 0.15.
+        pct_explained (float, optional): percentage of explained
+            hydrogen orientations for water to be considered WCW.
+            Defaults to 0.7.
+        angdiff_cutoff (float, optional): Maximum standard
+            deviation of angle allowed for WCW to be considered
+            correct water angle. Defaults to 15.
+        angstd_cutoff (float, optional): Maximum standard deviation
+            cutoff for WCW angles to be considered correct water angles.
+            Defaults to 20.
+        xi (float, optional): Xi value for OPTICS clustering for WCW. Don't
+            touch this unless you know what you are doing.
+            Defaults to 0.01.
+        njobs (int, optional): how many cpu cores to use for clustering.
+            Defaults to 1.
+        verbose (int, optional): verbosity of output. Defaults to 0.
+        debugH (int, optional): debug level for orientations. Defaults to 0.
+        plotreach (bool, optional): weather to plot the reachability
+            plot for OPTICS when debuging. Defaults to False.
+
+    Returns:
+        list: returns a list containing two orientations of hydrogens
+            and water classification string "WCW", if not WCW returns
+            an empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)
@@ -788,7 +908,7 @@ def find_weakly_conserved_orientations(
     if verbose == 2 or (verbose == 1 and len(weakly_conserved) > 0):
         print(ss + sk)
     # Debug plots
-    hydrogen_orient_plots(
+    __hydrogen_orient_plots(
         labels,
         orientations,
         cc,
@@ -799,3 +919,120 @@ def find_weakly_conserved_orientations(
         plotreach,
     )
     return weakly_conserved
+
+
+def __hydrogen_orient_plots(
+    labels, orientations, cc, ss, rtit, conserved, debugH, plotreach: bool
+) -> None:
+    """Collection of plots for hydrogen orientation.
+
+    For debuging purposes. Not ment for direct usage.
+    """
+    if debugH == 2 or (debugH == 1 and conserved):
+        if plotreach:
+            fig = __plot3Dorients(111, labels, orientations, ss)
+        else:
+            fig = __plot3Dorients(121, labels, orientations, ss)
+        if plotreach:
+            __plotreachability(122, orientations, cc, fig=fig, tit=rtit)
+
+
+def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
+    """Function for plotting 3D orientations.
+
+    For debuging only.
+
+    """
+    fig: Figure = plt.figure()
+    if type(labels) == int:
+        return fig
+    ax: Axes = fig.add_subplot(subplot, projection="3d")
+    ax.set_title(tip)
+    for j in np.unique(labels):
+        jaba = orientations[labels == j]
+        ax.scatter(
+            jaba[:, 0],
+            jaba[:, 1],
+            jaba[:, 2],
+            label=f"{j} ({len(labels[labels==j])})",
+        )
+        if j > -1:
+            ax.quiver(
+                0,
+                0,
+                0,
+                np.mean(jaba[:, 0]),
+                np.mean(jaba[:, 1]),
+                np.mean(jaba[:, 2]),
+                color="gray",
+                arrow_length_ratio=0.0,
+                linewidths=5,
+            )
+    ax.scatter(0, 0, 0, c="crimson", s=1000)
+    ax.legend()
+    ax.grid(False)
+    ax.axis("off")
+    ax.set_aspect("equal")
+    ax.autoscale(tight=True)
+    ax.dist = 6
+    return fig
+
+
+def __plotreachability(
+    subplot, orientations, cc, fig: Figure | None = None, tit=None
+) -> Figure:
+    """Function for plotting reachability.
+
+    For debuging purposes only.
+
+    """
+    if fig is None:
+        fig: Figure = plt.figure()
+    if type(cc) != OPTICS:
+        return fig
+    lblls = cc.labels_[cc.ordering_]
+    labels = cc.labels_
+    reachability = cc.reachability_[cc.ordering_]
+    ax2 = fig.add_subplot(subplot)
+    fig.gca().set_prop_cycle(None)
+    space = np.arange(len(orientations))
+    ax2.plot(space, reachability)
+    if tit is not None:
+        ax2.set_title(tit)
+    for clst in np.unique(lblls):
+        if clst == -1:
+            ax2.plot(
+                space[lblls == clst],
+                reachability[lblls == clst],
+                label=f"{clst} ({len(space[lblls==clst])}), avg reach={np.mean(np.ma.masked_invalid(cc.reachability_[labels==clst]))}",
+                color="blue",
+            )
+        else:
+            ax2.plot(
+                space[lblls == clst],
+                reachability[lblls == clst],
+                label=f"{clst} ({len(space[lblls==clst])}), avg reach={np.mean(np.ma.masked_invalid(cc.reachability_[labels==clst]))}",
+            )
+    ax2.legend()
+    return fig
+
+
+def __return_normalized_orientation_pair(
+    orientations: NDArray[np.float_],
+    labels: NDArray[np.int_],
+    i: int,
+    j: int,
+    typel: str,
+) -> list[NDArray[np.float_] | str]:
+    """Helper function for normalizing orientations
+
+    Not ment for general usage.
+
+    """
+    v1 = np.mean(orientations[labels == i], axis=0)
+    v2 = np.mean(orientations[labels == j], axis=0)
+    return [
+        v1 / np.linalg.norm(v1) * np.linalg.norm(orientations[0]),
+        v2 / np.linalg.norm(v2) * np.linalg.norm(orientations[0]),
+        typel,
+    ]
