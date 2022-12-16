@@ -1,4 +1,6 @@
-hdbscan>=0.8.28
+hdbscan
 matplotlib
 numpy
 scikit-learn
+nglview
+git+https://git@github.com/schrodinger/pymol-open-source.git@master
