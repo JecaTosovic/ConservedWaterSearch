@@ -1,5 +1,5 @@
-hdbscan
-matplotlib
 numpy
+matplotlib
 scikit-learn
+hdbscan
 nglview

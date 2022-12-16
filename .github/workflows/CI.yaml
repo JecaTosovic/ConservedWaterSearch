@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     strategy:
       matrix:
         python-version: ["3.10"]
@@ -16,16 +16,23 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Create Python Environment
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        environment-file: .github/workflows/environment.yml
+        channels: conda-forge
+        activate-environment: test
+        show-channel-urls: true
+        miniforge-variant: Mambaforge
+        use-mamba: true
     - name: Lint with flake8
       run: |
-        $CONDA/bin/conda install -c conda-forge flake8
+        pip install flake8
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings.
         flake8 . --count --exit-zero --max-complexity=20 --max-line-length=100 --statistics
-    - name: Install dependencies
-      run: |
-        $CONDA/bin/conda env update --file environment.yml --name base
     - name: Install package
       run: |
         pip install -e .
