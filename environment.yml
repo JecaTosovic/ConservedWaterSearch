@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - hdbscan
+  - nglview
+  - pymol-open-source

@@ -3,4 +3,3 @@ matplotlib
 numpy
 scikit-learn
 nglview
-git+https://git@github.com/schrodinger/pymol-open-source.git@master
