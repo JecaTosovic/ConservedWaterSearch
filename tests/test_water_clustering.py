@@ -1,14 +1,11 @@
 import os
-from shutil import which
 
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from ConservedWaterSearch.utils import (
     get_orientations_from_positions,
     read_results,
-    visualise_pymol,
 )
 from ConservedWaterSearch.water_clustering import WaterClustering
 
@@ -163,7 +160,7 @@ def test_restart_cluster():
     np.savetxt("water_coords_restart.dat", np.c_[Odata])
     newWC = WaterClustering(0)
     newWC.save_intermediate_results = False
-    newWC.restart_cluster(results_file="Clustering_results.dat",type_results_file="Type_Clustering_results.dat")
+    newWC.restart_cluster(results_file="Clustering_results.dat", type_results_file="Type_Clustering_results.dat")
     os.remove("clust_options.dat")
     os.remove("Clustering_results.dat")
     os.remove("Type_Clustering_results.dat")
@@ -201,7 +198,6 @@ def test_delete_data3():
 
 def test_single_clustering_OPTICS():
     Nsnap = 20
-    N_waters = 20
     Opos = np.loadtxt("tests/data/testdataO.dat")
     Hpos = np.loadtxt("tests/data/testdataH.dat")
     wc = WaterClustering(
@@ -219,7 +215,6 @@ def test_single_clustering_OPTICS():
 
 def test_single_clustering_HDBSCAN():
     Nsnap = 20
-    N_waters = 20
     Opos = np.loadtxt("tests/data/testdataO.dat")
     Hpos = np.loadtxt("tests/data/testdataH.dat")
     wc = WaterClustering(
@@ -240,7 +235,6 @@ def test_single_clustering_HDBSCAN():
 
 def test_multistage_reclustering_OPTICS():
     Nsnap = 20
-    N_waters = 20
     Opos = np.loadtxt("tests/data/testdataO.dat")
     Hpos = np.loadtxt("tests/data/testdataH.dat")
     wc = WaterClustering(
@@ -258,7 +252,6 @@ def test_multistage_reclustering_OPTICS():
 
 def test_multistage_reclustering_HDBSCAN():
     Nsnap = 20
-    N_waters = 20
     Opos = np.loadtxt("tests/data/testdataO.dat")
     Hpos = np.loadtxt("tests/data/testdataH.dat")
     wc = WaterClustering(
