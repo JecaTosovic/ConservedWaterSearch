@@ -608,7 +608,7 @@ class WaterClustering:
             if self.verbose > 0:
                 (aa, bb) = np.unique(clusters, return_counts=True)
                 dbgt = (
-                    f"Oxygen clustering {type(clust)} minsamp={i}, xi={j}, {len(np.unique(clusters[clusters!=-1]))} clusters \n"
+                    f"Oxygen clustering {type(clust)} minsamp={minsamp}, xi={xi}, {len(np.unique(clusters[clusters!=-1]))} clusters \n"
                     f"Required N(elem) range:{self.nsnaps*self.numbpct_oxygen:.2f} to {(2-self.numbpct_oxygen)*self.nsnaps}; (tar cls size={self.nsnaps} and numbpct={self.numbpct_oxygen:.2f})\n"
                     f"N(elements) for each cluster: {bb}\n"
                 )

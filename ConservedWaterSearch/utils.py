@@ -26,7 +26,7 @@ def read_results(
 
     Returns:
         tuple[ list[str], list[NDArray[np.float_]],
-        list[NDArray[np.float_]], list[NDArray[np.float_]] ]: 
+        list[NDArray[np.float_]], list[NDArray[np.float_]] ]:
             returns list of strings which represents
             water types, and arrays of locations of oxygen and two
             hyrogens. If only oxygens were saved returned hydrogen
