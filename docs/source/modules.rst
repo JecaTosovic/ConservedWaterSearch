@@ -4,4 +4,6 @@ ConservedWaterSearch
 .. toctree::
    :maxdepth: 4
 
-   ConservedWaterSearch
+   WaterClustering
+   Utilities
+   HydrogenOrientationAnalysis

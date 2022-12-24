@@ -24,3 +24,6 @@ For citations, the following BibTeX entry can be used:
     URL = {https://doi.org/10.1021/acs.jcim.2c00801},
     }
 
+
+.. rubric:: References:
+.. bibliography:: references/references.bib

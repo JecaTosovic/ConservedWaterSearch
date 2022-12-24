@@ -12,6 +12,7 @@ Table of Contents
 
    quickstart
    installation
+   conservedwaters
    examples
 
 .. toctree::
@@ -24,7 +25,7 @@ Table of Contents
    :maxdepth: 2
    :caption: Reference
 
-   references/citing
+   citing
 
 Indices and tables
 ==================
