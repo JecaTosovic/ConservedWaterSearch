@@ -160,7 +160,10 @@ def test_restart_cluster():
     np.savetxt("water_coords_restart.dat", np.c_[Odata])
     newWC = WaterClustering(0)
     newWC.save_intermediate_results = False
-    newWC.restart_cluster(results_file="Clustering_results.dat", type_results_file="Type_Clustering_results.dat")
+    newWC.restart_cluster(
+        results_file="Clustering_results.dat",
+        type_results_file="Type_Clustering_results.dat",
+    )
     os.remove("clust_options.dat")
     os.remove("Clustering_results.dat")
     os.remove("Type_Clustering_results.dat")
@@ -221,8 +224,7 @@ def test_single_clustering_HDBSCAN():
         Nsnap, save_intermediate_results=False, save_results_after_done=False
     )
     wc.single_clustering(
-        *get_orientations_from_positions(Opos, Hpos),
-        clustering_algorithm="HDBSCAN"
+        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
     )
     a, b, c, d = read_results(
         "tests/data/Single_HDBSCAN.dat", "tests/data/Single_HDBSCAN_Type.dat"
@@ -258,8 +260,7 @@ def test_multistage_reclustering_HDBSCAN():
         Nsnap, save_intermediate_results=False, save_results_after_done=False
     )
     wc.multi_stage_reclustering(
-        *get_orientations_from_positions(Opos, Hpos),
-        clustering_algorithm="HDBSCAN"
+        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
     )
     a, b, c, d = read_results(
         "tests/data/MSR_HDBSCAN.dat", "tests/data/MSR_HDBSCAN_Type.dat"
