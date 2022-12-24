@@ -20,28 +20,32 @@ def hydrogen_orientation_analysis(
     HCW_angstd_cutoff: float = 17,
     WCW_angstd_cutoff: float = 20,
     weakly_explained: float = 0.7,
-    xiFCW: list = [0.03],
-    xiHCW: list = [0.05, 0.01],
-    xiWCW: list = [0.05, 0.001],
+    xiFCW: list[float] = [0.03],
+    xiHCW: list[float] = [0.05, 0.01],
+    xiWCW: list[float] = [0.05, 0.001],
     njobs: int = 1,
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-    which=["FCW", "HCW", "WCW"],
-    normalize_orientations=True,
+    which: list[str] = ["FCW", "HCW", "WCW"],
+    normalize_orientations: bool = True,
 ) -> list:
     """Determines if the water cluster is conserved and of what type.
 
     High level function that does hydrogen orientation analysis. Checks
     if the water cluster belongs into one of the following groups by
     analizing hydrogen orientations:
-            FCW (Fully Conserved Water) - hydrogens are strongly
-                oriented in two directions with angle of 104.5
-            HCW (Half Conserved Water) - one set (cluster) of hydrogens is
-                oriented in certain directions and other are spread into
-                different orientations with angle of 104.5
-            WCW (weakly Conserved Water) - several orientation
-                combinations exsist with satisfying angles
+
+    - FCW (Fully Conserved Water): hydrogens are strongly oriented in
+      two directions with angle of 104.5
+    - HCW (Half Conserved Water): one set (cluster) of hydrogens is
+      oriented in certain directions and other are spread into different
+      orientations with angle of 104.5
+    - WCW (Weakly Conserved Water): several orientation combinations
+      exsist with satisfying water angles
+
+    See :cite:`conservedwatersearch2022` for more information on water
+    classification :ref:`conservedwaters:theory, background and methods`.
     If orientations don't satisfy the criteria for any of the waters, an
     empty list is returned.
 
@@ -102,8 +106,8 @@ def hydrogen_orientation_analysis(
 
     Returns:
         list: returns a list containing two orientations of hydrogens
-            and water classification string ("FCW", "HCW", "WCW"), if
-            not conserved returns an empty list
+        and water classification string ("FCW", "HCW", "WCW"), if
+        not conserved returns an empty list
     """
     orientations = np.array(orientations)
     # check length of orientations - it has to be bigger then 1 and even
@@ -233,8 +237,8 @@ def find_fully_conserved_orientations(
 
     Returns:
         list: returns a list containing two orientations of hydrogens
-            and water classification string "FCW", if not FCW returns
-            empty list
+        and water classification string "FCW", if not FCW returns
+        empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)
@@ -430,8 +434,8 @@ def find_half_conserved_orientations(
 
     Returns:
         list: returns a list containing two orientations of hydrogens
-            and water classification string "HCW", if not HCW returns
-            an empty list
+        and water classification string "HCW", if not HCW returns
+        an empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)
@@ -571,8 +575,8 @@ def find_weakly_conserved_orientations(
 
     Returns:
         list: returns a list containing two orientations of hydrogens
-            and water classification string "WCW", if not WCW returns
-            an empty list
+        and water classification string "WCW", if not WCW returns
+        an empty list
     """
     # number of elements in oxygen cluster
     neioc = int(len(orientations) / 2)

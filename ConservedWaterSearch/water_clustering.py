@@ -30,19 +30,21 @@ class WaterClustering:
     First, oxygens are clustered using OPTICS or HDBSCAN, followed by
     analysis of orientations for classification of waters into one of 3
     proposed conserved water types:
-        FCW (Fully Conserved Water) - hydrogens are strongly
-            oriented in two directions with angle of 104.5
-        HCW (Half Conserved Water) - one set (cluster) of hydrogens is
-            oriented in certain directions and other are spread into
-            different orientations with angle of 104.5
-        WCW (weakly Conserved Water) - several orientation
-            combinations exsist with water angles of 104.5
 
-    To run the calculation use either ``multi_stage_reclustering()``
+        - FCW (Fully Conserved Water): hydrogens are strongly oriented in
+          two directions with angle of 104.5
+        - HCW (Half Conserved Water): one set (cluster) of hydrogens is
+          oriented in certain directions and other are spread into different
+          orientations with angle of 104.5
+        - WCW (Weakly Conserved Water): several orientation combinations
+          exsist with satisfying water angles
+
+    To run the calculation use either :meth:`multi_stage_reclustering`
     function to start Multi Stage ReClustering (MSRC) procedure or
     ``single_clustering()`` to start a single clustering (SC) procedure.
     MSRC gives correct results at the cost of computational time,
-    while SC is very quick but results are also very poor.
+    while SC is very quick but results are also very poor. For more details
+    see :cite:`conservedwatersearch2022` .
 
     """
 
@@ -73,24 +75,10 @@ class WaterClustering:
         plotend: bool = False,
         plotreach: bool = False,
     ) -> None:
-        """Class for performing water clustering.
+        """Initialise ``WaterClustering`` class.
 
-        First, oxygens are clustered using OPTICS or HDBSCAN, followed by
-        analysis of orientations for classification of waters into one of 3
-        proposed conserved water types:
-            FCW (Fully Conserved Water) - hydrogens are strongly
-                oriented in two directions with angle of 104.5
-            HCW (Half Conserved Water) - one set (cluster) of hydrogens is
-                oriented in certain directions and other are spread into
-                different orientations with angle of 104.5
-            WCW (weakly Conserved Water) - several orientation
-                combinations exsist with water angles of 104.5
-
-        To run the calculation use either ``multi_stage_reclustering()``
-        function to start Multi Stage ReClustering (MSRC) procedure or
-        ``single_clustering()`` to start a single clustering (SC) procedure.
-        MSRC gives correct results at the cost of computational time,
-        while SC is very quick but results are also very poor.
+        The input parameters determine the options for oxygen clustering and
+        hydrogen orienataion analysis if applicable.
 
         Args:
             nsnaps (int): Number of trajectory snapshots related to
@@ -98,8 +86,8 @@ class WaterClustering:
             numbpct_oxygen (float, optional): Percentage of
                 ``nsnaps`` required for oxygen cluster to be considered
                 valid and water conserved. The check is enforced on
-                the lower limit :math:`nsnaps * numbpct_oxygen` as well as
-                the upper limit :math:`nsnaps * (2-numbpct_oxygen)`.
+                the lower limit ``nsnaps * numbpct_oxygen`` as well as
+                the upper limit ``nsnaps * (2-numbpct_oxygen)``.
                 Defaults to 0.8.
             normalize_orientations (bool, optional): If orientations
                 should be normalised to unit length or not. Defaults to True.
@@ -200,7 +188,7 @@ class WaterClustering:
         self,
         clustering_type: str,
         clustering_algorithm: str,
-        options: list,
+        options: list[int, float],
         whichH: list[str],
         fname: str = "clust_options.dat",
     ) -> None:
@@ -291,9 +279,9 @@ class WaterClustering:
 
 
         Returns:
-            tuple[ NDArray[np.float_], NDArray[np.float_] | None,
-            NDArray[np.float_] | None, ]: returns a new set of Oxygen
-            and Hydrogen xyz coordinates array with some rows deleted.
+            tuple[ NDArray[np.float_], NDArray[np.float_] | None, NDArray[np.float_] | None, ]: 
+            returns a new set of Oxygen and Hydrogen xyz coordinates array
+            with some rows deleted.
         """
         Odata = np.delete(Odata, elements, 0)
         if not (H1 is None):
@@ -669,20 +657,20 @@ class WaterClustering:
                 results from OPTICS or HDBSCAN.
             stop_after_frist_water_found (bool): If True, the procedure
                 is stopped after the first valid water is found and
-                indecies of the oxygens and hydrogens belonging to this
+                indicies of the oxygens and hydrogens belonging to this
                 water are also returned.
             whichH (list[str]): Defines which water types to
                 search for. Any combination of "FCW", "HWC" and "WCW" is
                 allowed, or "onlyO" for oxygen clustering only.
 
         Returns:
-            tuple[list[NDArray[np.float_]], list[int]]: returns two
-                lists. First list contains valid conserved waters found.
-                Each entry in the list is a list which contains the
-                positions of oxygen, 2 hydrogen positions and water type
-                found, the second list is a list of lists which contain
-                arguments to be deleted if ``stop_after_frist_water_found``
-                is True, else the second list is empty.
+            tuple[list[NDArray[np.float_]], list[int]]:
+            returns two lists. First list contains valid conserved waters
+            found. Each entry in the list is a list which contains the
+            positions of oxygen, 2 hydrogen positions and water type
+            found, the second list is a list of lists which contain
+            arguments to be deleted if ``stop_after_frist_water_found``
+            is True, else the second list is empty.
         """
         waters = []
         # Loop over all oxygen clusters (-1 is non cluster)
@@ -819,7 +807,7 @@ class WaterClustering:
         data_file: str = "water_coords_restart.dat",
         results_file: str = "Clustering_results_temp.dat",
         type_results_file: str = "Type_Clustering_results_temp.dat",
-    ) -> tuple[NDArray[np.float_]] | None:
+    ) -> None:
         """Read the clustering options and intermediate results from a
         file and restart the clustering procedure.
 
@@ -898,9 +886,9 @@ class WaterClustering:
                 Defaults to "clust_options.dat".
 
         Returns:
-            Tuple[str, str, list[int | float], list[str]]: Returns
-                clustering procedure type, clustering algorithm, options fo
-                the procedure type and which water types to determine
+            Tuple[str, str, list[int | float], list[str]]:
+            Returns clustering procedure type, clustering algorithm, options
+            for the procedure type and which water types to determine
         """
         if os.path.isfile(options_file):
             f: TextIOWrapper = open(options_file, "r")
@@ -975,7 +963,7 @@ class WaterClustering:
 
         Returns:
             WaterClustering: creates an instance of ``WaterClustering``
-                class by reading options from a file.
+            class by reading options from a file.
         """
         cls = cls(0)
         if os.path.isfile(options_file):
@@ -1016,7 +1004,7 @@ class WaterClustering:
         dist: float = 10.0,
         density_map: str | None = None,
     ) -> None:
-        """Visualise results using `pymol<https://pymol.org/>`__.
+        """Visualise results using `pymol <https://pymol.org/>`__.
 
         Args:
             aligned_protein (str, optional): file name containing protein
@@ -1058,7 +1046,7 @@ class WaterClustering:
         crystal_waters: str | None = None,
         density_map: str | None = None,
     ) -> NGLWidget:
-        """Visualise the results using `nglview<https://github.com/nglviewer/nglview>`__.
+        """Visualise the results using `nglview <https://github.com/nglviewer/nglview>`__.
 
         Args:
             aligned_protein (str, optional): File containing protein
@@ -1074,7 +1062,7 @@ class WaterClustering:
 
         Returns:
             NGLWidget: returns nglview instance widget which can be run
-                in Ipyhon/Jupyter to create a visualisation instance
+            in Ipyhon/Jupyter to create a visualisation instance
         """
         return visualise_nglview(
             self._water_type,
@@ -1089,21 +1077,25 @@ class WaterClustering:
 
     @property
     def water_type(self) -> list[str]:
-        """List containing conserved water type classifications: FCW for
-        fully conserved waters, HCW for half conserved waters and WCW
-        for weakly conserved waters. Water types:
-            FCW (Fully Conserved Water) - hydrogens are strongly
-                oriented in two directions with angle of 104.5
-            HCW (Half Conserved Water) - one set (cluster) of hydrogens is
-                oriented in certain directions and other are spread into
-                different orientations with angle of 104.5
-            WCW (weakly Conserved Water) - several orientation
-                combinations exsist with water angles of 104.5
+        """List containing conserved water type classifications.
+
+        Contains conserved water type classifications in the same order
+        as coordinates in ``waterO`` and ``waterH1`` and ``waterH2``.
+        Water types:
+
+        - FCW (Fully Conserved Water): hydrogens are strongly oriented in
+          two directions with angle of 104.5
+        - HCW (Half Conserved Water): one set (cluster) of hydrogens is
+          oriented in certain directions and other are spread into different
+          orientations with angle of 104.5
+        - WCW (Weakly Conserved Water): several orientation combinations
+          exsist with satisfying water angles
+
 
         Returns:
             list[str]: Returns a list of strings containing water type
-                classification - "FCW" or "HCW" or "WCW". If "onlyO", only
-                oxygen clustering was performed.
+            classification - "FCW" or "HCW" or "WCW". If "onlyO", only
+            oxygen clustering was performed.
         """
         return self._water_type
 
@@ -1114,7 +1106,7 @@ class WaterClustering:
 
         Returns:
             list[NDArray[np.float_]]: Returns a list of 3D xyz
-                coordinates of oxygen positions in space
+            coordinates of oxygen positions in space
         """
         return self._waterO
 
@@ -1125,7 +1117,7 @@ class WaterClustering:
 
         Returns:
             list[NDArray[np.float_]]: Returns a list of 3D xyz
-                coordinates of first hydrogens' positions in space
+            coordinates of first hydrogens' positions in space
         """
         return self._waterH1
 
@@ -1136,7 +1128,7 @@ class WaterClustering:
 
         Returns:
             list[NDArray[np.float_]]: Returns a list of 3D xyz
-                coordinates of second hydrogens' positions in space
+            coordinates of second hydrogens' positions in space
         """
         return self._waterH2
 
@@ -1154,7 +1146,7 @@ def __oxygen_clustering_plot(
 
     """
     if type(cc) != OPTICS:
-        plotreach: bool = False
+        plotreach = False
     if debugO > 0:
         fig: Figure = plt.figure()
         if plotreach:

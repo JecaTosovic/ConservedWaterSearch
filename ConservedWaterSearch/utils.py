@@ -13,24 +13,28 @@ def read_results(
     fname: str = "Clustering_results.dat",
     typefname: str = "Type_Clustering_results.dat",
 ) -> tuple[
-    list[str], list[NDArray[np.float_]], list[NDArray[np.float_]], list[NDArray[np.float_]]
+    list[str],
+    list[NDArray[np.float_]],
+    list[NDArray[np.float_]],
+    list[NDArray[np.float_]],
 ]:
     """Read results from files.
 
+    Read results from files and return them in order for further
+    processing.
+
     Args:
-        fname (str, optional): File name of the file that contains water
-            coordinates. Defaults to "Clustering_results.dat".
+        fname (str, optional): File name of the file that contains
+            water coordinates. Defaults to "Clustering_results.dat".
         typefname (str, optional): File name of the file that contains
-            water classification strings. Defaults to
-            "Type_Clustering_results.dat".
+            water classification strings.
+            Defaults to "Type_Clustering_results.dat".
 
     Returns:
-        tuple[ list[str], list[NDArray[np.float_]],
-        list[NDArray[np.float_]], list[NDArray[np.float_]] ]:
-            returns list of strings which represents
-            water types, and arrays of locations of oxygen and two
-            hyrogens. If only oxygens were saved returned hydrogen
-            coordinates are empty arrays
+        tuple[ list[str], list[NDArray[np.float_]], list[NDArray[np.float_]], list[NDArray[np.float_]] ]:
+        returns list of strings which represents water types, and arrays
+        of locations of oxygen and two hyrogens. If only oxygens were
+        saved returned hydrogen coordinates are empty arrays
 
     Examples::
 
@@ -80,16 +84,12 @@ def get_orientations_from_positions(
             (N_waters, 3)
         coordsH (NDArray[np.float_]): Hydrogen coordinates - two
             hydrogens bound to the same oxygen have to be placed
-            one after another in the array. Shape - (2*N_waters, 3).
+            one after another in the array. Shape: (2*N_waters, 3).
 
     Returns:
-        tuple[NDArray[np.float_], NDArray[np.float_],
-        NDArray[np.float_]]: returns oxygen coordinates array and two
-            hydrogen orientation arrays.
-
-    Example::
-
-
+        tuple[NDArray[np.float_], NDArray[np.float_], NDArray[np.float_]]:
+        returns oxygen coordinates array and two hydrogen orientation
+        arrays.
     """
     Odata: NDArray[np.float_] = np.asarray(coordsO)
     if len(coordsH) > 1:
@@ -101,9 +101,7 @@ def get_orientations_from_positions(
         for o, h1, h2 in zip(Odata, H1, H2):
             a: NDArray[np.float_] = h1 - o
             b: NDArray[np.float_] = h2 - o
-            if (np.linalg.norm(h1 - o) > 1.2) or (
-                np.linalg.norm(h2 - o) > 1.2
-            ):
+            if (np.linalg.norm(h1 - o) > 1.2) or (np.linalg.norm(h2 - o) > 1.2):
                 raise ValueError(
                     "bad input HO bonds in water longer than 1.2A; value:",
                     np.linalg.norm(h1 - o),
@@ -119,10 +117,10 @@ def get_orientations_from_positions(
 
 
 def visualise_pymol(
-    water_type: list,
-    waterO: list,
-    waterH1: list,
-    waterH2: list,
+    water_type: list[str],
+    waterO: list[list[float]],
+    waterH1: list[list[float]],
+    waterH2: list[list[float]],
     aligned_protein: str = "aligned.pdb",
     output_file: str | None = None,
     active_site_ids: list[int] | None = None,
@@ -131,7 +129,7 @@ def visualise_pymol(
     dist: float = 10.0,
     density_map: str | None = None,
 ) -> None:
-    """Visualises results via `pymol<https://pymol.org/>`__.
+    """Visualises results via `pymol <https://pymol.org/>`__.
 
     Visualises results using pymol in a pymol session or saves to a file.
 
@@ -183,9 +181,7 @@ def visualise_pymol(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception(
-            "pymol not installed. Either install pymol or use nglview"
-        )
+        raise Exception("pymol not installed. Either install pymol or use nglview")
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.hide("everything")
@@ -236,27 +232,21 @@ def visualise_pymol(
         cmd.alter_state(
             0,
             wname,
-            "(x,y,z)=("
-            + str(Opos[0])
-            + ","
-            + str(Opos[1])
-            + ","
-            + str(Opos[2])
-            + ")",
+            "(x,y,z)=(" + str(Opos[0]) + "," + str(Opos[1]) + "," + str(Opos[2]) + ")",
         )
         if tip == "onlyO":
             cmd.delete(wname + "and elem H")
         else:
-            indeciesH = []
+            indiciesH: list[int] = []
             cmd.iterate_state(
                 -1,
                 wname + " and elem H",
-                "indeciesH.append(index)",
-                space={"indeciesH": indeciesH},
+                "indiciesH.append(index)",
+                space={"indiciesH": indiciesH},
             )
             cmd.alter_state(
                 0,
-                wname + " and index " + str(indeciesH[0]),
+                wname + " and index " + str(indiciesH[0]),
                 "(x,y,z)=("
                 + str(H1pos[0])
                 + ","
@@ -267,7 +257,7 @@ def visualise_pymol(
             )
             cmd.alter_state(
                 0,
-                wname + " and index " + str(indeciesH[1]),
+                wname + " and index " + str(indiciesH[1]),
                 "(x,y,z)=("
                 + str(H2pos[0])
                 + ","
@@ -373,7 +363,7 @@ def visualise_pymol_from_pdb(
     dist: float = 10.0,
     density_map: str | None = None,
 ) -> None:
-    """Make a `pymol<https://pymol.org/>`__. session from a pdb file.
+    """Make a `pymol <https://pymol.org/>`__. session from a pdb file.
 
     Visualises a pdb made by ``make_results_pdb_MDA`` file with water
     clustering results in pymol.
@@ -408,9 +398,7 @@ def visualise_pymol_from_pdb(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception(
-            "pymol not installed. Either install pymol or use nglview"
-        )
+        raise Exception("pymol not installed. Either install pymol or use nglview")
     if platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.load(pdbfile)
@@ -507,10 +495,10 @@ def visualise_pymol_from_pdb(
 
 
 def visualise_nglview(
-    water_type: list,
-    waterO: list,
-    waterH1: list,
-    waterH2: list,
+    water_type: list[str],
+    waterO: list[list[float]],
+    waterH1: list[list[float]],
+    waterH2: list[list[float]],
     aligned_protein: str = "aligned.pdb",
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
@@ -538,7 +526,7 @@ def visualise_nglview(
 
     Returns:
         NGLWidget: Returns nglview Widget for visualisation of the
-            results.
+        results.
 
     Example::
 
@@ -560,21 +548,20 @@ def visualise_nglview(
         view
     """
     if aligned_protein is not None:
-        view: NGLWidget = ngl.show_file(
-            aligned_protein, default_representation=False
-        )
+        view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
         view.clear_representations()
         view.add_representation("surface", selection="protein", opacity=0.5)
         view.add_representation("ball+stick", selection="water", color="red")
         selection = ""
-        for i in active_site_ids:
-            selection = selection[: len(selection) - 3]
-            selection += str(i) + " or "
-        view.add_representation(
-            "ball+stick",
-            selection=selection,
-            color="resname",
-        )
+        if active_site_ids is not None:
+            for i in active_site_ids:
+                selection = selection[: len(selection) - 3]
+                selection += str(i) + " or "
+            view.add_representation(
+                "ball+stick",
+                selection=selection,
+                color="pink",
+            )
     else:
         view = ngl.NGLWidget()
     col = {"FCW": "red", "WCW": "blue", "HCW": "green"}
@@ -584,9 +571,7 @@ def visualise_nglview(
         view[-1].set_coordinates(np.asarray([H1pos, Opos, H2pos]))
     if crystal_waters is not None:
         view.add_pdbid(crystal_waters)
-        view[-1].add_representation(
-            "spacefill", selection="water", color="red"
-        )
+        view[-1].add_representation("spacefill", selection="water", color="red")
     if density_map_file is not None:
         view.add_component(density_map_file)
     return view
