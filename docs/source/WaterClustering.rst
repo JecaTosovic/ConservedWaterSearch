@@ -1,10 +1,12 @@
+----------------
 Water Clustering
 ----------------
 
-Determination of conserved water positions based on clustering of oxygen atoms.
-
+.. Determination of conserved water positions based on clustering of oxygen atoms.
 .. rubric:: Overview of WaterClustering class
+
 .. autosummary::
+    :nosignatures:
 
     ConservedWaterSearch.water_clustering.WaterClustering
     ConservedWaterSearch.water_clustering.WaterClustering.__init__
@@ -20,6 +22,5 @@ Determination of conserved water positions based on clustering of oxygen atoms.
     ConservedWaterSearch.water_clustering.WaterClustering.visualise_nglview
     ConservedWaterSearch.water_clustering.WaterClustering.visualise_pymol
 
-.. autoclass:: ConservedWaterSearch.water_clustering.WaterClustering
-    :noindex: ConservedWaterSearch.water_clustering.WaterClustering
+.. automodule:: ConservedWaterSearch.water_clustering.WaterClustering
     :members: __init__, create_from_file, multi_stage_reclustering, single_clustering, restart_cluster, restore_default_options, read_class_options, read_water_clust_options, save_clustering_options, save_results, visualise_nglview, visualise_pymol, water_type, waterO, waterH1, waterH2

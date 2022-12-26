@@ -1,3 +1,4 @@
+---------
 Utilities
 ---------
 
@@ -20,4 +21,3 @@ Utility functions.
 .. automodule:: ConservedWaterSearch.utils
    :synopsis: Convenience utility functions.
    :members: read_results, get_orientations_from_positions, visualise_nglview, visualise_pymol, visualise_pymol_from_pdb
-

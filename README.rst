@@ -6,9 +6,9 @@ ConservedWaterSearch
     :target: https://badge.fury.io/py/conservedwatersearch
 
 
-The conservedwatersearch Python library uses density based clustering approach to detect conserved waters from simulation trajectories.
-Conserved water molecules can be further classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly conserved waters (WCW) - see the figure below for examples.
-We support many different density based clustering approaches using standard OPTICS and HDBSCAN procedures as well as multi stage re-clustering approach using either of the two algorithms for very precise (and slow) determination of conserved water molecules.
+The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories.
+Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see the figure below for examples.
+We support many different density based clustering approaches using standard OPTICS and HDBSCAN procedures as well as Multi Stage Re-Clustering (MSRC) approach using either of the two algorithms for very precise (and slow) determination of conserved water molecules.
 
 .. image:: figs/WaterTypes.png
   :width: 700
@@ -56,7 +56,7 @@ The easiest way to use CWS is by calling WaterNetworkAnalysis (WNA) package. How
    print(res[0][2])
 
 
-For more complex usecases, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_.
+For more information on preprocessing trajectory data, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_.
 
 
 

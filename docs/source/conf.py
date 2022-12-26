@@ -82,6 +82,8 @@ html_theme = "sphinx_rtd_theme"
 # html_static_path = ['_static']
 html_static_path = []
 
+html_show_sourcelink = True
+
 
 # -- Extension configuration -------------------------------------------------
 # Make sure the target is unique
