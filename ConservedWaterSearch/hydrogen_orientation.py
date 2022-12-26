@@ -4,12 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
-from numpy.typing import NDArray
 from sklearn.cluster import OPTICS, KMeans
 
 
 def hydrogen_orientation_analysis(
-    orientations: NDArray[np.float_],
+    orientations: np.ndarray,
     pct_size_buffer: float = 0.85,
     kmeans_ang_cutoff: float = 120,
     kmeans_inertia_cutoff: float = 0.4,
@@ -50,7 +49,7 @@ def hydrogen_orientation_analysis(
     empty list is returned.
 
     Args:
-        orientations (NDArray[np.float_]): array of hydrogen
+        orientations (np.ndarray): array of hydrogen
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
@@ -184,7 +183,7 @@ def hydrogen_orientation_analysis(
 
 
 def find_fully_conserved_orientations(
-    orientations: NDArray[np.float_],
+    orientations: np.ndarray,
     pct_size_buffer: float = 0.85,
     kmeans_ang_cutoff: float = 120,
     kmeans_inertia_cutoff: float = 0.4,
@@ -209,7 +208,7 @@ def find_fully_conserved_orientations(
     again the sperad of orientations and angle is considered.
 
     Args:
-        orientations (NDArray[np.float_]): array of hydrogen
+        orientations (np.ndarray): array of hydrogen
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
@@ -384,7 +383,7 @@ def find_fully_conserved_orientations(
 
 
 def find_half_conserved_orientations(
-    orientations: NDArray[np.float_],
+    orientations: np.ndarray,
     pct_size_buffer: float = 0.85,
     min_samp_data_size_pct: float = 0.35,
     angdiff_cutoff: float = 15,
@@ -408,7 +407,7 @@ def find_half_conserved_orientations(
     and if spread of orientations is sufficiently low.
 
     Args:
-        orientations (NDArray[np.float_]): array of hydrogen
+        orientations (np.ndarray): array of hydrogen
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
@@ -517,7 +516,7 @@ def find_half_conserved_orientations(
 
 
 def find_weakly_conserved_orientations(
-    orientations: NDArray[np.float_],
+    orientations: np.ndarray,
     pct_size_buffer: float = 0.85,
     lower_bound_pct_buffer: float = 0.35,
     min_samp_data_size_pct: float = 0.15,
@@ -546,7 +545,7 @@ def find_weakly_conserved_orientations(
     vs two other clusters combined.
 
     Args:
-        orientations (NDArray[np.float_]): array of hydrogen
+        orientations (np.ndarray): array of hydrogen
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
@@ -1022,12 +1021,12 @@ def __plotreachability(
 
 
 def __return_normalized_orientation_pair(
-    orientations: NDArray[np.float_],
-    labels: NDArray[np.int_],
+    orientations: np.ndarray,
+    labels: np.ndarray,
     i: int,
     j: int,
     typel: str,
-) -> list[NDArray[np.float_] | str]:
+) -> list[np.ndarray | str]:
     """Helper function for normalizing orientations
 
     Not ment for general usage.

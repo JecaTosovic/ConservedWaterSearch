@@ -6,18 +6,12 @@ import platform
 import nglview as ngl
 import numpy as np
 from nglview import NGLWidget
-from numpy.typing import NDArray as NDArray
 
 
 def read_results(
     fname: str = "Clustering_results.dat",
     typefname: str = "Type_Clustering_results.dat",
-) -> tuple[
-    list[str],
-    list[NDArray[np.float_]],
-    list[NDArray[np.float_]],
-    list[NDArray[np.float_]],
-]:
+) -> tuple[list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     """Read results from files.
 
     Read results from files and return them in order for further
@@ -31,7 +25,7 @@ def read_results(
             Defaults to "Type_Clustering_results.dat".
 
     Returns:
-        tuple[ list[str], list[NDArray[np.float_]], list[NDArray[np.float_]], list[NDArray[np.float_]] ]:
+        tuple[ list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray] ]:
         returns list of strings which represents water types, and arrays
         of locations of oxygen and two hyrogens. If only oxygens were
         saved returned hydrogen coordinates are empty arrays
@@ -71,8 +65,8 @@ def read_results(
 
 
 def get_orientations_from_positions(
-    coordsO: NDArray[np.float_], coordsH: NDArray[np.float_]
-) -> tuple[NDArray[np.float_], NDArray[np.float_], NDArray[np.float_]]:
+    coordsO: np.ndarray, coordsH: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Returns orientations from coordinates.
 
     Calculates relative orientations of hydrogen atoms from their
@@ -80,28 +74,30 @@ def get_orientations_from_positions(
     water clustering.
 
     Args:
-        coordsO (NDArray[np.float_]): Oxygen coordinates - shape
+        coordsO (np.ndarray): Oxygen coordinates - shape
             (N_waters, 3)
-        coordsH (NDArray[np.float_]): Hydrogen coordinates - two
+        coordsH (np.ndarray): Hydrogen coordinates - two
             hydrogens bound to the same oxygen have to be placed
             one after another in the array. Shape: (2*N_waters, 3).
 
     Returns:
-        tuple[NDArray[np.float_], NDArray[np.float_], NDArray[np.float_]]:
+        tuple[np.ndarray, np.ndarray, np.ndarray]:
         returns oxygen coordinates array and two hydrogen orientation
         arrays.
     """
-    Odata: NDArray[np.float_] = np.asarray(coordsO)
+    Odata: np.ndarray = np.asarray(coordsO)
     if len(coordsH) > 1:
-        H1: NDArray[np.float_] = coordsH[::2, :]
-        H2: NDArray[np.float_] = coordsH[1:, :]
+        H1: np.ndarray = coordsH[::2, :]
+        H2: np.ndarray = coordsH[1:, :]
         H2 = H2[::2, :]
-        v1: list[NDArray[np.float_]] = []
-        v2: list[NDArray[np.float_]] = []
+        v1: list[np.ndarray] = []
+        v2: list[np.ndarray] = []
         for o, h1, h2 in zip(Odata, H1, H2):
-            a: NDArray[np.float_] = h1 - o
-            b: NDArray[np.float_] = h2 - o
-            if (np.linalg.norm(h1 - o) > 1.2) or (np.linalg.norm(h2 - o) > 1.2):
+            a: np.ndarray = h1 - o
+            b: np.ndarray = h2 - o
+            if (np.linalg.norm(h1 - o) > 1.2) or (
+                np.linalg.norm(h2 - o) > 1.2
+            ):
                 raise ValueError(
                     "bad input HO bonds in water longer than 1.2A; value:",
                     np.linalg.norm(h1 - o),
@@ -109,8 +105,8 @@ def get_orientations_from_positions(
                 )
             v1.append(a)
             v2.append(b)
-        H1orientdata: NDArray[np.float_] = np.asarray(v1)
-        H2orientdata: NDArray[np.float_] = np.asarray(v2)
+        H1orientdata: np.ndarray = np.asarray(v1)
+        H2orientdata: np.ndarray = np.asarray(v2)
         return Odata, H1orientdata, H2orientdata
     else:
         raise Exception("Hydrogen array of wrong length")
@@ -181,7 +177,9 @@ def visualise_pymol(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
+        raise Exception(
+            "pymol not installed. Either install pymol or use nglview"
+        )
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.hide("everything")
@@ -232,7 +230,13 @@ def visualise_pymol(
         cmd.alter_state(
             0,
             wname,
-            "(x,y,z)=(" + str(Opos[0]) + "," + str(Opos[1]) + "," + str(Opos[2]) + ")",
+            "(x,y,z)=("
+            + str(Opos[0])
+            + ","
+            + str(Opos[1])
+            + ","
+            + str(Opos[2])
+            + ")",
         )
         if tip == "onlyO":
             cmd.delete(wname + "and elem H")
@@ -363,9 +367,9 @@ def visualise_pymol_from_pdb(
     dist: float = 10.0,
     density_map: str | None = None,
 ) -> None:
-    """Make a `pymol <https://pymol.org/>`__. session from a pdb file.
+    """Make a `pymol <https://pymol.org/>`__ session from a pdb file.
 
-    Visualises a pdb made by ``make_results_pdb_MDA`` file with water
+    Visualises a pdb made by :py:meth:`make_results_pdb_MDA` file with water
     clustering results in pymol.
 
     Args:
@@ -398,7 +402,9 @@ def visualise_pymol_from_pdb(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
+        raise Exception(
+            "pymol not installed. Either install pymol or use nglview"
+        )
     if platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.load(pdbfile)
@@ -504,7 +510,7 @@ def visualise_nglview(
     crystal_waters: str | None = None,
     density_map_file: str | None = None,
 ) -> NGLWidget:
-    """Creates nglview visualisation widget for results.
+    """Creates `nglview <https://github.com/nglviewer/nglview>`__  visualisation widget for results.
 
     Starts a nglview visualisation instance from clustering results.
 
@@ -548,7 +554,9 @@ def visualise_nglview(
         view
     """
     if aligned_protein is not None:
-        view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
+        view: NGLWidget = ngl.show_file(
+            aligned_protein, default_representation=False
+        )
         view.clear_representations()
         view.add_representation("surface", selection="protein", opacity=0.5)
         view.add_representation("ball+stick", selection="water", color="red")
@@ -571,7 +579,9 @@ def visualise_nglview(
         view[-1].set_coordinates(np.asarray([H1pos, Opos, H2pos]))
     if crystal_waters is not None:
         view.add_pdbid(crystal_waters)
-        view[-1].add_representation("spacefill", selection="water", color="red")
+        view[-1].add_representation(
+            "spacefill", selection="water", color="red"
+        )
     if density_map_file is not None:
         view.add_component(density_map_file)
     return view

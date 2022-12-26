@@ -7,11 +7,9 @@ from io import TextIOWrapper
 import hdbscan
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from nglview import NGLWidget
-from numpy.typing import NDArray as NDArray
 from sklearn.cluster import OPTICS, cluster_optics_xi
 
 from ConservedWaterSearch.hydrogen_orientation import (
@@ -39,12 +37,13 @@ class WaterClustering:
         - WCW (Weakly Conserved Water): several orientation combinations
           exsist with satisfying water angles
 
-    To run the calculation use either :meth:`multi_stage_reclustering`
+    To run the calculation use either :py:meth:`multi_stage_reclustering`
     function to start Multi Stage ReClustering (MSRC) procedure or
-    ``single_clustering()`` to start a single clustering (SC) procedure.
-    MSRC gives correct results at the cost of computational time,
-    while SC is very quick but results are also very poor. For more details
-    see :cite:`conservedwatersearch2022` .
+    :py:meth:`single_clustering` to start a single clustering (SC) procedure.
+    MSRC produces better results at the cost of computational time,
+    while SC is very quick but results are worse and significant amount of
+    waters might not be identified at all. For more details see
+    :cite:`conservedwatersearch2022`.
 
     """
 
@@ -75,7 +74,7 @@ class WaterClustering:
         plotend: bool = False,
         plotreach: bool = False,
     ) -> None:
-        """Initialise ``WaterClustering`` class.
+        """Initialise :py:class:`WaterClustering` class.
 
         The input parameters determine the options for oxygen clustering and
         hydrogen orienataion analysis if applicable.
@@ -179,9 +178,9 @@ class WaterClustering:
                     "plotend set to True while debugH or debugO are >1; setting back to False"
                 )
         self.nsnaps: int = nsnaps
-        self._waterO: list[npt.NDArray[np.float_]] = []
-        self._waterH1: list[npt.NDArray[np.float_]] = []
-        self._waterH2: list[npt.NDArray[np.float_]] = []
+        self._waterO: list[np.ndarray] = []
+        self._waterH1: list[np.ndarray] = []
+        self._waterH2: list[np.ndarray] = []
         self._water_type: list[str] = []
 
     def save_clustering_options(
@@ -246,9 +245,9 @@ class WaterClustering:
             if type(options) != list:
                 raise Exception("option has to be a list")
             for i in options:
-                if type(i) != list and type(i) != npt.NDArray:
+                if type(i) != list and type(i) != np.ndarray:
                     print(i, file=f)
-                elif type(i) == npt.NDArray:
+                elif type(i) == np.ndarray:
                     print(*list(i), file=f)
                 else:
                     print(*i, file=f)
@@ -256,30 +255,26 @@ class WaterClustering:
 
     def _delete_data(
         self,
-        elements: npt.NDArray[np.int_],
-        Odata: npt.NDArray[np.float_],
-        H1: None | npt.NDArray[np.float_] = None,
-        H2: None | npt.NDArray[np.float_] = None,
-    ) -> tuple[
-        NDArray[np.float_],
-        NDArray[np.float_] | None,
-        NDArray[np.float_] | None,
-    ]:
+        elements: np.ndarray,
+        Odata: np.ndarray,
+        H1: None | np.ndarray = None,
+        H2: None | np.ndarray = None,
+    ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None]:
         """A helper function for deleting data from the dataset during
         MSRC procedure.
 
         Args:
-            elements (npt.NDArray[np.int_]): Indices to delete.
-            Odata (npt.NDArray[np.float_]): Oxygen data set array of
+            elements (np.ndarray): Indices to delete.
+            Odata (np.ndarray): Oxygen data set array of
                 Oxygen coordinates which will be cut down.
-            H1 (None | npt.NDArray[np.float_], optional): Hydrogen 1
+            H1 (None | np.ndarray, optional): Hydrogen 1
                 data set array that contains coordinates. Defaults to None.
-            H2 (None | npt.NDArray[np.float_], optional): Hydrogen 2
+            H2 (None | np.ndarray, optional): Hydrogen 2
                 data set array that contains coordinates. Defaults to None.
 
 
         Returns:
-            tuple[ NDArray[np.float_], NDArray[np.float_] | None, NDArray[np.float_] | None, ]: 
+            tuple[ np.ndarray, np.ndarray | None, np.ndarray | None, ]:
             returns a new set of Oxygen and Hydrogen xyz coordinates array
             with some rows deleted.
         """
@@ -317,9 +312,9 @@ class WaterClustering:
 
     def multi_stage_reclustering(
         self,
-        Odata: npt.NDArray[np.float_],
-        H1: npt.NDArray[np.float_],
-        H2: npt.NDArray[np.float_],
+        Odata: np.ndarray,
+        H1: np.ndarray,
+        H2: np.ndarray,
         clustering_algorithm: str = "OPTICS",
         lower_minsamp_pct: float = 0.25,
         every_minsamp: int = 1,
@@ -343,13 +338,13 @@ class WaterClustering:
         with satisfactory oxygen clustering and hydrogen orientation
         clustering (optional) is found, elements of that water cluster
         are removed from the data set and water clustering starts from
-        the beggining. loops until no satisfactory clusterings are
-        found.
+        the beggining. Loops until no satisfactory clusterings are
+        found. For more details see :cite:`conservedwatersearch2022`.
 
         Args:
-            Odata (npt.NDArray[np.float_]): Oxygen coordinates.
-            H1 (npt.NDArray[np.float_]): Hydrogen 1 coordinates.
-            H2 (npt.NDArray[np.float_]): Hydrogen 2 coordinates.
+            Odata (np.ndarray): Oxygen coordinates.
+            H1 (np.ndarray): Hydrogen 1 coordinates.
+            H2 (np.ndarray): Hydrogen 2 coordinates.
             clustering_algorithm (str, optional): Options are "OPTICS"
                 or "HDBSCAN". OPTICS provides slightly better results, but
                 is also slightly slower. Defaults to "OPTICS".
@@ -436,7 +431,7 @@ class WaterClustering:
                             allow_single_cluster=allow_single,  # type: ignore
                         )
                         clust.fit(Odata)
-                        clusters: npt.NDArray[np.int_] = clust.labels_
+                        clusters: np.ndarray = clust.labels_
                     elif clustering_algorithm == "OPTICS":
                         clusters = cluster_optics_xi(
                             reachability=clust.reachability_,  # type: ignore
@@ -508,9 +503,9 @@ class WaterClustering:
 
     def single_clustering(
         self,
-        Odata: npt.NDArray[np.float_],
-        H1: npt.NDArray[np.float_],
-        H2: npt.NDArray[np.float_],
+        Odata: np.ndarray,
+        H1: np.ndarray,
+        H2: np.ndarray,
         clustering_algorithm: str = "OPTICS",
         minsamp: int | None = None,
         xi: float | None = None,
@@ -523,9 +518,9 @@ class WaterClustering:
         OPTICS).
 
         Args:
-            Odata (npt.NDArray[np.float_]): Oxygen coordinates.
-            H1 (npt.NDArray[np.float_]): Hydrogen 1 coordinates.
-            H2 (npt.NDArray[np.float_]): Hydrogen 2 coordinates.
+            Odata (np.ndarray): Oxygen coordinates.
+            H1 (np.ndarray): Hydrogen 1 coordinates.
+            H2 (np.ndarray): Hydrogen 2 coordinates.
             clustering_algorithm (str, optional): Options are "OPTICS"
                 or "HDBSCAN". OPTICS provides slightly better results, but
                 is also slightly slower. Defaults to "OPTICS".
@@ -634,13 +629,13 @@ class WaterClustering:
 
     def _analyze_oxygen_clustering(
         self,
-        Odata: NDArray[np.float_],
-        H1: NDArray[np.float_],
-        H2: NDArray[np.float_],
-        clusters: npt.NDArray[np.int_],
+        Odata: np.ndarray,
+        H1: np.ndarray,
+        H2: np.ndarray,
+        clusters: np.ndarray,
         stop_after_frist_water_found: bool,
         whichH: list[str],
-    ) -> tuple[list[NDArray[np.float_]], list[int]]:
+    ) -> tuple[list[np.ndarray], list[int]]:
         """Helper function for analysing oxygen clustering and invoking
         hydrogen orientation clustering.
 
@@ -650,10 +645,10 @@ class WaterClustering:
         coordinates are returned.
 
         Args:
-            Odata (NDArray[np.float_]): Oxygen coordinates
-            H1 (NDArray[np.float_]): Hydrogen 1 coordinates.
-            H2 (NDArray[np.float_]): Hydrogen 2 coordinates.
-            clusters (npt.NDArray[np.int_]):  Output of clustering
+            Odata (np.ndarray): Oxygen coordinates
+            H1 (np.ndarray): Hydrogen 1 coordinates.
+            H2 (np.ndarray): Hydrogen 2 coordinates.
+            clusters (np.ndarray):  Output of clustering
                 results from OPTICS or HDBSCAN.
             stop_after_frist_water_found (bool): If True, the procedure
                 is stopped after the first valid water is found and
@@ -664,7 +659,7 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
 
         Returns:
-            tuple[list[NDArray[np.float_]], list[int]]:
+            tuple[list[np.ndarray], list[int]]:
             returns two lists. First list contains valid conserved waters
             found. Each entry in the list is a list which contains the
             positions of oxygen, 2 hydrogen positions and water type
@@ -824,11 +819,11 @@ class WaterClustering:
                 Defaults to "Type_Clustering_results_temp.dat".
         """
         if os.path.isfile(data_file):
-            data: NDArray[np.float_] = np.loadtxt(fname=data_file)
+            data: np.ndarray = np.loadtxt(fname=data_file)
             if len(data) == 3:
-                Odata: NDArray[np.float_] = data
-                H1: None | npt.NDArray[np.float_] = None
-                H2: None | npt.NDArray[np.float_] = None
+                Odata: np.ndarray = data
+                H1: None | np.ndarray = None
+                H2: None | np.ndarray = None
             elif len(data) == 9:
                 Odata = data[:, :3]
                 H1 = data[:, 3:6]
@@ -962,7 +957,7 @@ class WaterClustering:
                 clustering options. Defaults to "clust_options.dat".
 
         Returns:
-            WaterClustering: creates an instance of ``WaterClustering``
+            WaterClustering: creates an instance of :py:class:`WaterClustering`
             class by reading options from a file.
         """
         cls = cls(0)
@@ -1100,41 +1095,41 @@ class WaterClustering:
         return self._water_type
 
     @property
-    def waterO(self) -> list[NDArray[np.float_]]:
+    def waterO(self) -> list[np.ndarray]:
         """Contains coordiantes of Oxygens of water molecules classified
         with water clustering.
 
         Returns:
-            list[NDArray[np.float_]]: Returns a list of 3D xyz
+            list[np.ndarray]: Returns a list of 3D xyz
             coordinates of oxygen positions in space
         """
         return self._waterO
 
     @property
-    def waterH1(self) -> list[NDArray[np.float_]]:
+    def waterH1(self) -> list[np.ndarray]:
         """Contains coordinates of first Hydrogen atom of water
         molecules classified with water clustering.
 
         Returns:
-            list[NDArray[np.float_]]: Returns a list of 3D xyz
+            list[np.ndarray]: Returns a list of 3D xyz
             coordinates of first hydrogens' positions in space
         """
         return self._waterH1
 
     @property
-    def waterH2(self) -> list[NDArray[np.float_]]:
+    def waterH2(self) -> list[np.ndarray]:
         """Contains coordinates of second Hydrogen atom of water
         molecules classified with water clustering.
 
         Returns:
-            list[NDArray[np.float_]]: Returns a list of 3D xyz
+            list[np.ndarray]: Returns a list of 3D xyz
             coordinates of second hydrogens' positions in space
         """
         return self._waterH2
 
 
 def __oxygen_clustering_plot(
-    Odata: NDArray[np.float_],
+    Odata: np.ndarray,
     cc: OPTICS,
     title: str,
     debugO: int,
