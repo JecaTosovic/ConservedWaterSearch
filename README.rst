@@ -1,47 +1,71 @@
 ConservedWaterSearch
-==============================
+====================
 .. image:: https://readthedocs.org/projects/conservedwatersearch/badge/?version=latest
     :target: https://conservedwatersearch.readthedocs.io/en/latest/?badge=latest
 .. image:: https://badge.fury.io/py/conservedwatersearch.svg
     :target: https://badge.fury.io/py/conservedwatersearch
 
 
-The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories.
-Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see the figure below for examples.
-We support many different density based clustering approaches using standard OPTICS and HDBSCAN procedures as well as Multi Stage Re-Clustering (MSRC) approach using either of the two algorithms for very precise (and slow) determination of conserved water molecules.
+The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules. Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see :cite:`conservedwatersearch2022` and figure below for more information). 
 
 .. image:: figs/WaterTypes.png
   :width: 700
 
+Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see  :cite:`conservedwatersearch2022`  and figure below for examples and more information or see :ref:`conservedwaters:theory, background and methods`.
+
+.. image:: figs/WaterTypes.png
+  :width: 700
+
+Both, MSRC and SC can be used with either OPTICS (via `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.OPTICS.html>`_) and `HDBSCAN <https://hdbscan.readthedocs.io/en/latest/index.html>`_. MSRC approach using either of the two algorithms produces better quality results at the cost of computational time, while SC approach produces lowe quality results at a fraction of the computational cost.
 
 Important links
-=================
+===============
 	- `Documentation <https://conservedwatersearch.readthedocs.io/en/latest/>`_: hosted on Read The Docs
 	- `GitHub repository <https://github.com/JecaTosovic/ConservedWaterSearch>`_: source code/contribute code
-	- `Issue tracker <https://github.com/JecaTosovic/ConservedWaterSearch/issues>`_: Report issues/ request features
+	- `Issue tracker <https://github.com/JecaTosovic/ConservedWaterSearch/issues>`_: Report issues/request features
 
 Related Tools
-=================
-	- `WaterNetworkAnalysis <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_: prepare trajectories  and analyse results for/from conservedwatersearch
+=============
+	- `WaterNetworkAnalysis <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_: prepare trajectories for identification of conserved water molecules.
 
 Citation
-===============
-Coming soon.
+========
+See :cite:`conservedwatersearch2022`.
 
 Installation
-===============
-The easiest ways to install **ConservedWaterSearch** is using pip:
+============
+The easiest ways to install **ConservedWaterSearch** is using :code:`pip`:
 
 .. code:: bash
 
    pip install ConservedWaterSearch
 
+Pymol is the only requirement missing on pip and has to be installed either fom source or conda. For more information see :ref:`installation:Installation`.
+
 Conda builds will be available soon.
 
 
 Example
-===============
-The easiest way to use CWS is by calling WaterNetworkAnalysis (WNA) package. However, sometimes users might want to explicitly classify conserved water molecules. A simple python code can be used to classify waters into categories given an array of 3D oxygen coordinates and their related relative hydrogen orientations:
+=======
+The easiest way to use CWS is by calling :code:`WaterClustering` class. The starting trajectory should be aligned first, and coordinates of water oxygen and hydrogens extracted. See `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_ for more information and convenience functions.
+
+.. code:: python
+
+   # imports
+   from ConservedWaterSearch.water_clustering import WaterClustering
+   from ConservedWaterSearch.utils import get_orientations_from_positions
+   # Number of snapshots
+   Nsnap = 20
+   # load some example - trajectory should be aligned prior to extraction of atom coordinates
+   Opos = np.loadtxt("tests/data/testdataO.dat")
+   Hpos = np.loadtxt("tests/data/testdataH.dat")
+   wc = WaterClustering(nsnaps=Nsnap, save_intermediate_results=False, save_results_after_done=False)
+   wc.multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
+   print(wc.water_type)
+   # "aligned.pdb" should be the snapshot original trajectory was aligned to.
+   wc.visualise_pymol(aligned_protein = "aligned.pdb", output_file = "waters.pse")
+
+Sometimes users might want to explicitly classify conserved water molecules. A simple python code can be used to classify waters into categories given an array of 3D oxygen coordinates and their related relative hydrogen orientations:
 
 .. code:: python
 
@@ -57,6 +81,3 @@ The easiest way to use CWS is by calling WaterNetworkAnalysis (WNA) package. How
 
 
 For more information on preprocessing trajectory data, please refer to the `WaterNetworkAnalysis  <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_.
-
-
-

@@ -5,7 +5,7 @@ Installation
 Installation via conda 
 ======================
 
-ConservedWaterSearch is currently not available through conda, but will be soon TM.
+ConservedWaterSearch is currently not available through conda, but will be soon.
 
 All the dependencies can be installed from `conda-forge <https://conda-forge.org/>`_ using :code:`conda` (or :code:`mamba`):
 
@@ -46,7 +46,7 @@ ConservedWaterSearch (CWS) uses :code:`pytest` for running unit tests. It can be
 
    conda install -c conda-forge pytest
 
-Or via `PyPi <https://pypi.org/project/pytest>`_ (:code:`pip`):
+Or via PyPi (`see here <https://pypi.org/project/pytest>`_) (using :code:`pip`):
 
 .. code:: bash
 
