@@ -27,7 +27,8 @@ class WaterClustering:
 
     First, oxygens are clustered using OPTICS or HDBSCAN, followed by
     analysis of orientations for classification of waters into one of 3
-    proposed conserved water types:
+    proposed conserved water types (for more information see
+    :ref:`conservedwaters:theory, background and methods`):
 
         - FCW (Fully Conserved Water): hydrogens are strongly oriented in
           two directions with angle of 104.5
@@ -1086,6 +1087,8 @@ class WaterClustering:
         - WCW (Weakly Conserved Water): several orientation combinations
           exsist with satisfying water angles
 
+        For more information see :cite:`conservedwatersearch2022` and
+        :ref:`conservedwaters:theory, background and methods`).
 
         Returns:
             list[str]: Returns a list of strings containing water type
