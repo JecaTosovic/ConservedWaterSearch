@@ -61,9 +61,6 @@ Unit tests can be run from the root directory:
 Documentation
 =============
 
-
-fdasfasdfasdf
-
 To build the documentation following dependencies have to be installed, either using :code:`conda`:
 
 .. code:: bash
