@@ -6,9 +6,9 @@ ConservedWaterSearch
     :target: https://badge.fury.io/py/conservedwatersearch
 
 
-The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules. Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see :cite:`conservedwatersearch2022` and figure below for more information). 
+The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules(see figure below for more information). Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see :cite:`conservedwatersearch2022` for more `information on clustering procedures <https://doi.org/10.1021/acs.jcim.2c00801>`_).
 
-.. image:: figs/WaterTypes.png
+.. image:: figs/Scheme.png
   :width: 700
 
 Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see  :cite:`conservedwatersearch2022`  and figure below for examples and more information or see :ref:`conservedwaters:theory, background and methods`.
