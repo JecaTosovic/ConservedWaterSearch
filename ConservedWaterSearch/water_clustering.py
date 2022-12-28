@@ -269,9 +269,9 @@ class WaterClustering:
             Odata (np.ndarray): Oxygen data set array of
                 Oxygen coordinates which will be cut down.
             H1 (None | np.ndarray, optional): Hydrogen 1
-                data set array that contains coordinates. Defaults to None.
+                data set array that contains orientations. Defaults to None.
             H2 (None | np.ndarray, optional): Hydrogen 2
-                data set array that contains coordinates. Defaults to None.
+                data set array that contains orientations. Defaults to None.
 
 
         Returns:
@@ -344,8 +344,8 @@ class WaterClustering:
 
         Args:
             Odata (np.ndarray): Oxygen coordinates.
-            H1 (np.ndarray): Hydrogen 1 coordinates.
-            H2 (np.ndarray): Hydrogen 2 coordinates.
+            H1 (np.ndarray): Hydrogen 1 orientations.
+            H2 (np.ndarray): Hydrogen 2 orientations.
             clustering_algorithm (str, optional): Options are "OPTICS"
                 or "HDBSCAN". OPTICS provides slightly better results, but
                 is also slightly slower. Defaults to "OPTICS".
@@ -520,8 +520,8 @@ class WaterClustering:
 
         Args:
             Odata (np.ndarray): Oxygen coordinates.
-            H1 (np.ndarray): Hydrogen 1 coordinates.
-            H2 (np.ndarray): Hydrogen 2 coordinates.
+            H1 (np.ndarray): Hydrogen 1 orientations.
+            H2 (np.ndarray): Hydrogen 2 orientations.
             clustering_algorithm (str, optional): Options are "OPTICS"
                 or "HDBSCAN". OPTICS provides slightly better results, but
                 is also slightly slower. Defaults to "OPTICS".
@@ -647,8 +647,8 @@ class WaterClustering:
 
         Args:
             Odata (np.ndarray): Oxygen coordinates
-            H1 (np.ndarray): Hydrogen 1 coordinates.
-            H2 (np.ndarray): Hydrogen 2 coordinates.
+            H1 (np.ndarray): Hydrogen 1 orientations.
+            H2 (np.ndarray): Hydrogen 2 orientations.
             clusters (np.ndarray):  Output of clustering
                 results from OPTICS or HDBSCAN.
             stop_after_frist_water_found (bool): If True, the procedure
