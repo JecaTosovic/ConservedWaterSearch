@@ -26,6 +26,7 @@ The central object for determination of conserved waters from MD trajectories is
 .. code:: python
 
    # imports
+   import numpy as np
    from ConservedWaterSearch.water_clustering import WaterClustering
    from ConservedWaterSearch.utils import get_orientations_from_positions
    # Number of snapshots
@@ -33,8 +34,7 @@ The central object for determination of conserved waters from MD trajectories is
    # load some example - trajectory should be aligned prior to extraction of atom coordinates
    Opos = np.loadtxt("tests/data/testdataO.dat")
    wc = WaterClustering(nsnaps=Nsnap)
-   wc.single_clustering(Opos,[],[],whichH=['onlyO'])
-   print(wc.water_type)
+   wc.single_clustering(Opos, [], [], whichH=['onlyO'])
    # "aligned.pdb" should be the snapshot original trajectory was aligned to.
    wc.visualise_pymol(aligned_protein = "aligned.pdb", output_file = "waters.pse")
 
@@ -47,6 +47,7 @@ In this example we shall perform Multi Stage Re-Clustering (MSRC) procedure whic
 .. code:: python
 
    # imports
+   import numpy as np
    from ConservedWaterSearch.water_clustering import WaterClustering
    from ConservedWaterSearch.utils import get_orientations_from_positions
    # Number of snapshots
@@ -56,6 +57,7 @@ In this example we shall perform Multi Stage Re-Clustering (MSRC) procedure whic
    Hpos = np.loadtxt("tests/data/testdataH.dat")
    wc = WaterClustering(nsnaps=Nsnap)
    wc.multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
+   print(wc.water_type)
    # "aligned.pdb" should be the snapshot original trajectory was aligned to.
    wc.visualise_pymol(aligned_protein = "aligned.pdb", output_file = "waters.pse")
 
