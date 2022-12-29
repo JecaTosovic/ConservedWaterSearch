@@ -1,0 +1,16 @@
+name: CWS-rtd
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pip
+  - numpy
+  - matplotlib
+  - scikit-learn
+  - hdbscan
+  - nglview
+  - pymol-open-source
+  - sphinx
+  - sphinx_rtd_theme
+  - sphinxcontrib-bibtex

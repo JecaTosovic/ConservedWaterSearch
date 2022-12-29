@@ -1,0 +1,10 @@
+version: 2
+conda:
+    environment: doc/RTD-env.yml
+python:
+    install:
+        - method: setuptools
+          path: .
+submodules:
+    include: all
+    recursive: true
