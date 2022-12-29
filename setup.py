@@ -22,7 +22,7 @@ except:
 setup(
     # Self-descriptive entries which should always be present
     name="ConservedWaterSearch",
-    version="0.0.1",
+    version="0.1.0",
     author="Domagoj Fijan, Jelena Tosovic, Marko Jukic, Urban Bren",
     author_email="jecat_90@live.com",
     description=short_description[0],
@@ -31,7 +31,7 @@ setup(
     license="BSD-3-Clause",
     keywords=("simulation analysis molecular dynamics biosimulation conserved water "),
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Chemistry",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
