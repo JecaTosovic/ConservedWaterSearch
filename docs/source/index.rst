@@ -2,7 +2,12 @@
 Welcome to ConservedWaterSearch's documentation!
 ================================================
 
-.. include:: ../../README.rst
+.. image:: https://readthedocs.org/projects/conservedwatersearch/badge/?version=latest
+    :target: https://conservedwatersearch.readthedocs.io/en/latest/?badge=latest
+.. image:: https://badge.fury.io/py/conservedwatersearch.svg
+    :target: https://badge.fury.io/py/conservedwatersearch
+
+.. include:: introduction.rst
 
 Table of Contents
 =================

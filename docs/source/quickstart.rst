@@ -2,4 +2,4 @@
 Quickstart
 ==========
 
-.. include:: ../../README.rst
+.. include:: introduction.rst
