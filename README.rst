@@ -30,7 +30,7 @@ Related Tools
 
 Citation
 ========
-See `this article <https://doi.org/10.1021/acs.jcim.2c00801>`_).
+See `this article <https://doi.org/10.1021/acs.jcim.2c00801>`_.
 
 Installation
 ============
