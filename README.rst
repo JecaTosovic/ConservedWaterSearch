@@ -8,12 +8,12 @@ ConservedWaterSearch
 
 The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules(see figure below for more information). Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see :cite:`conservedwatersearch2022` for more `information on clustering procedures <https://doi.org/10.1021/acs.jcim.2c00801>`_).
 
-.. image:: figs/Scheme.png
+.. image:: docs/source/figs/Scheme.png
   :width: 700
 
 Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see  :cite:`conservedwatersearch2022`  and figure below for examples and more information or see :ref:`conservedwaters:theory, background and methods`.
 
-.. image:: figs/WaterTypes.png
+.. image:: docs/source/figs/WaterTypes.png
   :width: 700
 
 Both, MSRC and SC can be used with either OPTICS (via `sklearn <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.OPTICS.html>`_) and `HDBSCAN <https://hdbscan.readthedocs.io/en/latest/index.html>`_. MSRC approach using either of the two algorithms produces better quality results at the cost of computational time, while SC approach produces lowe quality results at a fraction of the computational cost.
