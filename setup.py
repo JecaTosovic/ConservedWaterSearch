@@ -35,11 +35,11 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Chemistry",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     url="https://github.com/JecaTosovic/ConservedWaterSearch",
     download_url="https://pypi.org/project/ConservedWaterSearch/",
@@ -49,7 +49,7 @@ setup(
         "Source Code": "https://github.com/JecaTosovic/ConservedWaterSearch",
         "Issue Tracker": "https://github.com/JecaTosovic/ConservedWaterSearch/issues",
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     # Which Python importable modules should be included when your package is installed
     # Handled automatically by setuptools. Use 'exclude' to prevent some specific
     # subpackage(s) from being added, if needed
@@ -63,16 +63,17 @@ setup(
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
     install_requires=[
+        "hdbscan",
         "numpy",
-        "hdbscan>=0.8.28",
         "matplotlib",
         "scikit-learn",
+        "nglview",
     ],  # Required packages, pulls from pip if needed; do not use for Conda deployment
     platforms=['Linux',
-                'Mac OS-X',
-                'Unix',
-                'Windows'
-    ],            # Valid platforms your code works on, adjust to your flavor
+               'Mac OS-X',
+               'Unix',
+               'Windows'
+              ],            # Valid platforms your code works on, adjust to your flavor
     # Manual control if final package is compressible or not, set False to prevent the .egg from being made
     zip_safe=False,
 )

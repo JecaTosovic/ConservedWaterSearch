@@ -1,13 +1,32 @@
+================================================
 Welcome to ConservedWaterSearch's documentation!
 ================================================
 
 .. include:: ../../README.rst
 
+Table of Contents
+=================
+
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Introduction:
+
+   quickstart
+   installation
+   conservedwaters
+   examples
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API
 
    modules
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
+   citing
 
 Indices and tables
 ==================

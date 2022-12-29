@@ -1,0 +1,5 @@
+==========
+Quickstart
+==========
+
+.. include:: ../../README.rst

@@ -2,11 +2,10 @@
 Unit and regression test for the ConservedWaterSearch package.
 """
 
-import numpy as np
-import pytest
-
 # Import package, test suite, and other packages as needed
 import ConservedWaterSearch.hydrogen_orientation
+import pytest
+import numpy as np
 
 make_ho_plots = 0
 
@@ -219,11 +218,9 @@ def test_2x2_WCW():
 
 def test_not_conserved():
     orientations = np.loadtxt("tests/data/dispersed_sample_not_conserved.dat")
-    res = (
-        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
-            orientations,
-            debugH=make_ho_plots,
-        )
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        orientations,
+        debugH=make_ho_plots,
     )
     if make_ho_plots > 0:
         import matplotlib.pyplot as plt
@@ -234,12 +231,10 @@ def test_not_conserved():
 
 def test_not_conserved2():
     orientations = np.loadtxt("tests/data/not_conserved.dat")
-    res = (
-        ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
-            orientations,
-            debugH=make_ho_plots,
-            verbose=2,
-        )
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        orientations,
+        debugH=make_ho_plots,
+        verbose=2,
     )
     if make_ho_plots > 0:
         import matplotlib.pyplot as plt
