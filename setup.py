@@ -35,11 +35,11 @@ setup(
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering :: Chemistry",
         "Topic :: Scientific/Engineering :: Bio-Informatics",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
     url="https://github.com/JecaTosovic/ConservedWaterSearch",
     download_url="https://pypi.org/project/ConservedWaterSearch/",
@@ -49,7 +49,7 @@ setup(
         "Source Code": "https://github.com/JecaTosovic/ConservedWaterSearch",
         "Issue Tracker": "https://github.com/JecaTosovic/ConservedWaterSearch/issues",
     },
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     # Which Python importable modules should be included when your package is installed
     # Handled automatically by setuptools. Use 'exclude' to prevent some specific
     # subpackage(s) from being added, if needed
