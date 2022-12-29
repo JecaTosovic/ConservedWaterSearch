@@ -11,7 +11,7 @@ The ConservedWaterSearch (CWS) Python library uses density based clustering appr
 .. image:: docs/source/figs/Scheme.png
   :width: 700
 
-Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see figure below for examples and more information or see `documentation <https://conservedwatersearch.readthedocs.io/en/latest/conservedwaters.html>`_.
+Conserved water molecules can be classified into 3 distinct conserved water types based on their hydrogen orientation: Fully Conserved Waters (FCW), Half Conserved Waters (HCW) and Weakly Conserved Waters (WCW) - see figure below for examples and more information or see `CWS docs <https://conservedwatersearch.readthedocs.io/en/latest/conservedwaters.html>`_.
 
 .. image:: docs/source/figs/WaterTypes.png
   :width: 700
