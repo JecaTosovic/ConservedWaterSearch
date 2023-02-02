@@ -3,3 +3,4 @@ matplotlib
 scikit-learn
 hdbscan
 nglview
+pymol-open-source
