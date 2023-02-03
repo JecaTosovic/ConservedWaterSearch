@@ -8,4 +8,4 @@ dependencies:
   - scikit-learn>=1.0
   - hdbscan>=0.8.27
   - nglview>=3.0.0
-  - pymol-open-source>=2.0
+  - pymol-open-source>=2.3
