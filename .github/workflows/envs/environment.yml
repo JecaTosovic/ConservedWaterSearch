@@ -3,9 +3,4 @@ channels:
   - conda-forge
 
 dependencies:
-  - numpy
-  - scikit-learn
-  - pymol-open-source
-  - hdbscan
-  - nglview
-  - matplotlib
+  - file:../../../requirements.txt
