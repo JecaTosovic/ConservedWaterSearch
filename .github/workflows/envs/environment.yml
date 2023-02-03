@@ -3,4 +3,9 @@ channels:
   - conda-forge
 
 dependencies:
-  - file:../../../requirements.txt
+  - numpy>=1.21
+  - matplotlib>=3.4
+  - scikit-learn>=1.0
+  - hdbscan>=0.8.27
+  - nglview>=3.0.0
+  - pymol-open-source>=2.0
