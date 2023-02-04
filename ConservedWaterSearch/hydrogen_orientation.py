@@ -289,9 +289,7 @@ def find_fully_conserved_orientations(
             cc.fit(orientations)
             labels = cc.labels_
             # Calculate number of elements in each cluster
-            (values, counts) = np.unique(
-                labels[labels != -1], return_counts=True
-            )
+            (values, counts) = np.unique(labels[labels != -1], return_counts=True)
             # if number of optics clusters for hydrogen clustering is >0
             if len(np.sort(np.unique(labels[labels != -1]))) == 2:
                 # find two biggest clusters
@@ -303,37 +301,29 @@ def find_fully_conserved_orientations(
                     <= neioc * (2 - pct_size_buffer)
                     and len(orientations[labels == secondbiggest])
                     <= neioc * (2 - pct_size_buffer)
-                    and len(orientations[labels == biggest])
-                    > neioc * pct_size_buffer
+                    and len(orientations[labels == biggest]) > neioc * pct_size_buffer
                     and len(orientations[labels == secondbiggest])
                     > neioc * pct_size_buffer
                 ):
                     # calculate the average orientation of two biggest clusters
                     avang1 = np.mean(orientations[labels == biggest], axis=0)
-                    avang2 = np.mean(
-                        orientations[labels == secondbiggest], axis=0
-                    )
+                    avang2 = np.mean(orientations[labels == secondbiggest], axis=0)
                     # calculate average angle between average orientation of one cluster with elements(orientations) of the other cluster
                     angs12 = (
                         np.arccos(
-                            np.dot(
-                                orientations[labels == secondbiggest], avang1.T
-                            )
+                            np.dot(orientations[labels == secondbiggest], avang1.T)
                         )
                         * 360.0
                         / (2.0 * np.pi)
                     )
                     angs21 = (
-                        np.arccos(
-                            np.dot(orientations[labels == biggest], avang2.T)
-                        )
+                        np.arccos(np.dot(orientations[labels == biggest], avang2.T))
                         * 360.0
                         / (2.0 * np.pi)
                     )
                     # check if average angles are low and that their std. deviation is low
                     if (
-                        np.abs(np.mean(angs21) - np.mean(angs12))
-                        < angdiff_cutoff
+                        np.abs(np.mean(angs21) - np.mean(angs12)) < angdiff_cutoff
                         and np.std(angs12) < angstd_cutoff
                         and np.std(angs21) < angstd_cutoff
                     ):
@@ -948,8 +938,11 @@ def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
     For debuging only.
 
     """
-    import matplotlib.pyplot as plt
-    
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        raise Exception("install matplotlib")
+
     fig: Figure = plt.figure()
     if type(labels) == int:
         return fig
@@ -993,8 +986,11 @@ def __plotreachability(
     For debuging purposes only.
 
     """
-    import matplotlib.pyplot as plt
-    
+    try:
+        import matplotlib.pyplot as plt
+    except:
+        raise Exception("install matplotlib")
+
     if fig is None:
         fig: Figure = plt.figure()
     if type(cc) != OPTICS:

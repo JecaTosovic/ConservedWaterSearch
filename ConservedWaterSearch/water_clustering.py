@@ -421,12 +421,13 @@ class WaterClustering:
                 for j in lxis:
                     # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
                     if clustering_algorithm == "HDBSCAN":
-                        import hdbscan
-                        
+                        try:
+                            import hdbscan
+                        except:
+                            raise Exception("install hdbscan")
+
                         clust = hdbscan.HDBSCAN(
-                            min_cluster_size=int(
-                                self.nsnaps * self.numbpct_oxygen
-                            ),
+                            min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                             min_samples=int(i),
                             max_cluster_size=int(
                                 self.nsnaps * (2 - self.numbpct_oxygen)
@@ -469,7 +470,10 @@ class WaterClustering:
                         whichH=whichH,
                     )
                     if self.debugO == 1:
-                        import matplotlib.pyplot as plt
+                        try:
+                            import matplotlib.pyplot as plt
+                        except:
+                            raise Exception("install matplotlib")
 
                         plt.close(ff)
                     if len(waters) > 0:
@@ -483,7 +487,9 @@ class WaterClustering:
                                 fname="Clustering_results_temp1.dat",
                                 typefname="Type_Clustering_results_temp1.dat",
                             )
-                            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile("Type_Clustering_results_temp1.dat"):
+                            if os.path.isfile(
+                                "Clustering_results_temp1.dat"
+                            ) and os.path.isfile("Type_Clustering_results_temp1.dat"):
                                 os.rename(
                                     "Clustering_results_temp1.dat",
                                     "Clustering_results_temp.dat",
@@ -493,7 +499,9 @@ class WaterClustering:
                                     "Type_Clustering_results_temp.dat",
                                 )
                             else:
-                                raise Warning("unable to overwrite temp save files. Restarting might not work properly")
+                                raise Warning(
+                                    "unable to overwrite temp save files. Restarting might not work properly"
+                                )
                         break
                 if found:
                     break
@@ -508,7 +516,10 @@ class WaterClustering:
             if len(Odata) < self.nsnaps:
                 found = False
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
-            import matplotlib.pyplot as plt
+            try:
+                import matplotlib.pyplot as plt
+            except:
+                raise Exception("install matplotlib")
 
             plt.show()
         if self.save_results_after_done:
@@ -549,10 +560,7 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
-        if (
-            clustering_algorithm != "OPTICS"
-            and clustering_algorithm != "HDBSCAN"
-        ):
+        if clustering_algorithm != "OPTICS" and clustering_algorithm != "HDBSCAN":
             raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
         for i in whichH:
             if not (i in ["FCW", "HCW", "WCW", "onlyO"]):
@@ -588,8 +596,11 @@ class WaterClustering:
             clust.fit(Odata)
             clusters = clust.labels_
         if clustering_algorithm == "HDBSCAN":
-            import hdbscan
-            
+            try:
+                import hdbscan
+            except:
+                raise Exception("install hdbscan")
+
             clust: OPTICS | HDBSCAN = hdbscan.HDBSCAN(
                 min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                 min_samples=minsamp,
@@ -623,7 +634,10 @@ class WaterClustering:
             whichH=whichH,
         )
         if self.debugO == 1:
-            import matplotlib.pyplot as plt
+            try:
+                import matplotlib.pyplot as plt
+            except:
+                raise Exception("install matplotlib")
 
             plt.close(ff)
         self._add_water_solutions(waters)
@@ -632,16 +646,19 @@ class WaterClustering:
                 fname="Clustering_results_temp1.dat",
                 typefname="Type_Clustering_results_temp1.dat",
             )
-            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile("Type_Clustering_results_temp1.dat"):
-                os.rename(
-                    "Clustering_results_temp1.dat", "Clustering_results_temp.dat"
-                )
+            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile(
+                "Type_Clustering_results_temp1.dat"
+            ):
+                os.rename("Clustering_results_temp1.dat", "Clustering_results_temp.dat")
                 os.rename(
                     "Type_Clustering_results_temp1.dat",
                     "Type_Clustering_results_temp.dat",
                 )
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
-            import matplotlib.pyplot as plt
+            try:
+                import matplotlib.pyplot as plt
+            except:
+                raise Exception("install matplotlib")
 
             plt.show()
         if self.save_results_after_done:
@@ -732,7 +749,10 @@ class WaterClustering:
                         self.normalize_orientations,
                     )
                     if self.plotreach and self.debugH > 0:
-                        import matplotlib.pyplot as plt
+                        try:
+                            import matplotlib.pyplot as plt
+                        except:
+                            raise Exception("install matplotlib")
 
                         plt.show()
                     if len(hyd) > 0:
@@ -748,7 +768,10 @@ class WaterClustering:
                             and self.plotreach == 0
                             and self.debugH == 0
                         ):
-                            import matplotlib.pyplot as plt
+                            try:
+                                import matplotlib.pyplot as plt
+                            except:
+                                raise Exception("install matplotlib")
 
                             plt.show()
                         if stop_after_frist_water_found:
@@ -815,9 +838,7 @@ class WaterClustering:
         if len(self._waterH1) == 0 and len(self._waterH2) == 0:
             np.savetxt(fname, np.c_[self._waterO])
         else:
-            np.savetxt(
-                fname, np.c_[self._waterO, self._waterH1, self._waterH2]
-            )
+            np.savetxt(fname, np.c_[self._waterO, self._waterH1, self._waterH2])
         np.savetxt(typefname, np.c_[self._water_type], fmt="%s")
 
     def restart_cluster(
@@ -1169,7 +1190,10 @@ def __oxygen_clustering_plot(
     if type(cc) != OPTICS:
         plotreach = False
     if debugO > 0:
-        import matplotlib.pyplot as plt
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            raise Exception("install matplotlib")
 
         fig: Figure = plt.figure()
         if plotreach:
@@ -1194,7 +1218,10 @@ def __oxygen_clustering_plot(
         ax.set_title(title)
         ax.legend()
         if plotreach:
-            import matplotlib.pyplot as plt
+            try:
+                import matplotlib.pyplot as plt
+            except:
+                raise Exception("install matplotlib")
 
             lblls = cc.labels_[cc.ordering_]
             ax = fig.add_subplot(1, 2, 2)
@@ -1217,7 +1244,10 @@ def __oxygen_clustering_plot(
                     )
             ax.legend()
     if debugO == 2:
-        import matplotlib.pyplot as plt
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            raise Exception("install matplotlib")
 
         plt.show()
     return fig
