@@ -3,9 +3,11 @@ from __future__ import annotations
 import os
 import platform
 
-import nglview as ngl
 import numpy as np
-from nglview import NGLWidget
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from nglview import NGLWidget
 
 
 def read_results(
@@ -553,6 +555,13 @@ def visualise_nglview(
         # initialise widget
         view
     """
+    try:
+        import nglview as ngl
+    except ModuleNotFoundError:
+        raise Exception(
+            "nglview not installed. Either install pymol or nglview"
+        )
+
     if aligned_protein is not None:
         view: NGLWidget = ngl.show_file(
             aligned_protein, default_representation=False
