@@ -1,15 +1,17 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+    from nglview import NGLWidget
+    from io import TextIOWrapper
+    from hdbscan import HDBSCAN
 
 import os
 import warnings
-from io import TextIOWrapper
 
-import hdbscan
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
-from nglview import NGLWidget
 from sklearn.cluster import OPTICS, cluster_optics_xi
 
 from ConservedWaterSearch.hydrogen_orientation import (
@@ -290,7 +292,8 @@ class WaterClustering:
                 np.savetxt("water_coords_restart1.dat", np.c_[Odata, H1, H2])
             else:
                 np.savetxt("water_coords_restart1.dat", np.c_[Odata])
-            os.rename("water_coords_restart1.dat", "water_coords_restart.dat")
+            if os.path.isfile("water_coords_restart1.dat"):
+                os.rename("water_coords_restart1.dat", "water_coords_restart.dat")
         return Odata, H1, H2
 
     def _add_water_solutions(
@@ -412,12 +415,14 @@ class WaterClustering:
             # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
             for i in minsamps:
                 if clustering_algorithm == "OPTICS":
-                    clust: OPTICS | hdbscan.HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
+                    clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
                     clust.fit(Odata)
                 # loop over xi
                 for j in lxis:
                     # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
                     if clustering_algorithm == "HDBSCAN":
+                        import hdbscan
+                        
                         clust = hdbscan.HDBSCAN(
                             min_cluster_size=int(
                                 self.nsnaps * self.numbpct_oxygen
@@ -464,6 +469,8 @@ class WaterClustering:
                         whichH=whichH,
                     )
                     if self.debugO == 1:
+                        import matplotlib.pyplot as plt
+
                         plt.close(ff)
                     if len(waters) > 0:
                         found = True
@@ -476,14 +483,17 @@ class WaterClustering:
                                 fname="Clustering_results_temp1.dat",
                                 typefname="Type_Clustering_results_temp1.dat",
                             )
-                            os.rename(
-                                "Clustering_results_temp1.dat",
-                                "Clustering_results_temp.dat",
-                            )
-                            os.rename(
-                                "Type_Clustering_results_temp1.dat",
-                                "Type_Clustering_results_temp.dat",
-                            )
+                            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile("Type_Clustering_results_temp1.dat"):
+                                os.rename(
+                                    "Clustering_results_temp1.dat",
+                                    "Clustering_results_temp.dat",
+                                )
+                                os.rename(
+                                    "Type_Clustering_results_temp1.dat",
+                                    "Type_Clustering_results_temp.dat",
+                                )
+                            else:
+                                raise Warning("unable to overwrite temp save files. Restarting might not work properly")
                         break
                 if found:
                     break
@@ -498,6 +508,8 @@ class WaterClustering:
             if len(Odata) < self.nsnaps:
                 found = False
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
+            import matplotlib.pyplot as plt
+
             plt.show()
         if self.save_results_after_done:
             self.save_results()
@@ -567,7 +579,7 @@ class WaterClustering:
                 whichH,
             )
         if clustering_algorithm == "OPTICS":
-            clust: OPTICS | hdbscan.HDBSCAN = OPTICS(
+            clust: OPTICS | HDBSCAN = OPTICS(
                 min_samples=minsamp,
                 min_cluster_size=int(self.numbpct_oxygen * self.nsnaps),
                 xi=xi,
@@ -576,7 +588,9 @@ class WaterClustering:
             clust.fit(Odata)
             clusters = clust.labels_
         if clustering_algorithm == "HDBSCAN":
-            clust: OPTICS | hdbscan.HDBSCAN = hdbscan.HDBSCAN(
+            import hdbscan
+            
+            clust: OPTICS | HDBSCAN = hdbscan.HDBSCAN(
                 min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                 min_samples=minsamp,
                 max_cluster_size=int(self.nsnaps * (2 - self.numbpct_oxygen)),
@@ -609,6 +623,8 @@ class WaterClustering:
             whichH=whichH,
         )
         if self.debugO == 1:
+            import matplotlib.pyplot as plt
+
             plt.close(ff)
         self._add_water_solutions(waters)
         if self.save_intermediate_results:
@@ -616,14 +632,17 @@ class WaterClustering:
                 fname="Clustering_results_temp1.dat",
                 typefname="Type_Clustering_results_temp1.dat",
             )
-            os.rename(
-                "Clustering_results_temp1.dat", "Clustering_results_temp.dat"
-            )
-            os.rename(
-                "Type_Clustering_results_temp1.dat",
-                "Type_Clustering_results_temp.dat",
-            )
+            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile("Type_Clustering_results_temp1.dat"):
+                os.rename(
+                    "Clustering_results_temp1.dat", "Clustering_results_temp.dat"
+                )
+                os.rename(
+                    "Type_Clustering_results_temp1.dat",
+                    "Type_Clustering_results_temp.dat",
+                )
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
+            import matplotlib.pyplot as plt
+
             plt.show()
         if self.save_results_after_done:
             self.save_results()
@@ -713,6 +732,8 @@ class WaterClustering:
                         self.normalize_orientations,
                     )
                     if self.plotreach and self.debugH > 0:
+                        import matplotlib.pyplot as plt
+
                         plt.show()
                     if len(hyd) > 0:
                         # add water atoms for pymol visualisation
@@ -727,6 +748,8 @@ class WaterClustering:
                             and self.plotreach == 0
                             and self.debugH == 0
                         ):
+                            import matplotlib.pyplot as plt
+
                             plt.show()
                         if stop_after_frist_water_found:
                             return waters, np.argwhere(clusters == k)
@@ -1146,6 +1169,8 @@ def __oxygen_clustering_plot(
     if type(cc) != OPTICS:
         plotreach = False
     if debugO > 0:
+        import matplotlib.pyplot as plt
+
         fig: Figure = plt.figure()
         if plotreach:
             ax: Axes = fig.add_subplot(1, 2, 1, projection="3d")
@@ -1169,6 +1194,8 @@ def __oxygen_clustering_plot(
         ax.set_title(title)
         ax.legend()
         if plotreach:
+            import matplotlib.pyplot as plt
+
             lblls = cc.labels_[cc.ordering_]
             ax = fig.add_subplot(1, 2, 2)
             plt.gca().set_prop_cycle(None)
@@ -1190,5 +1217,7 @@ def __oxygen_clustering_plot(
                     )
             ax.legend()
     if debugO == 2:
+        import matplotlib.pyplot as plt
+
         plt.show()
     return fig
