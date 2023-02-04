@@ -62,12 +62,16 @@ setup(
     setup_requires=[] + pytest_runner,
     # Additional entries you may want simply uncomment the lines you want and fill in the data
     # url='http://www.my_package.com',  # Website
+    #extras_require={
+    #    "debug": ["matplotlib"],
+    #    "nglview": ["nglview"],
+    #},
     install_requires=[
-        "hdbscan",
-        "numpy",
-        "matplotlib",
-        "scikit-learn",
-        "nglview",
+        "hdbscan>=0.8.27",
+        "numpy>=1.21",
+        "scikit-learn>=1.0",
+        "matplotlib>=3.4",
+        "nglview>3.0.0",
     ],  # Required packages, pulls from pip if needed; do not use for Conda deployment
     platforms=['Linux',
                'Mac OS-X',
