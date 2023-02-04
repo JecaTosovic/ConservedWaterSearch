@@ -1,9 +1,11 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+
 import numpy as np
-from matplotlib.axes import Axes
-from matplotlib.figure import Figure
 from sklearn.cluster import OPTICS, KMeans
 
 
@@ -946,6 +948,8 @@ def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
     For debuging only.
 
     """
+    import matplotlib.pyplot as plt
+    
     fig: Figure = plt.figure()
     if type(labels) == int:
         return fig
@@ -989,6 +993,8 @@ def __plotreachability(
     For debuging purposes only.
 
     """
+    import matplotlib.pyplot as plt
+    
     if fig is None:
         fig: Figure = plt.figure()
     if type(cc) != OPTICS:
