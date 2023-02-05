@@ -3,9 +3,11 @@ from __future__ import annotations
 import os
 import platform
 
-import nglview as ngl
 import numpy as np
-from nglview import NGLWidget
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from nglview import NGLWidget
 
 
 def read_results(
@@ -95,9 +97,7 @@ def get_orientations_from_positions(
         for o, h1, h2 in zip(Odata, H1, H2):
             a: np.ndarray = h1 - o
             b: np.ndarray = h2 - o
-            if (np.linalg.norm(h1 - o) > 1.2) or (
-                np.linalg.norm(h2 - o) > 1.2
-            ):
+            if (np.linalg.norm(h1 - o) > 1.2) or (np.linalg.norm(h2 - o) > 1.2):
                 raise ValueError(
                     "bad input HO bonds in water longer than 1.2A; value:",
                     np.linalg.norm(h1 - o),
@@ -177,9 +177,7 @@ def visualise_pymol(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception(
-            "pymol not installed. Either install pymol or use nglview"
-        )
+        raise Exception("pymol not installed. Either install pymol or use nglview")
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.hide("everything")
@@ -230,13 +228,7 @@ def visualise_pymol(
         cmd.alter_state(
             0,
             wname,
-            "(x,y,z)=("
-            + str(Opos[0])
-            + ","
-            + str(Opos[1])
-            + ","
-            + str(Opos[2])
-            + ")",
+            "(x,y,z)=(" + str(Opos[0]) + "," + str(Opos[1]) + "," + str(Opos[2]) + ")",
         )
         if tip == "onlyO":
             cmd.delete(wname + "and elem H")
@@ -402,9 +394,7 @@ def visualise_pymol_from_pdb(
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception(
-            "pymol not installed. Either install pymol or use nglview"
-        )
+        raise Exception("pymol not installed. Either install pymol or use nglview")
     if platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.load(pdbfile)
@@ -553,10 +543,13 @@ def visualise_nglview(
         # initialise widget
         view
     """
+    try:
+        import nglview as ngl
+    except ModuleNotFoundError:
+        raise Exception("nglview not installed. Either install pymol or nglview")
+
     if aligned_protein is not None:
-        view: NGLWidget = ngl.show_file(
-            aligned_protein, default_representation=False
-        )
+        view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
         view.clear_representations()
         view.add_representation("surface", selection="protein", opacity=0.5)
         view.add_representation("ball+stick", selection="water", color="red")
@@ -579,9 +572,7 @@ def visualise_nglview(
         view[-1].set_coordinates(np.asarray([H1pos, Opos, H2pos]))
     if crystal_waters is not None:
         view.add_pdbid(crystal_waters)
-        view[-1].add_representation(
-            "spacefill", selection="water", color="red"
-        )
+        view[-1].add_representation("spacefill", selection="water", color="red")
     if density_map_file is not None:
         view.add_component(density_map_file)
     return view
