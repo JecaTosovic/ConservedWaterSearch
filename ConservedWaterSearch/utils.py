@@ -336,7 +336,8 @@ def visualise_pymol(
             cmd.select("crystal_waters", crystal_waters + " and SOL")
         cmd.show("spheres", "crystal_waters")
         cmd.set("sphere_scale", "0.4", "crystal_waters")
-        os.remove(crystal_waters + ".cif")
+        if os.path.exists(crystal_waters + ".cif"):
+            os.remove(crystal_waters + ".cif")
     # add volume density visualisation
     if density_map:
         cmd.load(density_map)
@@ -345,7 +346,8 @@ def visualise_pymol(
     cmd.reset()
     if active_site_ids is not None:
         cmd.center(active_site_center)
-    os.remove("hoh.cif")
+    if os.path.exists("hoh.cif"):
+        os.remove("hoh.cif")
     # save
     cmd.save(output_file)
     cmd.reinitialize()
