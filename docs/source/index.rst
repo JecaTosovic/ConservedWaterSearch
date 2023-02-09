@@ -6,6 +6,8 @@ Welcome to ConservedWaterSearch's documentation!
     :target: https://conservedwatersearch.readthedocs.io/en/latest/?badge=latest
 .. image:: https://badge.fury.io/py/conservedwatersearch.svg
     :target: https://badge.fury.io/py/conservedwatersearch
+.. image:: https://img.shields.io/conda/vn/conda-forge/conservedwatersearch.svg
+    :target: https://anaconda.org/conda-forge/conservedwatersearch
 
 .. include:: introduction.rst
 
