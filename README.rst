@@ -4,6 +4,8 @@ ConservedWaterSearch
     :target: https://conservedwatersearch.readthedocs.io/en/latest/?badge=latest
 .. image:: https://badge.fury.io/py/conservedwatersearch.svg
     :target: https://badge.fury.io/py/conservedwatersearch
+.. image:: https://img.shields.io/conda/vn/conda-forge/conservedwatersearch.svg
+    :target: https://anaconda.org/conda-forge/conservedwatersearch
 
 
 The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules(see figure below for more information). Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see for more `information on clustering procedures <https://doi.org/10.1021/acs.jcim.2c00801>`_).
