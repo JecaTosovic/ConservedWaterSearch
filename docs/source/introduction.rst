@@ -1,6 +1,13 @@
 ConservedWaterSearch
 ====================
 
+.. image:: https://readthedocs.org/projects/conservedwatersearch/badge/?version=latest
+    :target: https://conservedwatersearch.readthedocs.io/en/latest/?badge=latest
+.. image:: https://badge.fury.io/py/conservedwatersearch.svg
+    :target: https://badge.fury.io/py/conservedwatersearch
+.. image:: https://img.shields.io/conda/vn/conda-forge/conservedwatersearch.svg
+    :target: https://anaconda.org/conda-forge/conservedwatersearch
+
 The ConservedWaterSearch (CWS) Python library uses density based clustering approach to detect conserved waters from simulation trajectories. First, positions of water molecules are determined based on clustering of oxygen atoms belonging to water molecules(see figure below for more information). Positions on water molecules can be determined using Multi Stage Re-Clustering (MSRC) approach or Single Clustering (SC) approach (see :cite:`conservedwatersearch2022` for more `information on clustering procedures <https://doi.org/10.1021/acs.jcim.2c00801>`_).
 
 .. image:: figs/Scheme.png
@@ -29,16 +36,19 @@ See :cite:`conservedwatersearch2022`.
 
 Installation
 ============
-The easiest ways to install **ConservedWaterSearch** is using :code:`pip`:
+The easiest ways to install **ConservedWaterSearch** is to install it from conda-forge using :code:`conda`:
+
+.. code:: bash
+
+   conda install -c conda-forge ConservedWaterSearch
+
+CWS can also be installed from PyPi (using :code:`pip`). However, hdbscan which is a hard dependency, requires a C++ compiler to be installed for :code:`pip` installation to work (see :ref:`installation:Installation`). To install via :code:`pip` use:
 
 .. code:: bash
 
    pip install ConservedWaterSearch
 
-Pymol is the only requirement missing on pip and has to be installed either fom source or conda. For more information see :ref:`installation:Installation`.
-
-Conda builds will be available soon.
-
+Pymol is the only requirement missing on PyPi and has to be installed either from source or conda. For more information see :ref:`installation:Installation`.
 
 Example
 =======
