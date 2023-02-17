@@ -117,7 +117,7 @@ def visualise_pymol(
     waterO: list[list[float]],
     waterH1: list[list[float]],
     waterH2: list[list[float]],
-    aligned_protein: str = "aligned.pdb",
+    aligned_protein: str | None = "aligned.pdb",
     output_file: str | None = None,
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
@@ -138,8 +138,9 @@ def visualise_pymol(
         waterO (list): Coordiantes of Oxygen atom in water molecules.
         waterH1 (list): Coordinates of Hydrogen1 atom in water molecules.
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
-        aligned_protein (str, optional): file name containing protein
-            configuration trajectory was aligned to. Defaults to "aligned.pdb".
+        aligned_protein (str | None, optional): file name containing protein
+            configuration trajectory was aligned to. If `None` no
+            protein will be shown. Defaults to "aligned.pdb".
         output_file (str | None, optional): File to save the
             visualisation state. If ``None``, a pymol session is started
             (this probably doesn't work on Mac OSX). Defaults to None.
@@ -183,6 +184,7 @@ def visualise_pymol(
         raise Exception("pymol not installed. Either install pymol or use nglview")
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
+    cmd.reinitialize()
     if platform.system() == "Darwin":
         import warnings
         warnings.warn("mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",RuntimeWarning)
@@ -295,25 +297,19 @@ def visualise_pymol(
             cmd.set("sphere_scale", 0.1, wname)
         else:
             cmd.show("sticks", wname)
-        # all waters
-        waters: str = cmd.get_unused_name("waters")
-        cmd.select(waters, "resn SOL or resn FCW or resn HCW or resn WCW")
+    waters: str = cmd.get_unused_name("waters")
+    cmd.select(waters, "SOL in (FCW* or WCW* or HCW*)")
+    if active_site_ids:
+        sele = aminokis_u_am + " or " + waters + " or organic"
     else:
-        waters = cmd.get_unused_name("waters_")
-        cmd.select(waters, "SOL")
-        cmd.show("lines", waters)
-        # distances for hydrogen bonds
-        if active_site_ids:
-            sele = aminokis_u_am + " or " + waters + " or organic"
-        else:
-            sele = waters + " or organic"
-        cmd.distance(
-            "polar_contacts",
-            sele,
-            "sol",
-            mode=2,
-        )
-        cmd.hide("labels")
+        sele = waters + " or organic"
+    cmd.distance(
+        "polar_contacts",
+        sele,
+        "sol",
+        mode=2,
+    )
+    cmd.hide("labels")
     # Add crystal waters
     if crystal_waters and aligned_protein is not None:
         cmd.fetch(crystal_waters)
@@ -357,9 +353,8 @@ def visualise_pymol(
     if os.path.exists("hoh.cif"):
         os.remove("hoh.cif")
     # save
-    if not(output_file is None):
+    if output_file is not None:
         cmd.save(output_file)
-    cmd.reinitialize()
 
 
 def visualise_pymol_from_pdb(

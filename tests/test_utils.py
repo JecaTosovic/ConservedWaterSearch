@@ -39,9 +39,29 @@ def test_visualise_pymol2():
         aligned_protein=None,
         output_file="test.pdb",
         crystal_waters="3T74",
-        ligand_resname="UBY"
+        ligand_resname="UBY",
     )
     os.remove("test.pdb")
+
+
+def test_visualise_pymol3():
+    visualise_pymol(
+        *read_results(
+            "tests/data/Clustering_results.dat",
+            "tests/data/Type_Clustering_results.dat",
+        ),
+        aligned_protein=None,
+    )
+
+
+def test_visualise_pymol4():
+    visualise_pymol(
+        *read_results(
+            "tests/data/Clustering_results.dat",
+            "tests/data/Type_Clustering_results.dat",
+        ),
+        aligned_protein="tests/data/aligned.pdb",
+    )
 
 
 def test_visualise_nglview():
@@ -51,7 +71,7 @@ def test_visualise_nglview():
             "tests/data/Type_Clustering_results.dat",
         ),
         aligned_protein=None,
-        crystal_waters="3T74"
+        crystal_waters="3T74",
     )
     assert type(vv) == nglview.NGLWidget
 
