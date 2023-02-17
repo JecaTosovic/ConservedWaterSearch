@@ -128,6 +128,9 @@ def visualise_pymol(
     """Visualises results via `pymol <https://pymol.org/>`__.
 
     Visualises results using pymol in a pymol session or saves to a file.
+    On mac OS the interactive pymol session will fail to lunch. If `output_file`
+    is `None`, a visalisation state will be saved to
+    `pymol_water_visualization.pse` in this case on mac OS.
 
     Args:
         water_type (list): List containing water type results from
@@ -182,6 +185,11 @@ def visualise_pymol(
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     cmd.reinitialize()
+    if platform.system() == "Darwin":
+        import warnings
+        warnings.warn("mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",RuntimeWarning)
+        if output_file is None:
+            output_file='pymol_water_visualization.pse'
     cmd.hide("everything")
     if aligned_protein is not None:
         cmd.load(aligned_protein)
