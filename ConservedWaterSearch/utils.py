@@ -184,9 +184,9 @@ def visualise_pymol(
     if output_file is None and platform.system() != "Darwin":
         pymol.finish_launching(["pymol", "-q"])
     else:
-        raise Warning("mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse")
-        if output_file is None:
-            output_file='pymol_water_visualization.pse'
+        import warnings
+        warnings.warn("mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",RuntimeWarning)
+        output_file='pymol_water_visualization.pse'
     cmd.hide("everything")
     if aligned_protein is not None:
         cmd.load(aligned_protein)
