@@ -1,13 +1,14 @@
 from __future__ import annotations
-
 import os
 import platform
-
 import numpy as np
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from nglview import NGLWidget
+    try:
+        from nglview import NGLWidget
+    except ImportError:
+        NGLWidget = None
 
 
 def read_results(
