@@ -6,13 +6,11 @@ try:
     from matplotlib.figure import Figure
 except ImportError:
     Axes = Figure = None
-    warnings.warn("matplotlib is not installed; some features may not be available.")
 
 try:
     from nglview import NGLWidget
 except ImportError:
     NGLWidget = None
-    warnings.warn("nglview is not installed; some features may not be available.")
 
 if TYPE_CHECKING:
     from io import TextIOWrapper
@@ -438,7 +436,6 @@ class WaterClustering:
                                 self.nsnaps * (2 - self.numbpct_oxygen)
                             ),
                             cluster_selection_method="eom",
-                            algorithm="auto",
                             n_jobs=self.njobs,
                             allow_single_cluster=allow_single,  # type: ignore
                         )
@@ -606,7 +603,6 @@ class WaterClustering:
                 min_samples=minsamp,
                 max_cluster_size=int(self.nsnaps * (2 - self.numbpct_oxygen)),
                 cluster_selection_method="eom",
-                algorithm="auto",
                 n_jobs=self.njobs,
             )
             clust.fit(Odata)
