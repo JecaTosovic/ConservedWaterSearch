@@ -2,8 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from matplotlib.axes import Axes
-    from matplotlib.figure import Figure
+    try:
+        from matplotlib.axes import Axes
+        from matplotlib.figure import Figure
+    except ImportError:
+        Axes, Figure = None, None
 
 import numpy as np
 from sklearn.cluster import OPTICS, KMeans
@@ -284,7 +287,7 @@ def find_fully_conserved_orientations(
         ):
             # Perform OPTICS clustering on hydrogen orientations; minsamp is same for all water types, however here we force min_cluster size to be given.
             msp = int(neioc * pct_size_buffer)
-            msp = msp if msp >= 1 else 1
+            msp = msp if msp >= 2 else 2
             cc = OPTICS(min_samples=msp, xi=xi, n_jobs=njobs)
             cc.fit(orientations)
             labels = cc.labels_
@@ -435,7 +438,7 @@ def find_half_conserved_orientations(
     ss = ""
     # Optics clustering for hydrogen orientations - minsamp is same for all water types
     msp = int(neioc * min_samp_data_size_pct)
-    msp = msp if msp >= 1 else 1
+    msp = msp if msp >= 2 else 2
     cc = OPTICS(
         min_samples=msp,
         xi=xi,
@@ -573,7 +576,7 @@ def find_weakly_conserved_orientations(
     neioc = int(len(orientations) / 2)
     # Optics clustering for hydrogen orientations - minsamp is same for all water types
     msp = int(neioc * min_samp_data_size_pct)
-    msp = msp if msp >= 1 else 1
+    msp = msp if msp >= 2 else 2
     cc = OPTICS(
         min_samples=msp,
         xi=xi,
