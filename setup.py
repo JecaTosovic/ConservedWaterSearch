@@ -50,18 +50,13 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     setup_requires=[] + pytest_runner,
-    # extras_require={
-    #    "debug": ["matplotlib>=3.4"],
-    #    "nglview": ["nglview>3.0.0"],
-    #    "hdbscan": ["hdbscan>=0.8.27",]
-    # },
-    # },
+    extras_require={
+       "debug": ["matplotlib>=3.4"],
+       "nglview": ["nglview>3.0.0"],
+    },
     install_requires=[
-        "hdbscan>=0.8.27",
         "numpy>=1.21",
-        "scikit-learn>=1.0",
-        "matplotlib>=3.4",
-        "nglview>3.0.0",
+        "scikit-learn>=1.3",
     ],
     platforms=["Linux", "Mac OS-X", "Unix", "Windows"],
     zip_safe=False,
