@@ -943,7 +943,7 @@ def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
     """
     try:
         import matplotlib.pyplot as plt
-    except:
+    except ModuleNotFoundError:
         raise Exception("install matplotlib")
 
     fig: Figure = plt.figure()
@@ -991,7 +991,7 @@ def __plotreachability(
     """
     try:
         import matplotlib.pyplot as plt
-    except:
+    except ModuleNotFoundError:
         raise Exception("install matplotlib")
 
     if fig is None:

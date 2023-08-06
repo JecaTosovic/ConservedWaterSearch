@@ -30,7 +30,6 @@ from ConservedWaterSearch.utils import (
 )
 
 
-
 class WaterClustering:
     """Class for performing water clustering.
 
@@ -428,7 +427,6 @@ class WaterClustering:
                 for j in lxis:
                     # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
                     if clustering_algorithm == "HDBSCAN":
-
                         clust = HDBSCAN(
                             min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                             min_samples=int(i),
@@ -520,7 +518,7 @@ class WaterClustering:
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.show()
@@ -632,7 +630,7 @@ class WaterClustering:
         if self.debugO == 1:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.close(ff)
@@ -653,7 +651,7 @@ class WaterClustering:
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.show()
@@ -747,7 +745,7 @@ class WaterClustering:
                     if self.plotreach and self.debugH > 0:
                         try:
                             import matplotlib.pyplot as plt
-                        except:
+                        except ModuleNotFoundError:
                             raise Exception("install matplotlib")
 
                         plt.show()
@@ -766,7 +764,7 @@ class WaterClustering:
                         ):
                             try:
                                 import matplotlib.pyplot as plt
-                            except:
+                            except ModuleNotFoundError:
                                 raise Exception("install matplotlib")
 
                             plt.show()
@@ -1188,7 +1186,7 @@ def __oxygen_clustering_plot(
     if debugO > 0:
         try:
             import matplotlib.pyplot as plt
-        except:
+        except ModuleNotFoundError:
             raise Exception("install matplotlib")
 
         fig: Figure = plt.figure()
@@ -1216,7 +1214,7 @@ def __oxygen_clustering_plot(
         if plotreach:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             lblls = cc.labels_[cc.ordering_]
@@ -1242,7 +1240,7 @@ def __oxygen_clustering_plot(
     if debugO == 2:
         try:
             import matplotlib.pyplot as plt
-        except:
+        except ModuleNotFoundError:
             raise Exception("install matplotlib")
 
         plt.show()
