@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ConservedWaterSearch"
+version = "0.1.2"
+author = "Domagoj Fijan, Jelena Tosovic, Marko Jukic, Urban Bren"
+author_email = "jecat_90@live.com"
+description = "(Short Description)"
+long_description = "file: README.rst"
+long_description_content_type = "text/x-rst"
+license = "BSD-3-Clause"
+keywords = [
+    "simulation",
+    "analysis",
+    "molecular dynamics",
+    "biosimulation",
+    "conserved water",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+url = "https://github.com/JecaTosovic/ConservedWaterSearch"
+
+[project.urls]
+Homepage = "https://github.com/JecaTosovic/ConservedWaterSearch",
+Documentation = "https://ConservedWaterSearch.readthedocs.io/",
+Source = "https://github.com/JecaTosovic/ConservedWaterSearch",
+Issue = "https://github.com/JecaTosovic/ConservedWaterSearch/issues"
+
+[tool.setuptools.options]
+python_requires = ">=3.8"
+packages = "find:"
+install_requires = ["requirements/requirements.txt"]
+zip_safe = false
+
+[tool.setuptools.options.extras_require]
+debug = ["requirements/requirements-debug.txt"]
+nglview = ["requirements/requirements-nglview.txt"]
+
+[tool.flake8]
+max-line-length = 90
+filename = ["*.py"]
+exclude = [".eggs", "*.egg"]
+select = ["E", "F", "W"]
+ignore = ["E203", "E225", "E226", "E227", "E741", "E999", "W503", "W504", "E501"]
+
+[tool.setuptools]
+aliases = { test = "pytest" }
+
