@@ -13,7 +13,7 @@ authors = [
 ]
 description = "Conserved water search is a tool for finding conserved water molecules from MD trajectories."
 readme = { file = "README.txt", content-type = "text/x-rst" }
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 keywords = [
     "simulation",
     "analysis",
@@ -31,6 +31,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
+requires-python = ">=3.8"
+dynamic = ["dependencies"]
 
 [project.urls]
 Homepage = "https://github.com/JecaTosovic/ConservedWaterSearch"
@@ -38,15 +40,13 @@ Documentation = "https://ConservedWaterSearch.readthedocs.io/"
 Source = "https://github.com/JecaTosovic/ConservedWaterSearch"
 Issue = "https://github.com/JecaTosovic/ConservedWaterSearch/issues"
 
-[tool.setuptools.options]
-python_requires = ">=3.8"
-packages = "find:"
-install_requires = ["requirements/requirements.txt"]
-zip_safe = false
-
-[tool.setuptools.options.extras_require]
-debug = ["requirements/requirements-debug.txt"]
-nglview = ["requirements/requirements-nglview.txt"]
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements/requirements.txt"] }
+optional-dependencies = { debug = { file = [
+    "requirements/requirements-debug.txt",
+] }, nglview = { file = [
+    "requirements/requirements-nglview.txt",
+] } }
 
 [tool.flake8]
 max-line-length = 90
