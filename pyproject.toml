@@ -31,9 +31,9 @@ classifiers = [
 url = "https://github.com/JecaTosovic/ConservedWaterSearch"
 
 [project.urls]
-Homepage = "https://github.com/JecaTosovic/ConservedWaterSearch",
-Documentation = "https://ConservedWaterSearch.readthedocs.io/",
-Source = "https://github.com/JecaTosovic/ConservedWaterSearch",
+Homepage = "https://github.com/JecaTosovic/ConservedWaterSearch"
+Documentation = "https://ConservedWaterSearch.readthedocs.io/"
+Source = "https://github.com/JecaTosovic/ConservedWaterSearch"
 Issue = "https://github.com/JecaTosovic/ConservedWaterSearch/issues"
 
 [tool.setuptools.options]
