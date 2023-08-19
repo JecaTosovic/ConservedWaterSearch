@@ -64,6 +64,3 @@ ignore = [
     "W504",
     "E501",
 ]
-
-[tool.setuptools]
-aliases = { test = "pytest" }
