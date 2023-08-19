@@ -13,7 +13,7 @@ authors = [
 ]
 description = "Conserved water search is a tool for finding conserved water molecules from MD trajectories."
 readme = { file = "README.txt", content-type = "text/x-rst" }
-license = "BSD-3-Clause"
+license = {file = "LICENSE"}
 keywords = [
     "simulation",
     "analysis",
