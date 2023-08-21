@@ -48,7 +48,7 @@ CWS can also be installed from PyPi (using :code:`pip`). However, hdbscan which 
 
    pip install ConservedWaterSearch
 
-Pymol is on pip and is only required for visualization. It can be installed from source or conda. For more information see :ref:`installation:Installation`.
+Pymol cannot be installed through PyPI (pip) and is only required for visualization. It can be installed from source or conda. For more information see :ref:`installation:Installation`.
 
 Example
 =======

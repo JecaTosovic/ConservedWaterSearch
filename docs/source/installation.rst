@@ -19,7 +19,7 @@ ConservedWaterSearch (CWS) is also available for installation from Python packag
 Prerequisits for visualisation
 ------------------------------
 
-`Pymol <https://pymol.org/2/>`_ is required for visualisation only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the open-source version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
+`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the open-source version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
