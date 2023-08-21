@@ -16,20 +16,14 @@ Installation via PyPi
 
 ConservedWaterSearch (CWS) is also available for installation from Python package index(PyPi) using :code:`pip`.
 
-Prerequisits
-------------
+Prerequisits for visualisation
+------------------------------
 
 `Pymol <https://pymol.org/2/>`_ is required for visualisation only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the open-source version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
    conda install -c conda-forge pymol-open-source
-
-On the other hand `hdbscan <https://hdbscan.readthedocs.io/en/latest/index.html>`_ is a hard dependency and must be installed to use CWS. It can be installed using conda from conda-forge or from PyPi (:code:`pip`). If installing from PyPi a C++ compiler is required. It can be installed using the platform's package manager (:code:`apt` for Ubuntu, :code:`brew` for macOS, :code:`winget` for Windows) or conda:
-
-.. code:: bash
-
-   conda install -c conda-forge cxx-compiler
 
 Installing the main package
 ---------------------------
