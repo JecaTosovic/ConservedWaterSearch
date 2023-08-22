@@ -14,12 +14,17 @@ ConservedWaterSearch is available through `conda-forge <https://conda-forge.org/
 Installation via PyPi
 =====================
 
-ConservedWaterSearch (CWS) is also available for installation from Python package index(PyPi) using :code:`pip`.
+ConservedWaterSearch can be installed via :code:`pip` from `PyPi <https://pypi.org/project/ConservedWaterSearch>`_:
 
-Prerequisits for visualisation
-------------------------------
+.. code:: bash
 
-`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the open-source version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
+   pip install ConservedWaterSearch
+
+
+Prerequisites for visualization
+==============================
+
+`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
@@ -30,16 +35,6 @@ and paid (licensed version) from schrodinger channel (see `here <https://pymol.o
 .. code:: bash
 
    conda install -c conda-forge -c schrodinger pymol-bundle
-
-Installing the main package
----------------------------
-
-ConservedWaterSearch can be installed via :code:`pip` from `PyPi <https://pypi.org/project/ConservedWaterSearch>`_:
-
-.. code:: bash
-
-   pip install ConservedWaterSearch
-
 
 Known Issues
 ============
