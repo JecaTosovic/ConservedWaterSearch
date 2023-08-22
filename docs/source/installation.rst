@@ -25,6 +25,12 @@ Prerequisits for visualisation
 
    conda install -c conda-forge pymol-open-source
 
+and paid (licensed version) from schrodinger channel (see `here` <https://pymol.org/conda/>`_ for more details)via :code:`conda` (or :code:`mamba`):
+
+.. code:: bash
+
+   conda install -c conda-forge -c schrodinger pymol-bundle
+
 Installing the main package
 ---------------------------
 

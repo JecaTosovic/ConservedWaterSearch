@@ -42,7 +42,7 @@ The easiest ways to install **ConservedWaterSearch** is to install it from conda
 
    conda install -c conda-forge ConservedWaterSearch
 
-CWS can also be installed from PyPi (using :code:`pip`). However, hdbscan which is a hard dependency, requires a C++ compiler to be installed for :code:`pip` installation to work (see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_). To install via :code:`pip` use:
+CWS can also be installed from PyPi (using :code:`pip`). To install via :code:`pip` use:
 
 .. code:: bash
 
