@@ -42,13 +42,13 @@ The easiest ways to install **ConservedWaterSearch** is to install it from conda
 
    conda install -c conda-forge ConservedWaterSearch
 
-CWS can also be installed from PyPi (using :code:`pip`). However, hdbscan which is a hard dependency, requires a C++ compiler to be installed for :code:`pip` installation to work (see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_). To install via :code:`pip` use:
+CWS can also be installed from PyPI (using :code:`pip`). To install via :code:`pip` use:
 
 .. code:: bash
 
    pip install ConservedWaterSearch
 
-Pymol is the only requirement missing on pip and has to be installed either fom source or conda. For more information see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_.
+Pymol cannot be installed through PyPI (pip) and is only required for visualization. It can be installed from source or conda. For more information see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_.
 
 Example
 =======

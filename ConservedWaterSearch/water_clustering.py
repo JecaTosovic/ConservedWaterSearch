@@ -1,18 +1,24 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
+try:
     from matplotlib.axes import Axes
     from matplotlib.figure import Figure
+except ImportError:
+    Axes = Figure = None
+
+try:
     from nglview import NGLWidget
+except ImportError:
+    NGLWidget = None
+
+if TYPE_CHECKING:
     from io import TextIOWrapper
-    from hdbscan import HDBSCAN
 
 import os
 import warnings
-
 import numpy as np
-from sklearn.cluster import OPTICS, cluster_optics_xi
+from sklearn.cluster import OPTICS, cluster_optics_xi, HDBSCAN
 
 from ConservedWaterSearch.hydrogen_orientation import (
     hydrogen_orientation_analysis,
@@ -421,20 +427,14 @@ class WaterClustering:
                 for j in lxis:
                     # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
                     if clustering_algorithm == "HDBSCAN":
-                        try:
-                            import hdbscan
-                        except:
-                            raise Exception("install hdbscan")
-
-                        clust = hdbscan.HDBSCAN(
+                        clust = HDBSCAN(
                             min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                             min_samples=int(i),
                             max_cluster_size=int(
                                 self.nsnaps * (2 - self.numbpct_oxygen)
                             ),
                             cluster_selection_method="eom",
-                            algorithm="best",
-                            core_dist_n_jobs=self.njobs,
+                            n_jobs=self.njobs,
                             allow_single_cluster=allow_single,  # type: ignore
                         )
                         clust.fit(Odata)
@@ -472,7 +472,7 @@ class WaterClustering:
                     if self.debugO == 1:
                         try:
                             import matplotlib.pyplot as plt
-                        except:
+                        except ModuleNotFoundError:
                             raise Exception("install matplotlib")
 
                         plt.close(ff)
@@ -518,7 +518,7 @@ class WaterClustering:
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.show()
@@ -596,18 +596,12 @@ class WaterClustering:
             clust.fit(Odata)
             clusters = clust.labels_
         if clustering_algorithm == "HDBSCAN":
-            try:
-                import hdbscan
-            except:
-                raise Exception("install hdbscan")
-
-            clust: OPTICS | HDBSCAN = hdbscan.HDBSCAN(
+            clust: OPTICS | HDBSCAN = HDBSCAN(
                 min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
                 min_samples=minsamp,
                 max_cluster_size=int(self.nsnaps * (2 - self.numbpct_oxygen)),
                 cluster_selection_method="eom",
-                algorithm="best",
-                core_dist_n_jobs=self.njobs,
+                n_jobs=self.njobs,
             )
             clust.fit(Odata)
             clusters = clust.labels_
@@ -636,7 +630,7 @@ class WaterClustering:
         if self.debugO == 1:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.close(ff)
@@ -657,7 +651,7 @@ class WaterClustering:
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             plt.show()
@@ -751,7 +745,7 @@ class WaterClustering:
                     if self.plotreach and self.debugH > 0:
                         try:
                             import matplotlib.pyplot as plt
-                        except:
+                        except ModuleNotFoundError:
                             raise Exception("install matplotlib")
 
                         plt.show()
@@ -770,7 +764,7 @@ class WaterClustering:
                         ):
                             try:
                                 import matplotlib.pyplot as plt
-                            except:
+                            except ModuleNotFoundError:
                                 raise Exception("install matplotlib")
 
                             plt.show()
@@ -1192,7 +1186,7 @@ def __oxygen_clustering_plot(
     if debugO > 0:
         try:
             import matplotlib.pyplot as plt
-        except:
+        except ModuleNotFoundError:
             raise Exception("install matplotlib")
 
         fig: Figure = plt.figure()
@@ -1220,7 +1214,7 @@ def __oxygen_clustering_plot(
         if plotreach:
             try:
                 import matplotlib.pyplot as plt
-            except:
+            except ModuleNotFoundError:
                 raise Exception("install matplotlib")
 
             lblls = cc.labels_[cc.ordering_]
@@ -1246,7 +1240,7 @@ def __oxygen_clustering_plot(
     if debugO == 2:
         try:
             import matplotlib.pyplot as plt
-        except:
+        except ModuleNotFoundError:
             raise Exception("install matplotlib")
 
         plt.show()

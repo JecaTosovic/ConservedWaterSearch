@@ -11,35 +11,30 @@ ConservedWaterSearch is available through `conda-forge <https://conda-forge.org/
 
    conda install -c conda-forge ConservedWaterSearch
 
-Installation via PyPi
+Installation via PyPI
 =====================
 
-ConservedWaterSearch (CWS) is also available for installation from Python package index(PyPi) using :code:`pip`.
-
-Prerequisits
-------------
-
-`Pymol <https://pymol.org/2/>`_ is required for visualisation only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the open-source version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
-
-.. code:: bash
-
-   conda install -c conda-forge pymol-open-source
-
-On the other hand `hdbscan <https://hdbscan.readthedocs.io/en/latest/index.html>`_ is a hard dependency and must be installed to use CWS. It can be installed using conda from conda-forge or from PyPi (:code:`pip`). If installing from PyPi a C++ compiler is required. It can be installed using the platform's package manager (:code:`apt` for Ubuntu, :code:`brew` for macOS, :code:`winget` for Windows) or conda:
-
-.. code:: bash
-
-   conda install -c conda-forge cxx-compiler
-
-Installing the main package
----------------------------
-
-ConservedWaterSearch can be installed via :code:`pip` from `PyPi <https://pypi.org/project/ConservedWaterSearch>`_:
+ConservedWaterSearch can be installed via :code:`pip` from `PyPI <https://pypi.org/project/ConservedWaterSearch>`_:
 
 .. code:: bash
 
    pip install ConservedWaterSearch
 
+
+Prerequisites for visualization
+==============================
+
+`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPI (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
+
+.. code:: bash
+
+   conda install -c conda-forge pymol-open-source
+
+and paid (licensed version) from schrodinger channel (see `here <https://pymol.org/conda/>`_ for more details) via :code:`conda` (or :code:`mamba`):
+
+.. code:: bash
+
+   conda install -c conda-forge -c schrodinger pymol-bundle
 
 Known Issues
 ============
@@ -67,7 +62,7 @@ ConservedWaterSearch (CWS) uses :code:`pytest` for running unit tests. It can be
 
    conda install -c conda-forge pytest
 
-Or via PyPi (`see here <https://pypi.org/project/pytest>`_) (using :code:`pip`):
+Or via PyPI (`see here <https://pypi.org/project/pytest>`_) (using :code:`pip`):
 
 .. code:: bash
 

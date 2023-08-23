@@ -1,13 +1,14 @@
 from __future__ import annotations
-
 import os
 import platform
-
 import numpy as np
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from nglview import NGLWidget
+    try:
+        from nglview import NGLWidget
+    except ImportError:
+        NGLWidget = None
 
 
 def read_results(
@@ -187,9 +188,13 @@ def visualise_pymol(
     cmd.reinitialize()
     if platform.system() == "Darwin":
         import warnings
-        warnings.warn("mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",RuntimeWarning)
+
+        warnings.warn(
+            "mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",
+            RuntimeWarning,
+        )
         if output_file is None:
-            output_file='pymol_water_visualization.pse'
+            output_file = "pymol_water_visualization.pse"
     cmd.hide("everything")
     if aligned_protein is not None:
         cmd.load(aligned_protein)
