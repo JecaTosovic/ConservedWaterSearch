@@ -11,10 +11,10 @@ ConservedWaterSearch is available through `conda-forge <https://conda-forge.org/
 
    conda install -c conda-forge ConservedWaterSearch
 
-Installation via PyPi
+Installation via PyPI
 =====================
 
-ConservedWaterSearch can be installed via :code:`pip` from `PyPi <https://pypi.org/project/ConservedWaterSearch>`_:
+ConservedWaterSearch can be installed via :code:`pip` from `PyPI <https://pypi.org/project/ConservedWaterSearch>`_:
 
 .. code:: bash
 
@@ -24,7 +24,7 @@ ConservedWaterSearch can be installed via :code:`pip` from `PyPi <https://pypi.o
 Prerequisites for visualization
 ==============================
 
-`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPi (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
+`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPI (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
@@ -62,7 +62,7 @@ ConservedWaterSearch (CWS) uses :code:`pytest` for running unit tests. It can be
 
    conda install -c conda-forge pytest
 
-Or via PyPi (`see here <https://pypi.org/project/pytest>`_) (using :code:`pip`):
+Or via PyPI (`see here <https://pypi.org/project/pytest>`_) (using :code:`pip`):
 
 .. code:: bash
 
