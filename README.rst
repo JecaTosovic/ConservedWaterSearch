@@ -48,7 +48,25 @@ CWS can also be installed from PyPI (using :code:`pip`). To install via :code:`p
 
    pip install ConservedWaterSearch
 
-Pymol cannot be installed through PyPI (pip) and is only required for visualization. It can be installed from source or conda. For more information see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_.
+Optional visualization dependencies
+-----------------------------------
+
+nglview can be installed from PyPI (pip) or conda or when installing CWS
+through pip by using :code: pip install ConservedWaterSearch[nglview].
+PyMOL is the recomended visualization tool for CWS and can be installed
+only using conda or from source. 
+
+Matplotlib is only required for analyzing of clustering and is usefull
+if default values of clustering parameters need to be fine tuned (which
+should be relatively rarely). You can install it from pip or conda or
+when installing CWS through pip by using :code: pip install
+ConservedWaterSearch[matplotlib]. 
+Both mpl and nglveiw can be installed when installing CWS by using:
+.. code:: bash
+
+   pip install ConservedWaterSearch[all]
+
+For more information see `installation <https://conservedwatersearch.readthedocs.io/en/latest/installation.html>`_.
 
 Example
 =======

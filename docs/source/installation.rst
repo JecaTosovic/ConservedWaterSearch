@@ -1,6 +1,7 @@
-============
 Installation
 ============
+
+The default installations from PyPI and conda-forge don't include any of the optional dependencies required for visualization (see below). This is done to avoid potential conflicts with user defined PyMOL installations. 
 
 Installation via conda 
 ======================
@@ -11,6 +12,7 @@ ConservedWaterSearch is available through `conda-forge <https://conda-forge.org/
 
    conda install -c conda-forge ConservedWaterSearch
 
+
 Installation via PyPI
 =====================
 
@@ -20,21 +22,38 @@ ConservedWaterSearch can be installed via :code:`pip` from `PyPI <https://pypi.o
 
    pip install ConservedWaterSearch
 
+Optional visualization dependencies
+===================================
 
-Prerequisites for visualization
-==============================
-
-`Pymol <https://pymol.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. Pymol is not available via PyPI (:code:`pip`), but can be installed from conda-forge. If pymol is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
+`PyMOL <https://PyMOL.org/2/>`_ is required for visualization only, if so desired. If not, it's installation can be skipped. PyMOL is not available via PyPI (:code:`pip`), but can be installed from conda-forge. If PyMOL is already installed in your current ``python`` environment it can be used with CWS. If not, the free (open-source) version can be installed from `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
    conda install -c conda-forge pymol-open-source
 
-and paid (licensed version) from schrodinger channel (see `here <https://pymol.org/conda/>`_ for more details) via :code:`conda` (or :code:`mamba`):
+and paid (licensed version) from schrodinger channel (see `here <https://PyMOL.org/conda/>`_ for more details) via :code:`conda` (or :code:`mamba`):
 
 .. code:: bash
 
    conda install -c conda-forge -c schrodinger pymol-bundle
+
+Optional dependencies for visualization can be installed through PyPI (:code:`pip`) except for PyMOL. To install CWS through :code: `pip` with nglview use:
+
+.. code:: bash
+
+   pip install ConservedWaterSearch[nglview]
+
+To install with matplotlib for clustering plots use:
+
+.. code:: bash
+
+   pip install ConservedWaterSearch[debug]
+
+To install with both nglview and matplotlib use:
+
+.. code:: bash
+
+   pip install ConservedWaterSearch[all]
 
 Known Issues
 ============
