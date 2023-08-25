@@ -38,7 +38,7 @@ and paid (licensed version) from schrodinger channel (see `here <https://PyMOL.o
 
    conda install -c conda-forge -c schrodinger pymol-bundle
 
-Optional dependencies for visualization can be installed through PyPI (:code:`pip`) except for PyMOL. To install CWS through :code: `pip` with nglview use:
+Optional dependencies for visualization can be installed through PyPI (:code:`pip`) except for PyMOL. To install CWS through :code:`pip` with nglview use:
 
 .. code:: bash
 
