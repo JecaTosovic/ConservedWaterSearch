@@ -1,3 +1,4 @@
+====================
 ConservedWaterSearch
 ====================
 
@@ -48,7 +49,7 @@ CWS can also be installed from PyPI (using :code:`pip`). To install via :code:`p
 
    pip install ConservedWaterSearch
 
-Pymol cannot be installed through PyPI (pip) and is only required for visualization. It can be installed from source or conda. For more information see :ref:`installation:Installation`.
+PyMOL cannot be installed through PyPI (pip) and is only required for visualization. It can be installed from source or conda. For more information see :ref:`installation:Installation`.
 
 Example
 =======
