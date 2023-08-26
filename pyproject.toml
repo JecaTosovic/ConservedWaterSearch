@@ -12,7 +12,7 @@ authors = [
     { name = "Urban Bren" },
 ]
 description = "Conserved water search is a tool for finding conserved water molecules from MD trajectories."
-readme = { file = "README.txt", content-type = "text/x-rst" }
+readme = { file = "README.rst", content-type = "text/x-rst" }
 license = { file = "LICENSE" }
 keywords = [
     "simulation",
