@@ -27,6 +27,7 @@ from ConservedWaterSearch.utils import (
     read_results,
     visualise_nglview,
     visualise_pymol,
+    __check_mpl_installation,
 )
 
 
@@ -348,7 +349,7 @@ class WaterClustering:
         with satisfactory oxygen clustering and hydrogen orientation
         clustering (optional) is found, elements of that water cluster
         are removed from the data set and water clustering starts from
-        the beggining. Loops until no satisfactory clusterings are
+        the beginning. Loops until no satisfactory clusterings are
         found. For more details see :cite:`conservedwatersearch2022`.
 
         Args:
@@ -374,22 +375,59 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
+        self.__check_cls_alg_and_whichH(clustering_algorithm, whichH)
+        minsamps, lxis, allow_single = self.__check_and_setup_MSRC(
+            lower_minsamp_pct, every_minsamp, xis, whichH, clustering_algorithm
+        )
+        self.__scan_clustering_params(
+            Odata, H1, H2, clustering_algorithm, minsamps, lxis, whichH, allow_single
+        )
+
+    def __check_cls_alg_and_whichH(self, clustering_algorithm, whichH):
+        if clustering_algorithm != "OPTICS" and clustering_algorithm != "HDBSCAN":
+            raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
+        for i in whichH:
+            if not (i in ["FCW", "HCW", "WCW", "onlyO"]):
+                raise Exception(
+                    "whichH supports onlyO or any combination of FCW, HCW and WCW"
+                )
+
+    def __check_and_setup_single(self, xis, whichH, clustering_algorithm, minsamp):
+        if minsamp is None:
+            minsamp = int(self.numbpct_oxygen * self.nsnaps)
+        elif type(minsamp) != int:
+            raise Exception("minsamp must be an int")
+        elif minsamp > self.nsnaps or minsamp <= 0:
+            raise Exception("minsamp must be between 0 and nsnaps")
+        if xis is None:
+            xis = 0.05
+        elif type(xis) != float:
+            raise Exception("xi must be a float")
+        elif xis < 0 or xis > 1:
+            raise Exception("xis should be between 0 and 1")
+        if self.save_intermediate_results:
+            self.save_clustering_options(
+                "single_clustering",
+                clustering_algorithm,
+                [minsamp, xis],
+                whichH,
+            )
+        return minsamp, xis
+
+    def __check_and_setup_MSRC(
+        self, lower_minsamp_pct, every_minsamp, xis, whichH, clustering_algorithm
+    ):
+        for i in xis:
+            if type(i) != float:
+                raise Exception("xis must contain floats")
+            if i > 1 or i < 0:
+                raise Exception("xis should be between 0 and 1")
         if lower_minsamp_pct > 1.0000001 or lower_minsamp_pct < 0:
             raise Exception("lower_misamp_pct must be between 0 and 1")
         if type(every_minsamp) != int:
             raise Exception("every_minsamp must be integer")
         if every_minsamp <= 0 or every_minsamp > self.nsnaps:
             raise Exception("every_minsamp must be  0<every_minsamp<=nsnaps")
-        for i in xis:
-            if type(i) != float:
-                raise Exception("xis must contain floats")
-            if i > 1 or i < 0:
-                raise Exception("xis should be between 0 and 1")
-        for i in whichH:
-            if not (i in ["FCW", "HCW", "WCW", "onlyO"]):
-                raise Exception(
-                    "whichH supports onlyO or any combination of FCW, HCW and WCW"
-                )
         minsamps: list = list(
             reversed(
                 range(
@@ -404,8 +442,7 @@ class WaterClustering:
             allow_single = False
         elif clustering_algorithm == "OPTICS":
             lxis = xis
-        else:
-            raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
+            allow_single = None
         if self.save_intermediate_results:
             self.save_clustering_options(
                 "multi_stage_reclustering",
@@ -413,9 +450,21 @@ class WaterClustering:
                 [lower_minsamp_pct, every_minsamp, lxis],
                 whichH,
             )
-        found: bool = True
-        if len(Odata) < self.nsnaps:
-            found = False
+        return minsamps, lxis, allow_single
+
+    def __scan_clustering_params(
+        self,
+        Odata,
+        H1,
+        H2,
+        clustering_algorithm,
+        minsamps,
+        lxis,
+        whichH,
+        allow_single,
+        delete: bool = True,
+    ):
+        found: bool = False if len(Odata) < self.nsnaps else True
         while found:
             found = False
             # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
@@ -470,40 +519,20 @@ class WaterClustering:
                         whichH=whichH,
                     )
                     if self.debugO == 1:
-                        try:
-                            import matplotlib.pyplot as plt
-                        except ModuleNotFoundError:
-                            raise Exception("install matplotlib")
-
+                        plt = __check_mpl_installation()
                         plt.close(ff)
                     if len(waters) > 0:
                         found = True
                         if clustering_algorithm == "HDBSCAN" and allow_single:
                             allow_single = False
-                        Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
+                        if delete:
+                            Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
                         self._add_water_solutions(waters)
                         if self.save_intermediate_results:
-                            self.save_results(
-                                fname="Clustering_results_temp1.dat",
-                                typefname="Type_Clustering_results_temp1.dat",
-                            )
-                            if os.path.isfile(
-                                "Clustering_results_temp1.dat"
-                            ) and os.path.isfile("Type_Clustering_results_temp1.dat"):
-                                os.rename(
-                                    "Clustering_results_temp1.dat",
-                                    "Clustering_results_temp.dat",
-                                )
-                                os.rename(
-                                    "Type_Clustering_results_temp1.dat",
-                                    "Type_Clustering_results_temp.dat",
-                                )
-                            else:
-                                raise Warning(
-                                    "unable to overwrite temp save files. Restarting might not work properly"
-                                )
-                        break
-                if found:
+                            self.__save_intermediate_results()
+                        if delete:
+                            break
+                if found and delete:
                     break
             # check if size of remaining data set is bigger then number of snapshots
             if (
@@ -516,14 +545,31 @@ class WaterClustering:
             if len(Odata) < self.nsnaps:
                 found = False
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
-            try:
-                import matplotlib.pyplot as plt
-            except ModuleNotFoundError:
-                raise Exception("install matplotlib")
-
+            plt = __check_mpl_installation()
             plt.show()
         if self.save_results_after_done:
             self.save_results()
+
+    def __save_intermediate_results(self):
+        self.save_results(
+            fname="Clustering_results_temp1.dat",
+            typefname="Type_Clustering_results_temp1.dat",
+        )
+        if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile(
+            "Type_Clustering_results_temp1.dat"
+        ):
+            os.rename(
+                "Clustering_results_temp1.dat",
+                "Clustering_results_temp.dat",
+            )
+            os.rename(
+                "Type_Clustering_results_temp1.dat",
+                "Type_Clustering_results_temp.dat",
+            )
+        else:
+            raise Warning(
+                "unable to overwrite temp save files. Restarting might not work properly"
+            )
 
     def single_clustering(
         self,
@@ -560,32 +606,10 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
-        if clustering_algorithm != "OPTICS" and clustering_algorithm != "HDBSCAN":
-            raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
-        for i in whichH:
-            if not (i in ["FCW", "HCW", "WCW", "onlyO"]):
-                raise Exception(
-                    "whichH supports onlyO or any combination of FCW, HCW and WCW"
-                )
-        if minsamp is None:
-            minsamp = int(self.numbpct_oxygen * self.nsnaps)
-        elif type(minsamp) != int:
-            raise Exception("minsamp must be an int")
-        elif minsamp > self.nsnaps or minsamp <= 0:
-            raise Exception("minsamp must be between 0 and nsnaps")
-        if xi is None:
-            xi = 0.05
-        elif type(xi) != float:
-            raise Exception("xi must be a float")
-        elif xi < 0 or xi > 1:
-            raise Exception("xis should be between 0 and 1")
-        if self.save_intermediate_results:
-            self.save_clustering_options(
-                "single_clustering",
-                clustering_algorithm,
-                [minsamp, xi],
-                whichH,
-            )
+        self.__check_cls_alg_and_whichH(clustering_algorithm, whichH)
+        minsamp, xi = self.__check_and_setup_single(
+            xi, whichH, clustering_algorithm, minsamp
+        )
         if clustering_algorithm == "OPTICS":
             clust: OPTICS | HDBSCAN = OPTICS(
                 min_samples=minsamp,
@@ -628,32 +652,13 @@ class WaterClustering:
             whichH=whichH,
         )
         if self.debugO == 1:
-            try:
-                import matplotlib.pyplot as plt
-            except ModuleNotFoundError:
-                raise Exception("install matplotlib")
-
+            plt = __check_mpl_installation()
             plt.close(ff)
         self._add_water_solutions(waters)
         if self.save_intermediate_results:
-            self.save_results(
-                fname="Clustering_results_temp1.dat",
-                typefname="Type_Clustering_results_temp1.dat",
-            )
-            if os.path.isfile("Clustering_results_temp1.dat") and os.path.isfile(
-                "Type_Clustering_results_temp1.dat"
-            ):
-                os.rename("Clustering_results_temp1.dat", "Clustering_results_temp.dat")
-                os.rename(
-                    "Type_Clustering_results_temp1.dat",
-                    "Type_Clustering_results_temp.dat",
-                )
+            self.__save_intermediate_results()
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
-            try:
-                import matplotlib.pyplot as plt
-            except ModuleNotFoundError:
-                raise Exception("install matplotlib")
-
+            plt = __check_mpl_installation()
             plt.show()
         if self.save_results_after_done:
             self.save_results()
@@ -743,11 +748,7 @@ class WaterClustering:
                         self.normalize_orientations,
                     )
                     if self.plotreach and self.debugH > 0:
-                        try:
-                            import matplotlib.pyplot as plt
-                        except ModuleNotFoundError:
-                            raise Exception("install matplotlib")
-
+                        plt = __check_mpl_installation()
                         plt.show()
                     if len(hyd) > 0:
                         # add water atoms for pymol visualisation
@@ -762,11 +763,7 @@ class WaterClustering:
                             and self.plotreach == 0
                             and self.debugH == 0
                         ):
-                            try:
-                                import matplotlib.pyplot as plt
-                            except ModuleNotFoundError:
-                                raise Exception("install matplotlib")
-
+                            plt = __check_mpl_installation()
                             plt.show()
                         if stop_after_frist_water_found:
                             return waters, np.argwhere(clusters == k)
@@ -1184,11 +1181,7 @@ def __oxygen_clustering_plot(
     if type(cc) != OPTICS:
         plotreach = False
     if debugO > 0:
-        try:
-            import matplotlib.pyplot as plt
-        except ModuleNotFoundError:
-            raise Exception("install matplotlib")
-
+        plt = __check_mpl_installation()
         fig: Figure = plt.figure()
         if plotreach:
             ax: Axes = fig.add_subplot(1, 2, 1, projection="3d")
@@ -1212,11 +1205,7 @@ def __oxygen_clustering_plot(
         ax.set_title(title)
         ax.legend()
         if plotreach:
-            try:
-                import matplotlib.pyplot as plt
-            except ModuleNotFoundError:
-                raise Exception("install matplotlib")
-
+            plt = __check_mpl_installation()
             lblls = cc.labels_[cc.ordering_]
             ax = fig.add_subplot(1, 2, 2)
             plt.gca().set_prop_cycle(None)
@@ -1238,10 +1227,6 @@ def __oxygen_clustering_plot(
                     )
             ax.legend()
     if debugO == 2:
-        try:
-            import matplotlib.pyplot as plt
-        except ModuleNotFoundError:
-            raise Exception("install matplotlib")
-
+        plt = __check_mpl_installation()
         plt.show()
     return fig

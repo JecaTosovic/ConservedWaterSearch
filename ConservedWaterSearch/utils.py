@@ -11,6 +11,18 @@ if TYPE_CHECKING:
         NGLWidget = None
 
 
+def __check_mpl_installation():
+    """Check if matplotlib is installed.
+    """
+    try:
+        import matplotlib.pyplot as plt
+    except ModuleNotFoundError:
+        raise Exception(
+            "install matplotlib using conda install -c conda-forge matplotlib or pip install matplotlib"
+        )
+    return plt
+
+
 def read_results(
     fname: str = "Clustering_results.dat",
     typefname: str = "Type_Clustering_results.dat",
