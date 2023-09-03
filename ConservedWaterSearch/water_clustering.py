@@ -321,68 +321,6 @@ class WaterClustering:
                 self._waterH2.append(i[2])
             self._water_type.append(i[-1])
 
-    def multi_stage_reclustering(
-        self,
-        Odata: np.ndarray,
-        H1: np.ndarray,
-        H2: np.ndarray,
-        clustering_algorithm: str = "OPTICS",
-        lower_minsamp_pct: float = 0.25,
-        every_minsamp: int = 1,
-        xis: list[float] = [
-            0.1,
-            0.05,
-            0.01,
-            0.005,
-            0.001,
-            0.0005,
-            0.0001,
-            0.00001,
-        ],
-        whichH: list[str] = ["FCW", "HCW", "WCW"],
-    ) -> None:
-        """Multi Stage ReClustering (MSRC) procedure for obtaining conserved
-        water molecules.
-
-        Main loop - loops over water clustering parameter space
-        (minsamp and xi) and clusters oxygens first - if a clustering
-        with satisfactory oxygen clustering and hydrogen orientation
-        clustering (optional) is found, elements of that water cluster
-        are removed from the data set and water clustering starts from
-        the beginning. Loops until no satisfactory clusterings are
-        found. For more details see :cite:`conservedwatersearch2022`.
-
-        Args:
-            Odata (np.ndarray): Oxygen coordinates.
-            H1 (np.ndarray): Hydrogen 1 orientations.
-            H2 (np.ndarray): Hydrogen 2 orientations.
-            clustering_algorithm (str, optional): Options are "OPTICS"
-                or "HDBSCAN". OPTICS provides slightly better results, but
-                is also slightly slower. Defaults to "OPTICS".
-            lower_minsamp_pct (float, optional): Lowest minsamp value
-                used for clustering. The range is from ``nsnaps``
-                to ``lower_minsamp_pct`` times ``nsnaps``.
-                Defaults to 0.25.
-            every_minsamp (int, optional): Step for sampling of minsamp
-                in range from ``nsnaps`` to ``lower_minsamp_pct`` times
-                ``nsnaps``. If 1 uses all integer values in range.
-                Defaults to 1.
-            xis (list[float], optional): List of xis for OPTICS
-                clustering. This is ignored for HDBSCAN. Defaults to
-                [ 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 0.00001].
-            whichH (list[str], optional): Defines which water types to
-                search for. Any combination of "FCW", "HWC" and "WCW" is
-                allowed, or "onlyO" for oxygen clustering only.
-                Defaults to ["FCW", "HCW", "WCW"].
-        """
-        self.__check_cls_alg_and_whichH(clustering_algorithm, whichH)
-        minsamps, lxis, allow_single = self.__check_and_setup_MSRC(
-            lower_minsamp_pct, every_minsamp, xis, whichH, clustering_algorithm
-        )
-        self.__scan_clustering_params(
-            Odata, H1, H2, clustering_algorithm, minsamps, lxis, whichH, allow_single
-        )
-
     def __check_cls_alg_and_whichH(self, clustering_algorithm, whichH):
         if clustering_algorithm != "OPTICS" and clustering_algorithm != "HDBSCAN":
             raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
@@ -570,6 +508,68 @@ class WaterClustering:
             raise Warning(
                 "unable to overwrite temp save files. Restarting might not work properly"
             )
+
+    def multi_stage_reclustering(
+        self,
+        Odata: np.ndarray,
+        H1: np.ndarray,
+        H2: np.ndarray,
+        clustering_algorithm: str = "OPTICS",
+        lower_minsamp_pct: float = 0.25,
+        every_minsamp: int = 1,
+        xis: list[float] = [
+            0.1,
+            0.05,
+            0.01,
+            0.005,
+            0.001,
+            0.0005,
+            0.0001,
+            0.00001,
+        ],
+        whichH: list[str] = ["FCW", "HCW", "WCW"],
+    ) -> None:
+        """Multi Stage ReClustering (MSRC) procedure for obtaining conserved
+        water molecules.
+
+        Main loop - loops over water clustering parameter space
+        (minsamp and xi) and clusters oxygens first - if a clustering
+        with satisfactory oxygen clustering and hydrogen orientation
+        clustering (optional) is found, elements of that water cluster
+        are removed from the data set and water clustering starts from
+        the beginning. Loops until no satisfactory clusterings are
+        found. For more details see :cite:`conservedwatersearch2022`.
+
+        Args:
+            Odata (np.ndarray): Oxygen coordinates.
+            H1 (np.ndarray): Hydrogen 1 orientations.
+            H2 (np.ndarray): Hydrogen 2 orientations.
+            clustering_algorithm (str, optional): Options are "OPTICS"
+                or "HDBSCAN". OPTICS provides slightly better results, but
+                is also slightly slower. Defaults to "OPTICS".
+            lower_minsamp_pct (float, optional): Lowest minsamp value
+                used for clustering. The range is from ``nsnaps``
+                to ``lower_minsamp_pct`` times ``nsnaps``.
+                Defaults to 0.25.
+            every_minsamp (int, optional): Step for sampling of minsamp
+                in range from ``nsnaps`` to ``lower_minsamp_pct`` times
+                ``nsnaps``. If 1 uses all integer values in range.
+                Defaults to 1.
+            xis (list[float], optional): List of xis for OPTICS
+                clustering. This is ignored for HDBSCAN. Defaults to
+                [ 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 0.00001].
+            whichH (list[str], optional): Defines which water types to
+                search for. Any combination of "FCW", "HWC" and "WCW" is
+                allowed, or "onlyO" for oxygen clustering only.
+                Defaults to ["FCW", "HCW", "WCW"].
+        """
+        self.__check_cls_alg_and_whichH(clustering_algorithm, whichH)
+        minsamps, lxis, allow_single = self.__check_and_setup_MSRC(
+            lower_minsamp_pct, every_minsamp, xis, whichH, clustering_algorithm
+        )
+        self.__scan_clustering_params(
+            Odata, H1, H2, clustering_algorithm, minsamps, lxis, whichH, allow_single
+        )
 
     def single_clustering(
         self,
