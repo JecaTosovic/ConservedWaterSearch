@@ -219,9 +219,10 @@ class WaterClustering:
                 procedure type. If ``clustering_type`` is
                 "single_clustering" options are ``[min_samp, xi]`` where
                 xi can be any float if "HDBSCAN" is used. If
-                ``clustering_type`` is "multi_stage_reclustering" the
-                options are ``[lower_minsamp_pct, every_minsamp, xis]``.
-                Again, in case of "HDBSCAN" xis can be a list with any
+                ``clustering_type`` is "multi_stage_reclustering" (or
+                the quick version) the options are ``[lower_minsamp_pct,
+                every_minsamp, xis]``. Again, in case of "HDBSCAN" xis
+                can be a list with any
                 single float.
             whichH (list[str]): which water types to seach for. Options
                 are "onlyO" or any combination of "FCW", "HCW" and "WCW".
@@ -400,13 +401,14 @@ class WaterClustering:
         lxis,
         whichH,
         allow_single,
-        delete: bool = True,
+        restart: bool = True,
     ):
         found: bool = False if len(Odata) < self.nsnaps else True
         while found:
             found = False
             # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
             for i in minsamps:
+                print(i)
                 if clustering_algorithm == "OPTICS":
                     clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
                     clust.fit(Odata)
@@ -453,7 +455,7 @@ class WaterClustering:
                         H1,
                         H2,
                         clusters,
-                        stop_after_frist_water_found=True,
+                        stop_after_frist_water_found=restart,
                         whichH=whichH,
                     )
                     if self.debugO == 1:
@@ -463,14 +465,21 @@ class WaterClustering:
                         found = True
                         if clustering_algorithm == "HDBSCAN" and allow_single:
                             allow_single = False
-                        if delete:
-                            Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
+                        print("deleted idcs", idcs)
+                        Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
+                        print(
+                            "found",
+                            len(waters),
+                            np.asarray(waters)[:, -1],
+                            " new data size ",
+                            len(Odata),
+                        )
                         self._add_water_solutions(waters)
                         if self.save_intermediate_results:
                             self.__save_intermediate_results()
-                        if delete:
-                            break
-                if found and delete:
+                        i = i - 1
+                        break
+                if (found and restart) or len(Odata) < self.nsnaps:
                     break
             # check if size of remaining data set is bigger then number of snapshots
             if (
@@ -639,7 +648,7 @@ class WaterClustering:
             lxis,
             whichH,
             allow_single,
-            delete=False,
+            restart=False,
         )
 
     def single_clustering(
@@ -775,6 +784,8 @@ class WaterClustering:
             is True, else the second list is empty.
         """
         waters = []
+        # make empty numpy array of integers
+        idcs = np.array([], dtype=int)
         # Loop over all oxygen clusters (-1 is non cluster)
         for k in np.sort(np.unique(clusters[clusters != -1])):
             # Number of elements in oxygen cluster
@@ -828,6 +839,7 @@ class WaterClustering:
                             water.append(O_center + i[1])
                             water.append(i[2])
                             waters.append(water)
+                        idcs = np.append(idcs, np.argwhere(clusters == k))
                         # debug
                         if (
                             self.debugO == 1
@@ -837,13 +849,14 @@ class WaterClustering:
                             plt = __check_mpl_installation()
                             plt.show()
                         if stop_after_frist_water_found:
-                            return waters, np.argwhere(clusters == k)
+                            return waters, idcs 
                 else:
                     water.append("O_clust")
                     waters.append(water)
+                    idcs = np.append(idcs, np.argwhere(clusters == k))
                     if stop_after_frist_water_found:
-                        return waters, np.argwhere(clusters == k)
-        return waters, []
+                        return waters, idcs
+        return waters, idcs
 
     def restore_default_options(self, delete_results: bool = False) -> None:
         """This function restores all class options to defaults.
@@ -974,6 +987,17 @@ class WaterClustering:
                 options[1],
                 whichH,
             )
+        elif clustering_type == "quick_multi_stage_reclustering":
+            self.quick_multi_stage_reclustering(
+                Odata,  # type: ignore
+                H1,  # type: ignore
+                H2,  # type: ignore
+                clustering_algorithm,  # type: ignore
+                options[0],  # type: ignore
+                options[1],  # type: ignore
+                options[2],  # type: ignore
+                whichH,  # type: ignore
+            )
         else:
             raise Exception("incompatible clustering type")
 
@@ -996,7 +1020,10 @@ class WaterClustering:
             f: TextIOWrapper = open(options_file, "r")
             lines: list[str] = f.read().splitlines()
             clustering_type: str = lines[21].strip(" ")
-            if clustering_type == "multi_stage_reclustering":
+            if (
+                clustering_type == "multi_stage_reclustering"
+                or clustering_type == "quick_multi_stage_reclustering"
+            ):
                 clustering_algorithm: str = lines[22].strip(" ")
                 lower_minsamp_pct: float = float(lines[23])
                 every_minsamp: int = int(lines[24])
