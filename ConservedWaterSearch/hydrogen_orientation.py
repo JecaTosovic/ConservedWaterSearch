@@ -259,7 +259,7 @@ def find_fully_conserved_orientations(
     # conserved hydrogens
     fully_conserved = []
     # Kmeans clustering prepareation - for conserved water analysis only
-    kmeans = KMeans(n_clusters=2)
+    kmeans = KMeans(n_clusters=2, n_init=10)
     # fit kmeans clustering
     kmeans.fit(orientations)
     if len(kmeans.cluster_centers_) == 2:

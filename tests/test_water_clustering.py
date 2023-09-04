@@ -296,6 +296,72 @@ def test_multistage_reclustering_HDBSCAN():
     c1 = c1[c1[:, 0].argsort()]
     d1 = np.asarray(wc.waterH2)
     d1 = d1[d1[:, 0].argsort()]
-    npt.assert_allclose(b, b1, atol = tol)
-    npt.assert_allclose(c, c1, atol = tol)
-    npt.assert_allclose(d, d1, atol = tol)
+    npt.assert_allclose(b, b1, atol=tol)
+    npt.assert_allclose(c, c1, atol=tol)
+    npt.assert_allclose(d, d1, atol=tol)
+
+
+def test_quick_multistage_reclustering_OPTICS():
+    Nsnap = 20
+    Opos = np.loadtxt("tests/data/testdataO.dat")
+    Hpos = np.loadtxt("tests/data/testdataH.dat")
+    wc = WaterClustering(
+        Nsnap, save_intermediate_results=False, save_results_after_done=False, verbose=2
+    )
+    wc.quick_multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
+    a, b, c, d = read_results(
+        "tests/data/MSR_OPTICS.dat", "tests/data/MSR_OPTICS_Type.dat"
+    )
+    tol = 1e-4
+    # b is xyz coordinates of water Oxygen. Sort them according to x
+    b = np.asarray(b)
+    b = b[b[:, 0].argsort()]
+    c = np.asarray(c)
+    c = c[c[:, 0].argsort()]
+    d = np.asarray(d)
+    d = d[d[:, 0].argsort()]
+    # now do the same for water
+    b1 = np.asarray(wc.waterO)
+    b1 = b1[b1[:, 0].argsort()]
+    c1 = np.asarray(wc.waterH1)
+    c1 = c1[c1[:, 0].argsort()]
+    d1 = np.asarray(wc.waterH2)
+    d1 = d1[d1[:, 0].argsort()]
+    npt.assert_allclose(b, b1, atol=tol)
+    npt.assert_allclose(c, c1, atol=tol)
+    npt.assert_allclose(d, d1, atol=tol)
+    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
+
+
+def test_quick_multistage_reclustering_HDBSCAN():
+    Nsnap = 20
+    Opos = np.loadtxt("tests/data/testdataO.dat")
+    Hpos = np.loadtxt("tests/data/testdataH.dat")
+    wc = WaterClustering(
+        Nsnap, save_intermediate_results=False, save_results_after_done=False
+    )
+    wc.quick_multi_stage_reclustering(
+        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
+    )
+    a, b, c, d = read_results(
+        "tests/data/MSR_HDBSCAN.dat", "tests/data/MSR_HDBSCAN_Type.dat"
+    )
+    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
+    tol = 1e-1
+    # b is xyz coordinates of water Oxygen. Sort them according to x
+    b = np.asarray(b)
+    b = b[b[:, 0].argsort()]
+    c = np.asarray(c)
+    c = c[c[:, 0].argsort()]
+    d = np.asarray(d)
+    d = d[d[:, 0].argsort()]
+    # now do the same for water
+    b1 = np.asarray(wc.waterO)
+    b1 = b1[b1[:, 0].argsort()]
+    c1 = np.asarray(wc.waterH1)
+    c1 = c1[c1[:, 0].argsort()]
+    d1 = np.asarray(wc.waterH2)
+    d1 = d1[d1[:, 0].argsort()]
+    npt.assert_allclose(b, b1, atol=tol)
+    npt.assert_allclose(c, c1, atol=tol)
+    npt.assert_allclose(d, d1, atol=tol)
