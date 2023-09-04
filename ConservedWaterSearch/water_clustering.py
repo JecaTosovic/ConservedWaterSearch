@@ -408,7 +408,6 @@ class WaterClustering:
             found = False
             # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
             for i in minsamps:
-                print(i)
                 if clustering_algorithm == "OPTICS":
                     clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
                     clust.fit(Odata)
@@ -465,15 +464,7 @@ class WaterClustering:
                         found = True
                         if clustering_algorithm == "HDBSCAN" and allow_single:
                             allow_single = False
-                        print("deleted idcs", idcs)
                         Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
-                        print(
-                            "found",
-                            len(waters),
-                            np.asarray(waters)[:, -1],
-                            " new data size ",
-                            len(Odata),
-                        )
                         self._add_water_solutions(waters)
                         if self.save_intermediate_results:
                             self.__save_intermediate_results()
