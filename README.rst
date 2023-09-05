@@ -59,9 +59,10 @@ only using conda or from source.
 Matplotlib is only required for analyzing of clustering and is usefull
 if default values of clustering parameters need to be fine tuned (which
 should be relatively rarely). You can install it from pip or conda or
-when installing CWS through pip by using :code: pip install
+when installing CWS through pip by using :code:`pip` install
 ConservedWaterSearch[matplotlib]. 
 Both mpl and nglveiw can be installed when installing CWS by using:
+
 .. code:: bash
 
    pip install ConservedWaterSearch[all]
