@@ -776,29 +776,27 @@ class WaterClustering:
             arguments to be deleted if ``stop_after_frist_water_found``
             is True, else the second list is empty.
         """
+        cluster_ids = np.unique(clusters[clusters != -1])
+        cluster_ids.sort()
+        min_neioc = self.nsnaps * self.numbpct_oxygen
+        max_neioc = self.nsnaps * (2 - self.numbpct_oxygen)
         waters = []
         # make empty numpy array of integers
         idcs = np.array([], dtype=int)
         # Loop over all oxygen clusters (-1 is non cluster)
-        for k in np.sort(np.unique(clusters[clusters != -1])):
+        for k in cluster_ids:
+            mask = (clusters == k)
             # Number of elements in oxygen cluster
-            neioc: int = np.count_nonzero(clusters == k)
+            neioc = np.count_nonzero(mask)
             # If number of elements in oxygen cluster is  Nsnap*0.85<Nelem<Nsnap*1.15 then ignore
-            if (
-                neioc < self.nsnaps * (2 - self.numbpct_oxygen)
-                and neioc > self.nsnaps * self.numbpct_oxygen
-            ):
+            if min_neioc < neioc < max_neioc:
                 if self.verbose > 0:
                     print(f"O clust {k}, size {len(clusters[clusters==k])}\n")
-                O_center = np.mean(Odata[clusters == k], axis=0)
+                O_center = np.mean(Odata[mask], axis=0)
                 water = [O_center]
                 if not (whichH[0] == "onlyO"):
                     # Construct array of hydrogen orientations
-                    orientations = []
-                    for i in np.argwhere(clusters == k):
-                        orientations.append(H1[i])
-                        orientations.append(H2[i])
-                    orientations = np.asarray(orientations)[:, 0, :]
+                    orientations = np.vstack([H1[mask], H2[mask]])
                     # Analyse clustering with hydrogen orientation analysis and more debug stuff
                     hyd = hydrogen_orientation_analysis(
                         orientations,
@@ -832,7 +830,7 @@ class WaterClustering:
                             water.append(O_center + i[1])
                             water.append(i[2])
                             waters.append(water)
-                        idcs = np.append(idcs, np.argwhere(clusters == k))
+                        idcs = np.append(idcs, np.argwhere(mask).flatten())
                         # debug
                         if (
                             self.debugO == 1
@@ -846,7 +844,7 @@ class WaterClustering:
                 else:
                     water.append("O_clust")
                     waters.append(water)
-                    idcs = np.append(idcs, np.argwhere(clusters == k))
+                    idcs = np.append(idcs, np.argwhere(mask).flatten())
                     if stop_after_frist_water_found:
                         return waters, idcs
         return waters, idcs
