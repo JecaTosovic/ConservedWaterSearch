@@ -170,6 +170,12 @@ def visualise_pymol(
             crystal waters shall be selected. Defaults to 10.0.
         density_map (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
+        lunch_pymol (bool, optional): If `True` pymol will be lunched
+            in interactive mode. If `False` pymol will be imported
+            without lunching. Defaults to True.
+        reinitialize (bool, optional): If `True` pymol will be
+            reinitialized (defaults restored and objects cleaned).
+            Defaults to True.
 
     Example::
 
