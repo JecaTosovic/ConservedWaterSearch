@@ -404,84 +404,86 @@ class WaterClustering:
         restart: bool = True,
     ):
         found: bool = False if len(Odata) < self.nsnaps else True
-        while found:
-            found = False
-            # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
-            for i in minsamps:
-                if clustering_algorithm == "OPTICS":
-                    clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
-                    clust.fit(Odata)
-                # loop over xi
-                for j in lxis:
-                    # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
-                    if clustering_algorithm == "HDBSCAN":
-                        clust = HDBSCAN(
-                            min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
-                            min_samples=int(i),
-                            max_cluster_size=int(
-                                self.nsnaps * (2 - self.numbpct_oxygen)
-                            ),
-                            cluster_selection_method="eom",
-                            n_jobs=self.njobs,
-                            allow_single_cluster=allow_single,  # type: ignore
-                        )
-                        clust.fit(Odata)
-                        clusters: np.ndarray = clust.labels_
-                    elif clustering_algorithm == "OPTICS":
-                        clusters = cluster_optics_xi(
-                            reachability=clust.reachability_,  # type: ignore
-                            predecessor=clust.predecessor_,  # type: ignore
-                            ordering=clust.ordering_,  # type: ignore
-                            min_samples=i,
-                            xi=j,
-                        )[0]
-                    # Debug stuff
-                    if self.debugO > 0:
-                        dbgt: str = ""
-                        if self.verbose > 0:
-                            (aa, bb) = np.unique(clusters, return_counts=True)
-                            dbgt = (
-                                f"Oxygen clustering {type(clust)} minsamp={i}, xi={j}, {len(np.unique(clusters[clusters!=-1]))} clusters \n"
-                                f"Required N(elem) range:{self.nsnaps*self.numbpct_oxygen:.2f} to {(2-self.numbpct_oxygen)*self.nsnaps}; (tar cls size={self.nsnaps} and numbpct={self.numbpct_oxygen:.2f})\n"
-                                f"N(elements) for each cluster: {bb}\n"
-                            )
-                            print(dbgt)
-                        ff: Figure = __oxygen_clustering_plot(
-                            Odata, clust, dbgt, self.debugO, self.plotreach
-                        )
-                    waters, idcs = self._analyze_oxygen_clustering(
-                        Odata,
-                        H1,
-                        H2,
-                        clusters,
-                        stop_after_frist_water_found=restart,
-                        whichH=whichH,
-                    )
-                    if self.debugO == 1:
-                        plt = __check_mpl_installation()
-                        plt.close(ff)
-                    if len(waters) > 0:
-                        found = True
-                        if clustering_algorithm == "HDBSCAN" and allow_single:
-                            allow_single = False
-                        Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
-                        self._add_water_solutions(waters)
-                        if self.save_intermediate_results:
-                            self.__save_intermediate_results()
-                        i = i - 1
-                        break
-                if (found and restart) or len(Odata) < self.nsnaps:
-                    break
-            # check if size of remaining data set is bigger then number of snapshots
-            if (
-                clustering_algorithm == "HDBSCAN"
-                and found is False
-                and allow_single is False
-            ):
-                found = True
-                allow_single = True
-            if len(Odata) < self.nsnaps:
+        for wt in whichH:
+            wta = [wt]
+            while found:
                 found = False
+                # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
+                for i in minsamps:
+                    if clustering_algorithm == "OPTICS":
+                        clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
+                        clust.fit(Odata)
+                    # loop over xi
+                    for j in lxis:
+                        # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
+                        if clustering_algorithm == "HDBSCAN":
+                            clust = HDBSCAN(
+                                min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
+                                min_samples=int(i),
+                                max_cluster_size=int(
+                                    self.nsnaps * (2 - self.numbpct_oxygen)
+                                ),
+                                cluster_selection_method="eom",
+                                n_jobs=self.njobs,
+                                allow_single_cluster=allow_single,  # type: ignore
+                            )
+                            clust.fit(Odata)
+                            clusters: np.ndarray = clust.labels_
+                        elif clustering_algorithm == "OPTICS":
+                            clusters = cluster_optics_xi(
+                                reachability=clust.reachability_,  # type: ignore
+                                predecessor=clust.predecessor_,  # type: ignore
+                                ordering=clust.ordering_,  # type: ignore
+                                min_samples=i,
+                                xi=j,
+                            )[0]
+                        # Debug stuff
+                        if self.debugO > 0:
+                            dbgt: str = ""
+                            if self.verbose > 0:
+                                (aa, bb) = np.unique(clusters, return_counts=True)
+                                dbgt = (
+                                    f"Oxygen clustering {type(clust)} minsamp={i}, xi={j}, {len(np.unique(clusters[clusters!=-1]))} clusters \n"
+                                    f"Required N(elem) range:{self.nsnaps*self.numbpct_oxygen:.2f} to {(2-self.numbpct_oxygen)*self.nsnaps}; (tar cls size={self.nsnaps} and numbpct={self.numbpct_oxygen:.2f})\n"
+                                    f"N(elements) for each cluster: {bb}\n"
+                                )
+                                print(dbgt)
+                            ff: Figure = __oxygen_clustering_plot(
+                                Odata, clust, dbgt, self.debugO, self.plotreach
+                            )
+                        waters, idcs = self._analyze_oxygen_clustering(
+                            Odata,
+                            H1,
+                            H2,
+                            clusters,
+                            stop_after_frist_water_found=restart,
+                            whichH=wta,
+                        )
+                        if self.debugO == 1:
+                            plt = __check_mpl_installation()
+                            plt.close(ff)
+                        if len(waters) > 0:
+                            found = True
+                            if clustering_algorithm == "HDBSCAN" and allow_single:
+                                allow_single = False
+                            Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
+                            self._add_water_solutions(waters)
+                            if self.save_intermediate_results:
+                                self.__save_intermediate_results()
+                            i = i - 1
+                            break
+                    if (found and restart) or len(Odata) < self.nsnaps:
+                        break
+                # check if size of remaining data set is bigger then number of snapshots
+                if (
+                    clustering_algorithm == "HDBSCAN"
+                    and found is False
+                    and allow_single is False
+                ):
+                    found = True
+                    allow_single = True
+                if len(Odata) < self.nsnaps:
+                    found = False
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             plt = __check_mpl_installation()
             plt.show()
@@ -774,29 +776,27 @@ class WaterClustering:
             arguments to be deleted if ``stop_after_frist_water_found``
             is True, else the second list is empty.
         """
+        cluster_ids = np.unique(clusters[clusters != -1])
+        cluster_ids.sort()
+        min_neioc = self.nsnaps * self.numbpct_oxygen
+        max_neioc = self.nsnaps * (2 - self.numbpct_oxygen)
         waters = []
         # make empty numpy array of integers
         idcs = np.array([], dtype=int)
         # Loop over all oxygen clusters (-1 is non cluster)
-        for k in np.sort(np.unique(clusters[clusters != -1])):
+        for k in cluster_ids:
+            mask = (clusters == k)
             # Number of elements in oxygen cluster
-            neioc: int = np.count_nonzero(clusters == k)
+            neioc = np.count_nonzero(mask)
             # If number of elements in oxygen cluster is  Nsnap*0.85<Nelem<Nsnap*1.15 then ignore
-            if (
-                neioc < self.nsnaps * (2 - self.numbpct_oxygen)
-                and neioc > self.nsnaps * self.numbpct_oxygen
-            ):
+            if min_neioc < neioc < max_neioc:
                 if self.verbose > 0:
                     print(f"O clust {k}, size {len(clusters[clusters==k])}\n")
-                O_center = np.mean(Odata[clusters == k], axis=0)
+                O_center = np.mean(Odata[mask], axis=0)
                 water = [O_center]
                 if not (whichH[0] == "onlyO"):
                     # Construct array of hydrogen orientations
-                    orientations = []
-                    for i in np.argwhere(clusters == k):
-                        orientations.append(H1[i])
-                        orientations.append(H2[i])
-                    orientations = np.asarray(orientations)[:, 0, :]
+                    orientations = np.vstack([H1[mask], H2[mask]])
                     # Analyse clustering with hydrogen orientation analysis and more debug stuff
                     hyd = hydrogen_orientation_analysis(
                         orientations,
@@ -830,7 +830,7 @@ class WaterClustering:
                             water.append(O_center + i[1])
                             water.append(i[2])
                             waters.append(water)
-                        idcs = np.append(idcs, np.argwhere(clusters == k))
+                        idcs = np.append(idcs, np.argwhere(mask).flatten())
                         # debug
                         if (
                             self.debugO == 1
@@ -840,11 +840,11 @@ class WaterClustering:
                             plt = __check_mpl_installation()
                             plt.show()
                         if stop_after_frist_water_found:
-                            return waters, idcs 
+                            return waters, idcs
                 else:
                     water.append("O_clust")
                     waters.append(water)
-                    idcs = np.append(idcs, np.argwhere(clusters == k))
+                    idcs = np.append(idcs, np.argwhere(mask).flatten())
                     if stop_after_frist_water_found:
                         return waters, idcs
         return waters, idcs
