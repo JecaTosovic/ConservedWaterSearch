@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 
 def __check_mpl_installation():
-    """Check if matplotlib is installed.
-    """
+    """Check if matplotlib is installed."""
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
@@ -137,6 +136,8 @@ def visualise_pymol(
     ligand_resname: str | None = None,
     dist: float = 10.0,
     density_map: str | None = None,
+    lunch_pymol: bool = True,
+    reinitialize: bool = True,
 ) -> None:
     """Visualises results via `pymol <https://pymol.org/>`__.
 
@@ -195,9 +196,10 @@ def visualise_pymol(
         from pymol import cmd
     except ModuleNotFoundError:
         raise Exception("pymol not installed. Either install pymol or use nglview")
-    if output_file is None and platform.system() != "Darwin":
+    if output_file is None and platform.system() != "Darwin" and lunch_pymol:
         pymol.finish_launching(["pymol", "-q"])
-    cmd.reinitialize()
+    if reinitialize:
+        cmd.reinitialize()
     if platform.system() == "Darwin":
         import warnings
 
