@@ -2,3 +2,4 @@ sphinxcontrib-bibtex
 jupyter_packaging
 matplotlib
 nglview
+scikit-learn>=1.3
