@@ -9,6 +9,12 @@ if TYPE_CHECKING:
         from nglview import NGLWidget
     except ImportError:
         NGLWidget = None
+    try:
+        import pymol
+        from pymol import cmd
+    except ImportError:
+        pymol = None
+        cmd = None
 
 
 def __check_mpl_installation():
@@ -124,6 +130,115 @@ def get_orientations_from_positions(
         raise Exception("Hydrogen array of wrong length")
 
 
+def _make_protein_surface_with_ligand():
+    from pymol import cmd
+
+    protein = cmd.get_unused_name("only_protein_")
+    cmd.select(protein, "polymer")
+    povrsina = cmd.get_unused_name("protein_surface_")
+    cmd.create(povrsina, protein)
+    cmd.show("surface", povrsina)
+    cmd.color("gray70", povrsina)
+    cmd.set("transparency", 0.5, povrsina)
+    # ligand representation
+    ligand = cmd.get_unused_name("ligand_")
+    cmd.select(ligand, "organic")
+    cmd.show("licorice", ligand)
+
+
+def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
+    from pymol import cmd
+
+    if aminokis_u_am is not None:
+        sele = aminokis_u_am + " or " + waters + " or organic"
+    else:
+        sele = waters + " or organic"
+    cmd.distance(
+        "polar_contacts",
+        sele,
+        "sol",
+        mode=2,
+    )
+    cmd.hide("labels")
+
+
+def _fix_pymol_camera(active_site_center=None):
+    from pymol import cmd
+
+    # reset camera
+    cmd.reset()
+    if active_site_center is not None:
+        cmd.center(active_site_center)
+    else:
+        cmd.center("waters")
+
+
+def _determine_active_site_ids(active_site_ids: list[int]):
+    from pymol import cmd
+
+    selection = ""
+    for i in active_site_ids:
+        selection += str(i) + "+"
+    selection = selection[: len(selection) - 1]
+    selection = "resi " + selection
+    aminokis_u_am: str = cmd.get_unused_name("active_site_aa")
+    cmd.select(
+        aminokis_u_am,
+        " " + selection + " and polymer ",
+    )
+    cmd.show("licorice", aminokis_u_am)
+    cmd.color("magenta", aminokis_u_am)
+    # pseudoatom in active site center
+    active_site_center = cmd.get_unused_name("activesite_center_")
+    cmd.pseudoatom(active_site_center, aminokis_u_am)
+    cmd.hide(representation="everything", selection=active_site_center)
+    return active_site_center, aminokis_u_am
+
+
+def _add_density_map(density_map: str):
+    from pymol import cmd
+
+    cmd.load(density_map)
+    cmd.volume("water_density", density_map.split(".")[0])
+
+
+def _add_crystal_waters(
+    crystal_waters, protein, ligand_resname, dist, active_site_ids, active_site_center
+):
+    from pymol import cmd
+
+    cmd.fetch(crystal_waters)
+    cmd.hide("everything", crystal_waters)
+    cmd.align(
+        "polymer and " + crystal_waters,
+        "polymer and " + protein,
+    )
+    if ligand_resname is not None:
+        cmd.select(
+            "crystal_waters",
+            "("
+            + crystal_waters
+            + " and SOL) within "
+            + str(dist)
+            + " of resname "
+            + ligand_resname,
+        )
+    elif active_site_ids is not None:
+        cmd.select(
+            "crystal_waters",
+            "("
+            + crystal_waters
+            + " and SOL) within 10 of resname "
+            + active_site_center,
+        )
+    else:
+        cmd.select("crystal_waters", crystal_waters + " and SOL")
+    cmd.show("spheres", "crystal_waters")
+    cmd.set("sphere_scale", "0.4", "crystal_waters")
+    if os.path.exists(crystal_waters + ".cif"):
+        os.remove(crystal_waters + ".cif")
+
+
 def visualise_pymol(
     water_type: list[str],
     waterO: list[list[float]],
@@ -201,24 +316,20 @@ def visualise_pymol(
             dist = 8.0,
         )
     """
-    try:
-        import pymol
-        from pymol import cmd
-    except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
-    if output_file is None and platform.system() != "Darwin" and lunch_pymol:
-        pymol.finish_launching(["pymol", "-q"])
-    if reinitialize:
-        cmd.reinitialize()
-    if platform.system() == "Darwin":
+    _initialize_pymol(
+        reinitialize,
+        output_file is None or platform.system() != "Darwin" or lunch_pymol,
+    )
+    if platform.system() == "Darwin" and output_file is None:
         import warnings
 
         warnings.warn(
             "mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",
             RuntimeWarning,
         )
-        if output_file is None:
-            output_file = "pymol_water_visualization.pse"
+        output_file = "pymol_water_visualization.pse"
+    from pymol import cmd
+
     cmd.hide("everything")
     if aligned_protein is not None:
         cmd.load(aligned_protein)
@@ -227,43 +338,49 @@ def visualise_pymol(
         tmpObj = cmd.get_unused_name("_tmp")
         cmd.create(tmpObj, "( all ) and polymer", zoom=0)
         # aminoacids in active site
-        if active_site_ids:
-            selection = ""
-            for i in active_site_ids:
-                selection += str(i) + "+"
-            selection = selection[: len(selection) - 1]
-            selection = "resi " + selection
-            aminokis_u_am: str = cmd.get_unused_name("active_site_aa")
-            cmd.select(
-                aminokis_u_am,
-                " " + selection + " and polymer ",
+        if active_site_ids is not None:
+            aminokis_u_am, active_site_center = _determine_active_site_ids(
+                active_site_ids
             )
-            cmd.show("licorice", aminokis_u_am)
-            cmd.color("magenta", aminokis_u_am)
-            # pseudoatom in active site center
-            active_site_center = cmd.get_unused_name("activesite_center_")
-            cmd.pseudoatom(active_site_center, aminokis_u_am)
-            cmd.hide(representation="everything", selection=active_site_center)
-        # cmd.show("sphere",active_site_center)
-        # cmd.set ("sphere_scale",0.1,active_site_center)
+        else:
+            active_site_center = None
+            aminokis_u_am = None
         # protein surface
-        protein = cmd.get_unused_name("only_protein_")
-        cmd.select(protein, "polymer")
-        povrsina = cmd.get_unused_name("protein_surface_")
-        cmd.create(povrsina, protein)
-        cmd.show("surface", povrsina)
-        cmd.color("gray70", povrsina)
-        cmd.set("transparency", 0.5, povrsina)
-        # ligand representation
-        ligand = cmd.get_unused_name("ligand_")
-        cmd.select(ligand, "organic")
-        cmd.show("licorice", ligand)
+        _make_protein_surface_with_ligand()
     cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
     for tip, Opos, H1pos, H2pos in zip(water_type, waterO, waterH1, waterH2):
         cntr[tip] += 1
         wname = tip + str(cntr[tip])
-        print(wname)
-        cmd.fetch("hoh", wname)
+        highest_resi = cmd.identify("all", index=0)[-1][1]
+        print(highest_resi)
+        cmd.create(wname, source_state=0, target_state=0)
+        cmd.pseudoatom(
+            object="water",
+            pos=[0, 0, 0],
+            name="O",
+            resn="HOH",
+            resi=highest_resi + 1,
+            elem="O",
+            chain="W",
+        )
+        cmd.pseudoatom(
+            object="water",
+            pos=[0.957, 0, 0],
+            name="H1",
+            resn="HOH",
+            resi=highest_resi + 1,
+            elem="H",
+            chain="W",
+        )
+        cmd.pseudoatom(
+            object="water",
+            pos=[-0.239, 0.927, 0],
+            name="H2",
+            resn="HOH",
+            resi=highest_resi + 1,
+            elem="H",
+            chain="W",
+        )
         cmd.alter_state(
             0,
             wname,
@@ -328,60 +445,22 @@ def visualise_pymol(
             cmd.show("sticks", wname)
     waters: str = cmd.get_unused_name("waters")
     cmd.select(waters, "SOL in (FCW* or WCW* or HCW*)")
-    if active_site_ids:
-        sele = aminokis_u_am + " or " + waters + " or organic"
-    else:
-        sele = waters + " or organic"
     if polar_contacts:
-        cmd.distance(
-            "polar_contacts",
-            sele,
-            "sol",
-            mode=2,
-        )
-        cmd.hide("labels")
+        _add_polar_contacts(waters, aminokis_u_am)
     # Add crystal waters
     if crystal_waters and aligned_protein is not None:
-        cmd.fetch(crystal_waters)
-        cmd.hide("everything", crystal_waters)
-        cmd.align(
-            "polymer and " + crystal_waters,
-            "polymer and " + protein,
+        _add_crystal_waters(
+            crystal_waters,
+            aligned_protein,
+            ligand_resname,
+            dist,
+            active_site_ids,
+            active_site_center,
         )
-        if ligand_resname is not None:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within "
-                + str(dist)
-                + " of resname "
-                + ligand_resname,
-            )
-        elif active_site_ids is not None:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within 10 of resname "
-                + active_site_center,
-            )
-        else:
-            cmd.select("crystal_waters", crystal_waters + " and SOL")
-        cmd.show("spheres", "crystal_waters")
-        cmd.set("sphere_scale", "0.4", "crystal_waters")
-        if os.path.exists(crystal_waters + ".cif"):
-            os.remove(crystal_waters + ".cif")
     # add volume density visualisation
-    if density_map:
-        cmd.load(density_map)
-        cmd.volume("water_density", density_map.split(".")[0])
-    # reset camera
-    cmd.reset()
-    if active_site_ids is not None:
-        cmd.center(active_site_center)
-    if os.path.exists("hoh.cif"):
-        os.remove("hoh.cif")
+    if density_map is not None:
+        _add_density_map(density_map)
+    _fix_pymol_camera(active_site_center)
     # save
     if output_file is not None:
         cmd.save(output_file)
@@ -394,6 +473,8 @@ def visualise_pymol_from_pdb(
     ligand_resname: str | None = None,
     dist: float = 10.0,
     density_map: str | None = None,
+    polar_contacts: bool = False,
+    reinitialize: bool = False,
 ) -> None:
     """Make a `pymol <https://pymol.org/>`__ session from a pdb file.
 
@@ -414,6 +495,12 @@ def visualise_pymol_from_pdb(
             crystal waters shall be selected. Defaults to 10.0.
         density_map (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
+        polar_contacts (bool, optional): If `True` polar contacts
+            between waters and protein will be visualised. Defaults to
+            False.
+        reinitialize (bool, optional): If `True` pymol will be
+            reinitialized (defaults restored and objects cleaned).
+            Defaults to False.
 
     Example::
 
@@ -426,50 +513,22 @@ def visualise_pymol_from_pdb(
             density_map = "waters.dx"
         )
     """
-    try:
-        import pymol
-        from pymol import cmd
-    except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
-    if platform.system() != "Darwin":
-        pymol.finish_launching(["pymol", "-q"])
+    _initialize_pymol(reinitialize, platform.system() != "Darwin")
+    from pymol import cmd
+
     cmd.load(pdbfile)
     cmd.hide("everything")
     # polymer for surface def
     tmpObj = cmd.get_unused_name("_tmp")
     cmd.create(tmpObj, "( all ) and polymer", zoom=0)
     # aminoacids in active site
-    if active_site_ids:
-        aminokis_u_am = cmd.get_unused_name("active_site_aa")
-        selection = ""
-        for i in active_site_ids:
-            selection += str(i) + "+"
-        selection = selection[: len(selection) - 1]
-        selection = "resi " + selection
-        cmd.select(
-            aminokis_u_am,
-            " " + selection + " and polymer ",
-        )
-        cmd.show("licorice", aminokis_u_am)
-        cmd.color("magenta", aminokis_u_am)
-        # pseudoatom in active site center
-        active_site_center = cmd.get_unused_name("activesite_center_")
-        cmd.pseudoatom(active_site_center, aminokis_u_am)
-        cmd.hide(representation="everything", selection=active_site_center)
-    # cmd.show("sphere",active_site_center)
-    # cmd.set ("sphere_scale",0.1,active_site_center)
+    if active_site_ids is not None:
+        aminokis_u_am, active_site_center = _determine_active_site_ids(active_site_ids)
+    else:
+        active_site_center = None
+        aminokis_u_am = None
     # protein surface
-    protein = cmd.get_unused_name("only_protein_")
-    cmd.select(protein, "polymer")
-    povrsina = cmd.get_unused_name("protein_surface_")
-    cmd.create(povrsina, protein)
-    cmd.show("surface", povrsina)
-    cmd.color("gray70", povrsina)
-    cmd.set("transparency", 0.5, povrsina)
-    # ligand representation
-    ligand = cmd.get_unused_name("ligand_")
-    cmd.select(ligand, "organic")
-    cmd.show("licorice", ligand)
+    _make_protein_surface_with_ligand()
     # add water representations
     # conserved waters
     conserved = cmd.get_unused_name("FCW_")
@@ -493,37 +552,47 @@ def visualise_pymol_from_pdb(
         semi_conserved + " or " + half_conserved + " or " + conserved,
     )
     # Add crystal waters
-    if crystal_waters:
-        cmd.fetch(crystal_waters)
-        cmd.hide("everything", crystal_waters)
-        cmd.align(
-            "polymer and " + crystal_waters,
-            "polymer and " + pdbfile.split(".")[0],
+    if crystal_waters is not None:
+        _add_crystal_waters(
+            crystal_waters,
+            pdbfile.split(".")[0],
+            ligand_resname,
+            dist,
+            active_site_ids,
+            active_site_center,
         )
-        if ligand_resname:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within "
-                + str(dist)
-                + " of resname "
-                + ligand_resname,
-            )
-        else:
-            cmd.select("crystal_waters", crystal_waters + " and SOL")
-        cmd.show("spheres", "crystal_waters")
-        cmd.set("sphere_scale", "0.4", "crystal_waters")
+    if polar_contacts:
+        _add_polar_contacts(waters, aminokis_u_am)
     # add volume density visualisation
-    if density_map:
-        cmd.load(density_map)
-        cmd.volume("water_density", density_map.split(".")[0])
-    # reset camera
-    cmd.reset()
-    if active_site_center is not None:
-        cmd.center(active_site_center)
-    # save
-    cmd.reinitialize()
+    if density_map is not None:
+        _add_density_map(density_map)
+    _fix_pymol_camera(active_site_center)
+
+
+def _initialize_pymol(reinitialize: bool, finish: bool):
+    """Initializes pymol.
+
+    Initializes pymol for visualisation. If `finish` is `True` pymol
+    will be lunched in interactive mode. If `False` pymol will be
+    imported without lunching.
+
+    Args:
+        reinitialize (bool): If `True` pymol will be
+            reinitialized (defaults restored and objects cleaned).
+            Defaults to False.
+        finish (bool): If `True` pymol will be lunched
+            in interactive mode. If `False` pymol will be
+            imported without lunching. Defaults to True.
+    """
+    try:
+        import pymol
+        from pymol import cmd
+    except ModuleNotFoundError:
+        raise Exception("pymol not installed. Either install pymol or use nglview")
+    if finish:
+        pymol.finish_launching(["pymol", "-q"])
+    if reinitialize:
+        cmd.reinitialize()
 
 
 def visualise_nglview(
