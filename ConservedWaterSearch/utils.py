@@ -351,11 +351,10 @@ def visualise_pymol(
     for tip, Opos, H1pos, H2pos in zip(water_type, waterO, waterH1, waterH2):
         cntr[tip] += 1
         wname = tip + str(cntr[tip])
-        highest_resi = cmd.identify("all", index=0)[-1][1]
-        print(highest_resi)
-        cmd.create(wname, source_state=0, target_state=0)
+        highest_resi = np.max(cmd.identify("all", mode=0))
+        cmd.create(wname, "none", source_state=0, target_state=0)
         cmd.pseudoatom(
-            object="water",
+            wname,
             pos=[0, 0, 0],
             name="O",
             resn="HOH",
@@ -364,7 +363,7 @@ def visualise_pymol(
             chain="W",
         )
         cmd.pseudoatom(
-            object="water",
+            wname,
             pos=[0.957, 0, 0],
             name="H1",
             resn="HOH",
@@ -373,7 +372,7 @@ def visualise_pymol(
             chain="W",
         )
         cmd.pseudoatom(
-            object="water",
+            wname,
             pos=[-0.239, 0.927, 0],
             name="H2",
             resn="HOH",
@@ -381,6 +380,8 @@ def visualise_pymol(
             elem="H",
             chain="W",
         )
+        cmd.bond(f'{wname} and name O', f'{wname} and name H1')
+        cmd.bond(f'{wname} and name O', f'{wname} and name H2')
         cmd.alter_state(
             0,
             wname,
