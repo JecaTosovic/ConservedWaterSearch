@@ -1123,6 +1123,9 @@ class WaterClustering:
         ligand_resname: str | None = None,
         dist: float = 10.0,
         density_map: str | None = None,
+        polar_contacts: bool = False,
+        lunch_pymol: bool = True,
+        reinitialize: bool = True,
     ) -> None:
         """Visualise results using `pymol <https://pymol.org/>`__.
 
@@ -1143,7 +1146,17 @@ class WaterClustering:
             dist (float): distance from the centre of ligand around which
                 crystal waters shall be selected. Defaults to 10.0.
             density_map (str | None, optional): Water density map to add to
-                visualisation session (usually .dx file). Defaults to None.
+                visualisation session (usually .dx file). Defaults to
+                None.
+            polar_contacts (bool, optional): If `True` polar contacts
+                between waters and protein will be visualised. Defaults to
+                False.
+            lunch_pymol (bool, optional): If `True` pymol will be lunched
+                in interactive mode. If `False` pymol will be imported
+                without lunching. Defaults to True.
+            reinitialize (bool, optional): If `True` pymol will be
+                reinitialized (defaults restored and objects cleaned).
+                Defaults to True.
         """
         visualise_pymol(
             self._water_type,
@@ -1157,6 +1170,9 @@ class WaterClustering:
             ligand_resname=ligand_resname,
             dist=dist,
             density_map=density_map,
+            polar_contacts=polar_contacts,
+            lunch_pymol=lunch_pymol,
+            reinitialize=reinitialize,
         )
 
     def visualise_nglview(
