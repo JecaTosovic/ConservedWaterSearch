@@ -136,6 +136,7 @@ def visualise_pymol(
     ligand_resname: str | None = None,
     dist: float = 10.0,
     density_map: str | None = None,
+    polar_contacts: bool = False,
     lunch_pymol: bool = True,
     reinitialize: bool = True,
 ) -> None:
@@ -170,6 +171,9 @@ def visualise_pymol(
             crystal waters shall be selected. Defaults to 10.0.
         density_map (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
+        polar_contacts (bool, optional): If `True` polar contacts
+            between waters and protein will be visualised. Defaults to
+            False.
         lunch_pymol (bool, optional): If `True` pymol will be lunched
             in interactive mode. If `False` pymol will be imported
             without lunching. Defaults to True.
@@ -328,13 +332,14 @@ def visualise_pymol(
         sele = aminokis_u_am + " or " + waters + " or organic"
     else:
         sele = waters + " or organic"
-    cmd.distance(
-        "polar_contacts",
-        sele,
-        "sol",
-        mode=2,
-    )
-    cmd.hide("labels")
+    if polar_contacts:
+        cmd.distance(
+            "polar_contacts",
+            sele,
+            "sol",
+            mode=2,
+        )
+        cmd.hide("labels")
     # Add crystal waters
     if crystal_waters and aligned_protein is not None:
         cmd.fetch(crystal_waters)
