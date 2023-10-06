@@ -316,10 +316,9 @@ def visualise_pymol(
             dist = 8.0,
         )
     """
-    _initialize_pymol(
-        reinitialize,
-        output_file is None or platform.system() != "Darwin" or lunch_pymol,
-    )
+    if platform.system() == "Darwin":
+        lunch_pymol = False
+    _initialize_pymol(reinitialize, lunch_pymol)
     if platform.system() == "Darwin" and output_file is None:
         import warnings
 
@@ -331,6 +330,8 @@ def visualise_pymol(
     from pymol import cmd
 
     cmd.hide("everything")
+    active_site_center = None
+    aminokis_u_am = None
     if aligned_protein is not None:
         cmd.load(aligned_protein)
         cmd.hide("everything")
@@ -342,16 +343,17 @@ def visualise_pymol(
             aminokis_u_am, active_site_center = _determine_active_site_ids(
                 active_site_ids
             )
-        else:
-            active_site_center = None
-            aminokis_u_am = None
         # protein surface
         _make_protein_surface_with_ligand()
     cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
     for tip, Opos, H1pos, H2pos in zip(water_type, waterO, waterH1, waterH2):
         cntr[tip] += 1
         wname = tip + str(cntr[tip])
-        highest_resi = np.max(cmd.identify("all", mode=0))
+        resis = cmd.identify("all", mode=0)
+        if len(resis) == 0:
+            highest_resi = 0
+        else:
+            highest_resi = np.max(resis)
         cmd.create(wname, "none", source_state=0, target_state=0)
         cmd.pseudoatom(
             wname,
@@ -380,8 +382,8 @@ def visualise_pymol(
             elem="H",
             chain="W",
         )
-        cmd.bond(f'{wname} and name O', f'{wname} and name H1')
-        cmd.bond(f'{wname} and name O', f'{wname} and name H2')
+        cmd.bond(f"{wname} and name O", f"{wname} and name H1")
+        cmd.bond(f"{wname} and name O", f"{wname} and name H2")
         cmd.alter_state(
             0,
             wname,
@@ -475,7 +477,8 @@ def visualise_pymol_from_pdb(
     dist: float = 10.0,
     density_map: str | None = None,
     polar_contacts: bool = False,
-    reinitialize: bool = False,
+    lunch_pymol: bool = True,
+    reinitialize: bool = True,
 ) -> None:
     """Make a `pymol <https://pymol.org/>`__ session from a pdb file.
 
@@ -499,9 +502,12 @@ def visualise_pymol_from_pdb(
         polar_contacts (bool, optional): If `True` polar contacts
             between waters and protein will be visualised. Defaults to
             False.
+        lunch_pymol (bool, optional): If `True` pymol will be lunched
+            in interactive mode. If `False` pymol will be imported
+            without lunching. Defaults to True.
         reinitialize (bool, optional): If `True` pymol will be
             reinitialized (defaults restored and objects cleaned).
-            Defaults to False.
+            Defaults to True.
 
     Example::
 
@@ -514,7 +520,9 @@ def visualise_pymol_from_pdb(
             density_map = "waters.dx"
         )
     """
-    _initialize_pymol(reinitialize, platform.system() != "Darwin")
+    if platform.system() == "Darwin":
+        lunch_pymol = False
+    _initialize_pymol(reinitialize, lunch_pymol)
     from pymol import cmd
 
     cmd.load(pdbfile)
@@ -523,6 +531,8 @@ def visualise_pymol_from_pdb(
     tmpObj = cmd.get_unused_name("_tmp")
     cmd.create(tmpObj, "( all ) and polymer", zoom=0)
     # aminoacids in active site
+    active_site_center = None
+    aminokis_u_am = None
     if active_site_ids is not None:
         aminokis_u_am, active_site_center = _determine_active_site_ids(active_site_ids)
     else:

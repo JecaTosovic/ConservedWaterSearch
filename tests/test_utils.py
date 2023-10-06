@@ -26,6 +26,7 @@ def test_visualise_pymol():
         resH2,
         aligned_protein=None,
         output_file="test.pse",
+        lunch_pymol=False,
     )
     os.remove("test.pse")
 
@@ -40,6 +41,7 @@ def test_visualise_pymol2():
         output_file="test.pdb",
         crystal_waters="3T74",
         ligand_resname="UBY",
+        lunch_pymol=False,
     )
     os.remove("test.pdb")
 
@@ -51,6 +53,7 @@ def test_visualise_pymol3():
             "tests/data/Type_Clustering_results.dat",
         ),
         aligned_protein=None,
+        lunch_pymol=False,
     )
 
 
@@ -61,6 +64,7 @@ def test_visualise_pymol4():
             "tests/data/Type_Clustering_results.dat",
         ),
         aligned_protein="tests/data/aligned.pdb",
+        lunch_pymol=False,
     )
 
 
