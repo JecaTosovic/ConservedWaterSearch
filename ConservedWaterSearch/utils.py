@@ -1,6 +1,7 @@
 from __future__ import annotations
 import os
 import platform
+from re import L
 import numpy as np
 from typing import TYPE_CHECKING
 
@@ -239,6 +240,21 @@ def _add_crystal_waters(
         os.remove(crystal_waters + ".cif")
 
 
+def _add_hydrogen_and_bond(wname, Hpos, Hname, resn, resi):
+    from pymol import cmd
+
+    cmd.pseudoatom(
+        wname,
+        pos=[Hpos[0], Hpos[1], Hpos[2]],
+        name=Hname,
+        resn=resn,
+        resi=resi,
+        elem="H",
+        chain="W",
+    )
+    cmd.bond(f"{wname} and name O", f"{wname} and name {Hname}")
+
+
 def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
     from pymol import cmd
 
@@ -276,44 +292,77 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             cmd.show("spheres", wname)
             cmd.set("sphere_scale", 0.1, wname)
         else:
-            cmd.pseudoatom(
-                wname,
-                pos=[H1pos[0], H1pos[1], H1pos[2]],
-                name="H1",
-                resn=resn,
-                resi=highest_resi + 1,
-                elem="H",
-                chain="W",
-            )
-            cmd.pseudoatom(
-                wname,
-                pos=[H2pos[0], H2pos[1], H2pos[2]],
-                name="H2",
-                resn=resn,
-                resi=highest_resi + 1,
-                elem="H",
-                chain="W",
-            )
-            cmd.bond(f"{wname} and name O", f"{wname} and name H1")
-            cmd.bond(f"{wname} and name O", f"{wname} and name H2")
+            _add_hydrogen_and_bond(wname, H1pos, "H1", resn, highest_resi + 1)
+            _add_hydrogen_and_bond(wname, H2pos, "H2", resn, highest_resi + 1)
             # check future water type
             add_ind = 0
-            while ind + add_ind + 1 < len(water_type) and tip == "HCW":
-                add_ind += 1
-                if water_type[ind + add_ind] == "HCW" and np.array_equal(
-                    Opos, waterO[ind + add_ind]
+            ghind = 0
+            while ind + add_ind + 1 < len(water_type) and tip != "FCW":
+                if (
+                    tip == "HCW"
+                    and water_type[ind + add_ind + 1] == "HCW"
+                    and np.array_equal(Opos, waterO[ind + add_ind + 1])
                 ):
-                    nextH2pos = waterH2[ind + 1]
-                    cmd.pseudoatom(
+                    _add_hydrogen_and_bond(
                         wname,
-                        pos=[nextH2pos[0], nextH2pos[1], nextH2pos[2]],
-                        name=f"H{add_ind+2}",
-                        resn=resn,
-                        resi=highest_resi + 1,
-                        elem="H",
-                        chain="W",
+                        waterH2[ind + add_ind + 1],
+                        f"H{add_ind+3}",
+                        resn,
+                        highest_resi + 1,
                     )
-                    cmd.bond(f"{wname} and name O", f"{wname} and name H{add_ind+2}")
+                    add_ind += 1
+                elif (
+                    tip == "WCW"
+                    and water_type[ind + add_ind + 1] == "WCW"
+                    and np.array_equal(Opos, waterO[ind + add_ind + 1])
+                ):
+                    hind = 0
+                    # check for all previos Hs
+                    H1eq = [
+                        True
+                        if np.array_equal(waterH1[ind], waterH1[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ] + [
+                        True
+                        if np.array_equal(waterH2[ind], waterH1[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ]
+                    if H1eq.count(True) == 0:
+                        _add_hydrogen_and_bond(
+                            wname,
+                            waterH1[ind + add_ind + 1],
+                            f"H{add_ind+ghind+3}",
+                            resn,
+                            highest_resi + 1,
+                        )
+                        hind += 1
+                    H2eq = [
+                        True
+                        if np.array_equal(waterH1[ind], waterH2[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ] + [
+                        True
+                        if np.array_equal(waterH2[ind], waterH2[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ]
+                    if H2eq.count(True) == 0:
+                        _add_hydrogen_and_bond(
+                            wname,
+                            waterH2[ind + add_ind + 1],
+                            f"H{add_ind+hind+ghind+3}",
+                            resn,
+                            highest_resi + 1,
+                        )
+                        hind += 1
+                    if hind > 0:
+                        add_ind += 1
+                        ghind += hind
+                else:
+                    break
             ind += 1 + add_ind
             if output_file is None or output_file.endswith(".pse"):
                 cmd.show("lines", wname)
