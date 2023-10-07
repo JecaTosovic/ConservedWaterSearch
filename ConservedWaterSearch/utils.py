@@ -239,6 +239,95 @@ def _add_crystal_waters(
         os.remove(crystal_waters + ".cif")
 
 
+def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
+    from pymol import cmd
+
+    cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
+    ind = 0  # initialize index
+    while ind < len(water_type):
+        tip, Opos, H1pos, H2pos = (
+            water_type[ind],
+            waterO[ind],
+            waterH1[ind],
+            waterH2[ind],
+        )
+        cntr[tip] += 1
+        wname = tip + str(cntr[tip])
+        resis = cmd.identify("all", mode=0)
+        if len(resis) == 0:
+            highest_resi = 0
+        else:
+            highest_resi = np.max(resis)
+        if output_file is None or output_file.endswith(".pse"):
+            resn = "SOL"
+        elif output_file.endswith(".pdb"):
+            resn = f"{tip}"
+        cmd.create(wname, "none", source_state=0, target_state=0)
+        cmd.pseudoatom(
+            wname,
+            pos=[Opos[0], Opos[1], Opos[2]],
+            name="O",
+            resn=resn,
+            resi=highest_resi + 1,
+            elem="O",
+            chain="W",
+        )
+        if tip == "onlyO":
+            cmd.show("spheres", wname)
+            cmd.set("sphere_scale", 0.1, wname)
+        else:
+            cmd.pseudoatom(
+                wname,
+                pos=[H1pos[0], H1pos[1], H1pos[2]],
+                name="H1",
+                resn=resn,
+                resi=highest_resi + 1,
+                elem="H",
+                chain="W",
+            )
+            cmd.pseudoatom(
+                wname,
+                pos=[H2pos[0], H2pos[1], H2pos[2]],
+                name="H2",
+                resn=resn,
+                resi=highest_resi + 1,
+                elem="H",
+                chain="W",
+            )
+            cmd.bond(f"{wname} and name O", f"{wname} and name H1")
+            cmd.bond(f"{wname} and name O", f"{wname} and name H2")
+            # check future water type
+            add_ind = 0
+            while ind + add_ind + 1 < len(water_type) and tip == "HCW":
+                add_ind += 1
+                if water_type[ind + add_ind] == "HCW" and np.array_equal(
+                    Opos, waterO[ind + add_ind]
+                ):
+                    nextH2pos = waterH2[ind + 1]
+                    cmd.pseudoatom(
+                        wname,
+                        pos=[nextH2pos[0], nextH2pos[1], nextH2pos[2]],
+                        name=f"H{add_ind+2}",
+                        resn=resn,
+                        resi=highest_resi + 1,
+                        elem="H",
+                        chain="W",
+                    )
+                    cmd.bond(f"{wname} and name O", f"{wname} and name H{add_ind+2}")
+            ind += 1 + add_ind
+            if output_file is None or output_file.endswith(".pse"):
+                cmd.show("lines", wname)
+                if tip == "FCW":
+                    cmd.color("firebrick", wname)
+                elif tip == "HCW":
+                    cmd.color("skyblue", wname)
+                    if add_ind > 0:
+                        cmd.color("red", "name H1 and " + wname)
+                elif tip == "WCW":
+                    cmd.color("limegreen", wname)
+            cmd.show("sticks", wname)
+
+
 def visualise_pymol(
     water_type: list[str],
     waterO: list[list[float]],
@@ -345,107 +434,7 @@ def visualise_pymol(
             )
         # protein surface
         _make_protein_surface_with_ligand()
-    cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
-    for tip, Opos, H1pos, H2pos in zip(water_type, waterO, waterH1, waterH2):
-        cntr[tip] += 1
-        wname = tip + str(cntr[tip])
-        resis = cmd.identify("all", mode=0)
-        if len(resis) == 0:
-            highest_resi = 0
-        else:
-            highest_resi = np.max(resis)
-        cmd.create(wname, "none", source_state=0, target_state=0)
-        cmd.pseudoatom(
-            wname,
-            pos=[0, 0, 0],
-            name="O",
-            resn="HOH",
-            resi=highest_resi + 1,
-            elem="O",
-            chain="W",
-        )
-        cmd.pseudoatom(
-            wname,
-            pos=[0.957, 0, 0],
-            name="H1",
-            resn="HOH",
-            resi=highest_resi + 1,
-            elem="H",
-            chain="W",
-        )
-        cmd.pseudoatom(
-            wname,
-            pos=[-0.239, 0.927, 0],
-            name="H2",
-            resn="HOH",
-            resi=highest_resi + 1,
-            elem="H",
-            chain="W",
-        )
-        cmd.bond(f"{wname} and name O", f"{wname} and name H1")
-        cmd.bond(f"{wname} and name O", f"{wname} and name H2")
-        cmd.alter_state(
-            0,
-            wname,
-            "(x,y,z)=(" + str(Opos[0]) + "," + str(Opos[1]) + "," + str(Opos[2]) + ")",
-        )
-        if tip == "onlyO":
-            cmd.delete(wname + "and elem H")
-        else:
-            indiciesH: list[int] = []
-            cmd.iterate_state(
-                -1,
-                wname + " and elem H",
-                "indiciesH.append(index)",
-                space={"indiciesH": indiciesH},
-            )
-            cmd.alter_state(
-                0,
-                wname + " and index " + str(indiciesH[0]),
-                "(x,y,z)=("
-                + str(H1pos[0])
-                + ","
-                + str(H1pos[1])
-                + ","
-                + str(H1pos[2])
-                + ")",
-            )
-            cmd.alter_state(
-                0,
-                wname + " and index " + str(indiciesH[1]),
-                "(x,y,z)=("
-                + str(H2pos[0])
-                + ","
-                + str(H2pos[1])
-                + ","
-                + str(H2pos[2])
-                + ")",
-            )
-            if output_file is None or output_file.endswith(".pse"):
-                cmd.alter_state(
-                    0,
-                    wname,
-                    "resn='SOL'",
-                )
-                cmd.show("lines", wname)
-                if tip == "FCW":
-                    cmd.color("firebrick", wname)
-                elif tip == "HCW":
-                    cmd.color("skyblue", wname)
-                elif tip == "WCW":
-                    cmd.color("limegreen", wname)
-            elif output_file.endswith(".pdb"):
-                cmd.alter_state(
-                    0,
-                    wname,
-                    "resn='" + str(tip) + "'",
-                )
-
-        if tip == "onlyO":
-            cmd.show("spheres", wname)
-            cmd.set("sphere_scale", 0.1, wname)
-        else:
-            cmd.show("sticks", wname)
+    _make_water_objects(water_type, waterO, waterH1, waterH2, output_file)
     waters: str = cmd.get_unused_name("waters")
     cmd.select(waters, "SOL in (FCW* or WCW* or HCW*)")
     if polar_contacts:
@@ -544,17 +533,14 @@ def visualise_pymol_from_pdb(
     # conserved waters
     conserved = cmd.get_unused_name("FCW_")
     cmd.select(conserved, "resname FCW")
-    cmd.show("lines", conserved)
     cmd.color("firebrick", conserved)
     # half conserved waters
     half_conserved = cmd.get_unused_name("HCW_")
     cmd.select(half_conserved, "resname HCW")
-    cmd.show("lines", half_conserved)
     cmd.color("skyblue", half_conserved)
     # semi conserved waters
     semi_conserved = cmd.get_unused_name("WCW_")
     cmd.select(semi_conserved, "resname WCW")
-    cmd.show("lines", semi_conserved)
     cmd.color("limegreen", semi_conserved)
     # all waters
     waters = cmd.get_unused_name("waters_")
@@ -562,6 +548,7 @@ def visualise_pymol_from_pdb(
         waters,
         semi_conserved + " or " + half_conserved + " or " + conserved,
     )
+    cmd.show("sticks", waters)
     # Add crystal waters
     if crystal_waters is not None:
         _add_crystal_waters(
