@@ -403,9 +403,9 @@ class WaterClustering:
         allow_single,
         restart: bool = True,
     ):
+        found: bool = False if len(Odata) < self.nsnaps else True
         for wt in whichH:
             wta = [wt]
-            found: bool = False if len(Odata) < self.nsnaps else True
             while found:
                 found = False
                 # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
@@ -482,7 +482,7 @@ class WaterClustering:
                 ):
                     found = True
                     allow_single = True
-                if len(Odata) < self.nsnaps or not restart:
+                if len(Odata) < self.nsnaps:
                     found = False
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             plt = __check_mpl_installation()
