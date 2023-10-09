@@ -317,7 +317,6 @@ class WaterClustering:
                 oxygens and two hydrogens and water classification.
         """
         for i in waters:
-            print(i)
             self._waterO.append(i[0])
             if len(i) > 2:
                 self._waterH1.append(i[1])
@@ -404,13 +403,11 @@ class WaterClustering:
     ):
         for wt in whichH:
             wta = [wt]
-            print(wt)
             found: bool = False if len(Odata) < self.nsnaps else True
             while found:
                 found = False
                 # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
                 for i in minsamps:
-                    print(i)
                     if clustering_algorithm == "OPTICS":
                         clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
                         clust.fit(Odata)
@@ -466,7 +463,6 @@ class WaterClustering:
                             plt = __check_mpl_installation()
                             plt.close(ff)
                         if len(waters) > 0:
-                            print("waters found")
                             found = True
                             if wt == "onlyO":
                                 Odata = self._delete_data(idcs, Odata)
@@ -476,15 +472,12 @@ class WaterClustering:
                             if self.save_intermediate_results:
                                 self.__save_intermediate_results()
                             i = i - 1
-                            print("breaking inner for loop")
                             break
-                    print("to break from for loop: found, restart ", found, restart)
                     if (found and restart) or len(Odata) < self.nsnaps:
                         break
                 # check if size of remaining data set is bigger then number of snapshots
                 if len(Odata) < self.nsnaps or restart is False:
                     break
-                print("end of while loop", found)
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
             plt = __check_mpl_installation()
             plt.show()
@@ -820,7 +813,6 @@ class WaterClustering:
                 if self.verbose > 0:
                     print(f"O clust {k}, size {len(clusters[clusters==k])}\n")
                 O_center = np.mean(Odata[mask], axis=0)
-                water = [O_center]
                 if "onlyO" not in whichH:
                     # Construct array of hydrogen orientations
                     orientations = np.vstack([H1[mask], H2[mask]])
@@ -851,9 +843,9 @@ class WaterClustering:
                         plt = __check_mpl_installation()
                         plt.show()
                     if len(hyd) > 0:
-                        print(hyd)
                         # add water atoms for pymol visualisation
                         for i in hyd:
+                            water = [O_center]
                             water.append(O_center + i[0])
                             water.append(O_center + i[1])
                             water.append(i[2])
@@ -867,11 +859,10 @@ class WaterClustering:
                         ):
                             plt = __check_mpl_installation()
                             plt.show()
-                        print(waters)
                         if stop_after_frist_water_found:
                             return waters, idcs
                 else:
-                    water.append("O_clust")
+                    water = [O_center, "O_clust"]
                     waters.append(water)
                     idcs = np.append(idcs, np.argwhere(mask).flatten())
                     if stop_after_frist_water_found:
