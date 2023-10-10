@@ -258,7 +258,14 @@ def _add_hydrogen_and_bond(wname, Hpos, Hname, resn, resi):
 def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
     from pymol import cmd
 
-    cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
+    cntr = {
+        name: (
+            len(cmd.get_names("objects", False, f"model {name}*"))
+            if cmd.get_names("objects", False, f"model {name}*")
+            else 0
+        )
+        for name in ["FCW", "WCW", "HCW", "onlyO"]
+    }
     ind = 0  # initialize index
     while ind < len(water_type):
         tip, Opos, H1pos, H2pos = (
