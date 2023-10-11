@@ -43,8 +43,9 @@ class WaterClustering:
         - FCW (Fully Conserved Water): hydrogens are strongly oriented in
           two directions with angle of 104.5
         - HCW (Half Conserved Water): one set (cluster) of hydrogens is
-          oriented in certain directions and other are spread into different
-          orientations with angle of 104.5
+          oriented in a single direction and other hydrogen's
+          orientations are spread into different orientations with angle
+          of 104.5
         - WCW (Weakly Conserved Water): several orientation combinations
           exsist with satisfying water angles
 
