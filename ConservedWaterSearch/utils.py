@@ -29,9 +29,28 @@ def __check_mpl_installation():
     return plt
 
 
+def _append_new_result(
+    water_type: str,
+    waterO: list,
+    waterH1: list | None,
+    waterH2: list | None,
+    fname: str,
+):
+    if isinstance(waterO, np.ndarray):
+        waterO = waterO.tolist()
+    with open(fname, "a") as f:
+        if waterH1 is not None and waterH2 is not None:
+            if isinstance(waterH1, np.ndarray):
+                waterH1 = waterH1.tolist()
+            if isinstance(waterH2, np.ndarray):
+                waterH2 = waterH2.tolist()
+            print(water_type, *waterO, *waterH1, *waterH2, file=f)
+        else:
+            print(water_type, *waterO, file=f)
+
+
 def read_results(
-    fname: str = "Clustering_results.dat",
-    typefname: str = "Type_Clustering_results.dat",
+    fname: str
 ) -> tuple[list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     """Read results from files.
 
@@ -39,11 +58,8 @@ def read_results(
     processing.
 
     Args:
-        fname (str, optional): File name of the file that contains
-            water coordinates. Defaults to "Clustering_results.dat".
-        typefname (str, optional): File name of the file that contains
-            water classification strings.
-            Defaults to "Type_Clustering_results.dat".
+        fname str: File name of the file that contains
+            clustering results
 
     Returns:
         tuple[ list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray] ]:
@@ -55,33 +71,31 @@ def read_results(
 
         water_types, coord_O, coord_H1, coord_H2 = read_results(
             fname = "Clust_res.dat",
-            typefname = "Type_Clust_res.dat",
         )
     """
-    water_type = []
-    waterO = []
-    waterH1 = []
-    waterH2 = []
-    coords = np.loadtxt(fname)
-    if coords.shape[1] == 3:
-        for i in coords:
-            waterO.append(i)
-    else:
-        Opos = coords[:, :3]
-        H1 = coords[:, 3:6]
-        H2 = coords[:, 6:9]
-        for i, j, k in zip(Opos, H1, H2):
-            waterO.append(i)
-            waterH1.append(j)
-            waterH2.append(k)
-    types = np.loadtxt(typefname, dtype=str)
-    for i in types:
-        water_type.append(i)
+    with open(fname, "r") as f:
+        # rewind to line 27
+        for _ in range(27):
+            next(f)
+        water_type = []
+        waterO = []
+        waterH1 = []
+        waterH2 = []
+        for line in f:
+            line = line.split()
+            water_type.append(line[0])
+            waterO.append(np.asarray([float(line[1]), float(line[2]), float(line[3])]))
+            if len(line) == 10:
+                waterH1.append(np.asarray([float(line[4]), float(line[5]), float(line[6])]))
+                waterH2.append(np.asarray([float(line[7]), float(line[8]), float(line[9])]))
+            else:
+                waterH1.append([])
+                waterH2.append([])
     return (
         water_type,
-        list(np.asarray(waterO)),
-        list(np.asarray(waterH1)),
-        list(np.asarray(waterH2)),
+        waterO,
+        waterH1,
+        waterH2,
     )
 
 
@@ -389,7 +403,7 @@ def visualise_pymol(
     waterO: list[list[float]],
     waterH1: list[list[float]],
     waterH2: list[list[float]],
-    aligned_protein: str | None = "aligned.pdb",
+    aligned_protein: str | None = None,
     output_file: str | None = None,
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
@@ -415,7 +429,7 @@ def visualise_pymol(
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
         aligned_protein (str | None, optional): file name containing protein
             configuration trajectory was aligned to. If `None` no
-            protein will be shown. Defaults to "aligned.pdb".
+            protein will be shown. Defaults to ``None``.
         output_file (str | None, optional): File to save the
             visualisation state. If ``None``, a pymol session is started
             (this probably doesn't work on Mac OSX). Defaults to None.
@@ -654,7 +668,7 @@ def visualise_nglview(
     waterO: list[list[float]],
     waterH1: list[list[float]],
     waterH2: list[list[float]],
-    aligned_protein: str = "aligned.pdb",
+    aligned_protein: str | None = None,
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
     density_map_file: str | None = None,
@@ -670,7 +684,7 @@ def visualise_nglview(
         waterH1 (list): Coordinates of Hydrogen1 atom in water molecules.
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
         aligned_protein (str, optional): file name containing protein
-            configuration trajectory was aligned to. Defaults to "aligned.pdb".
+            configuration trajectory was aligned to. Defaults to ``None``.
         active_site_ids (list[int] | None, optional): Residue ids -
             numbers of aminoacids in active site. These are visualised
             as licorice. Defaults to None.
