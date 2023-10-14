@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         cmd = None
 
 
-def __check_mpl_installation():
+def _check_mpl_installation():
     """Check if matplotlib is installed."""
     try:
         import matplotlib.pyplot as plt
