@@ -579,7 +579,7 @@ class WaterClustering:
             creates an instance of :py:class:`WaterClustering`
             class and restarts clustering
         """
-        instance = cls(0)
+        instance = cls(1)
         instance.restart_cluster(partial_output, partial_data_file)
         return instance
 
