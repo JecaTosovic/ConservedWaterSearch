@@ -1130,19 +1130,19 @@ class WaterClustering:
                 self._waterH2.append(i[2])
                 if self.output_file is not None:
                     _append_new_result(
-                        self.output_file,
                         i[0],
                         i[1],
                         i[2],
                         i[-1],
+                        self.output_file,
                     )
             elif self.output_file is not None:
                 _append_new_result(
-                    self.output_file,
                     i[0],
                     None,
                     None,
                     i[-1],
+                    self.output_file,
                 )
             self._water_type.append(i[-1])
 
