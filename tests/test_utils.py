@@ -49,9 +49,36 @@ def test_read_results_with_hydrogens():
     assert len(waterH1) == 20
     assert len(waterH2) == 20
     assert water_type[0] == "FCW"
-    npt.assert_allclose(waterO[0], np.array([0.0, 0.0, 0.0]))
-    npt.assert_allclose(waterH1[0], np.array([0.0, 0.0, 1.0]))
-    npt.assert_allclose(waterH2[0], np.array([0.0, 1.0, 0.0]))
+    npt.assert_allclose(
+        waterO[0],
+        np.array(
+            [
+                -8.498636033210043905e00,
+                -8.528824215611816584e00,
+                -8.558124911970363513e00,
+            ]
+        ),
+    )
+    npt.assert_allclose(
+        waterH1[0],
+        np.array(
+            [
+                -8.612760033927649772e00,
+                -8.398256579537193289e00,
+                -9.542974039943826980e00,
+            ]
+        ),
+    )
+    npt.assert_allclose(
+        waterH2[0],
+        np.array(
+            [
+                -7.847825970288877961e00,
+                -7.856730538101417416e00,
+                -8.204944574676375169e00,
+            ]
+        ),
+    )
 
 
 def test_read_results_without_hydrogens():
@@ -62,8 +89,17 @@ def test_read_results_without_hydrogens():
     assert len(waterO) == 20
     assert len(waterH1) == 20
     assert len(waterH2) == 20
-    assert water_type[0] == "FCW"
-    npt.assert_allclose(waterO[0], np.array([0.0, 0.0, 0.0]))
+    assert water_type[0] == "onlyO"
+    npt.assert_allclose(
+        waterO[0],
+        np.array(
+            [
+                -8.498636033210043905e00,
+                -8.528824215611816584e00,
+                -8.558124911970363513e00,
+            ]
+        ),
+    )
     assert waterH1[0] == []
     assert waterH2[0] == []
 

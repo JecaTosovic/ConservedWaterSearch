@@ -1,3 +1,4 @@
+# %%
 from __future__ import annotations
 import os
 import platform
@@ -50,7 +51,7 @@ def _append_new_result(
 
 
 def read_results(
-    fname: str
+    fname: str,
 ) -> tuple[list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     """Read results from files.
 
@@ -86,8 +87,12 @@ def read_results(
             water_type.append(line[0])
             waterO.append(np.asarray([float(line[1]), float(line[2]), float(line[3])]))
             if len(line) == 10:
-                waterH1.append(np.asarray([float(line[4]), float(line[5]), float(line[6])]))
-                waterH2.append(np.asarray([float(line[7]), float(line[8]), float(line[9])]))
+                waterH1.append(
+                    np.asarray([float(line[4]), float(line[5]), float(line[6])])
+                )
+                waterH2.append(
+                    np.asarray([float(line[7]), float(line[8]), float(line[9])])
+                )
             else:
                 waterH1.append([])
                 waterH2.append([])
@@ -312,6 +317,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
         if tip == "onlyO":
             cmd.show("spheres", wname)
             cmd.set("sphere_scale", 0.1, wname)
+            ind += 1
         else:
             _add_hydrogen_and_bond(wname, H1pos, "H1", resn, highest_resi + 1)
             _add_hydrogen_and_bond(wname, H2pos, "H2", resn, highest_resi + 1)
@@ -584,6 +590,7 @@ def visualise_pymol_from_pdb(
     _initialize_pymol(reinitialize, lunch_pymol)
     from pymol import cmd
 
+    print("initialized")
     cmd.load(pdbfile)
     cmd.hide("everything")
     # polymer for surface def
