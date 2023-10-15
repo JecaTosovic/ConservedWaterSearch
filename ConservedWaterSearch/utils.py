@@ -164,6 +164,7 @@ def _make_protein_surface_with_ligand():
     ligand = cmd.get_unused_name("ligand_")
     cmd.select(ligand, "organic")
     cmd.show("licorice", ligand)
+    return povrsina, protein, ligand
 
 
 def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
