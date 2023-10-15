@@ -304,6 +304,8 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             resn = "SOL"
         elif output_file.endswith(".pdb"):
             resn = f"{tip}"
+        else:
+            resn = "SOL"
         cmd.create(wname, "none", source_state=0, target_state=0)
         cmd.pseudoatom(
             wname,
