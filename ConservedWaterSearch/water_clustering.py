@@ -480,7 +480,7 @@ class WaterClustering:
                 results with determined water coordinates.
         """
         if os.path.isfile(partial_data_file):
-            data: np.ndarray = np.loadtxt(fname=partial_data_file)
+            data: np.ndarray = np.loadtxt(partial_data_file)
             if data.shape[1] == 3:
                 Odata: np.ndarray = data
                 H1: None | np.ndarray = None
@@ -492,7 +492,7 @@ class WaterClustering:
         else:
             raise Exception("data file not found")
         if os.path.isfile(partial_results_file):
-            self.read_and_set_water_clust_options(file_name=partial_results_file)
+            self.read_and_set_water_clust_options(partial_results_file)
             self._water_type, self._waterO, self._waterH1, self._waterH2 = read_results(
                 partial_results_file
             )
@@ -775,13 +775,10 @@ class WaterClustering:
         Odata,
         H1=None,
         H2=None,
-        all_water_types_at_once=False,
     ):
         if self.output_file is not None:
             self._save_clustering_options(self.output_file)
-        wta = self.water_types_to_find if all_water_types_at_once else None
         for wt in self.water_types_to_find:
-            wta = wta or [wt]
             found: bool = False if len(Odata) < self.nsnaps else True
             while found:
                 found = False
@@ -835,6 +832,7 @@ class WaterClustering:
                             H1,
                             H2,
                             clusters,
+                            [wt],
                         )
                         if self.debugO == 1:
                             plt = _check_mpl_installation()
@@ -865,6 +863,7 @@ class WaterClustering:
         H1: np.ndarray | None,
         H2: np.ndarray | None,
         clusters: np.ndarray,
+        whichH: list[str],
     ) -> tuple[list[np.ndarray], list[int]]:
         """Helper function for analysing oxygen clustering and invoking
         hydrogen orientation clustering.
@@ -932,7 +931,7 @@ class WaterClustering:
                         self.verbose,
                         self.debugH,
                         self.plotreach,
-                        self.water_types_to_find,
+                        whichH,
                         self.normalize_orientations,
                     )
                     if self.plotreach and self.debugH > 0:
@@ -1124,27 +1123,26 @@ class WaterClustering:
                 oxygens and two hydrogens and water classification.
         """
         for i in waters:
-            self._waterO.append(i[0])
+            O_coord = i[0]
+            tip = i[-1]
             if len(i) > 2:
-                self._waterH1.append(i[1])
-                self._waterH2.append(i[2])
-                if self.output_file is not None:
-                    _append_new_result(
-                        i[0],
-                        i[1],
-                        i[2],
-                        i[-1],
-                        self.output_file,
-                    )
-            elif self.output_file is not None:
+                H1 = i[1]
+                H2 = i[2]
+                self._waterH1.append(H1)
+                self._waterH2.append(H2)
+            else:
+                H1 = None
+                H2 = None
+            if self.output_file is not None:
                 _append_new_result(
-                    i[0],
-                    None,
-                    None,
-                    i[-1],
+                    tip,
+                    O_coord,
+                    H1,
+                    H2,
                     self.output_file,
                 )
-            self._water_type.append(i[-1])
+            self._waterO.append(O_coord)
+            self._water_type.append(tip)
 
 
 def _oxygen_clustering_plot(

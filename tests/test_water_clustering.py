@@ -198,6 +198,12 @@ def test_restart_cluster_water_types():
             newWC.restart_cluster(res.name, dat.name)
 
 
+def test_restart_cluster_and_create_class_from_file():
+    WaterClustering.create_from_files_and_restart(
+        "tests/data/restart_partial_results.dat", "tests/data/restart_data.dat"
+    )
+
+
 def test_single_clustering_OPTICS():
     Nsnap = 20
     Opos = np.loadtxt("tests/data/testdataO.dat")

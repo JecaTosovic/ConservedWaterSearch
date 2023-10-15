@@ -590,7 +590,6 @@ def visualise_pymol_from_pdb(
     _initialize_pymol(reinitialize, lunch_pymol)
     from pymol import cmd
 
-    print("initialized")
     cmd.load(pdbfile)
     cmd.hide("everything")
     # polymer for surface def
