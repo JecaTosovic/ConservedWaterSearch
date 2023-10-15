@@ -2,7 +2,6 @@
 from __future__ import annotations
 import os
 import platform
-from re import L
 import numpy as np
 from typing import TYPE_CHECKING
 
