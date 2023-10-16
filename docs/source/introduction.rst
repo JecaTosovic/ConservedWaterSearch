@@ -65,7 +65,7 @@ The easiest way to use CWS is by calling :code:`WaterClustering` class. The star
    # load some example - trajectory should be aligned prior to extraction of atom coordinates
    Opos = np.loadtxt("tests/data/testdataO.dat")
    Hpos = np.loadtxt("tests/data/testdataH.dat")
-   wc = WaterClustering(nsnaps=Nsnap, save_intermediate_results=False, save_results_after_done=False)
+   wc = WaterClustering(nsnaps=Nsnap)
    wc.multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
    print(wc.water_type)
    # "aligned.pdb" should be the snapshot original trajectory was aligned to.

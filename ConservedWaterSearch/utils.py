@@ -1,3 +1,4 @@
+# %%
 from __future__ import annotations
 import os
 import platform
@@ -9,9 +10,15 @@ if TYPE_CHECKING:
         from nglview import NGLWidget
     except ImportError:
         NGLWidget = None
+    try:
+        import pymol
+        from pymol import cmd
+    except ImportError:
+        pymol = None
+        cmd = None
 
 
-def __check_mpl_installation():
+def _check_mpl_installation():
     """Check if matplotlib is installed."""
     try:
         import matplotlib.pyplot as plt
@@ -22,9 +29,28 @@ def __check_mpl_installation():
     return plt
 
 
+def _append_new_result(
+    water_type: str,
+    waterO: list,
+    waterH1: list | None,
+    waterH2: list | None,
+    fname: str,
+):
+    if isinstance(waterO, np.ndarray):
+        waterO = waterO.tolist()
+    with open(fname, "a") as f:
+        if waterH1 is not None and waterH2 is not None:
+            if isinstance(waterH1, np.ndarray):
+                waterH1 = waterH1.tolist()
+            if isinstance(waterH2, np.ndarray):
+                waterH2 = waterH2.tolist()
+            print(water_type, *waterO, *waterH1, *waterH2, file=f)
+        else:
+            print(water_type, *waterO, file=f)
+
+
 def read_results(
-    fname: str = "Clustering_results.dat",
-    typefname: str = "Type_Clustering_results.dat",
+    fname: str,
 ) -> tuple[list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray]]:
     """Read results from files.
 
@@ -32,11 +58,8 @@ def read_results(
     processing.
 
     Args:
-        fname (str, optional): File name of the file that contains
-            water coordinates. Defaults to "Clustering_results.dat".
-        typefname (str, optional): File name of the file that contains
-            water classification strings.
-            Defaults to "Type_Clustering_results.dat".
+        fname str: File name of the file that contains
+            clustering results
 
     Returns:
         tuple[ list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray] ]:
@@ -48,33 +71,35 @@ def read_results(
 
         water_types, coord_O, coord_H1, coord_H2 = read_results(
             fname = "Clust_res.dat",
-            typefname = "Type_Clust_res.dat",
         )
     """
-    water_type = []
-    waterO = []
-    waterH1 = []
-    waterH2 = []
-    coords = np.loadtxt(fname)
-    if coords.shape[1] == 3:
-        for i in coords:
-            waterO.append(i)
-    else:
-        Opos = coords[:, :3]
-        H1 = coords[:, 3:6]
-        H2 = coords[:, 6:9]
-        for i, j, k in zip(Opos, H1, H2):
-            waterO.append(i)
-            waterH1.append(j)
-            waterH2.append(k)
-    types = np.loadtxt(typefname, dtype=str)
-    for i in types:
-        water_type.append(i)
+    with open(fname, "r") as f:
+        # rewind to line 27
+        for _ in range(27):
+            next(f)
+        water_type = []
+        waterO = []
+        waterH1 = []
+        waterH2 = []
+        for line in f:
+            line = line.split()
+            water_type.append(line[0])
+            waterO.append(np.asarray([float(line[1]), float(line[2]), float(line[3])]))
+            if len(line) == 10:
+                waterH1.append(
+                    np.asarray([float(line[4]), float(line[5]), float(line[6])])
+                )
+                waterH2.append(
+                    np.asarray([float(line[7]), float(line[8]), float(line[9])])
+                )
+            else:
+                waterH1.append([])
+                waterH2.append([])
     return (
         water_type,
-        list(np.asarray(waterO)),
-        list(np.asarray(waterH1)),
-        list(np.asarray(waterH2)),
+        waterO,
+        waterH1,
+        waterH2,
     )
 
 
@@ -124,18 +149,276 @@ def get_orientations_from_positions(
         raise Exception("Hydrogen array of wrong length")
 
 
+def _make_protein_surface_with_ligand():
+    from pymol import cmd
+
+    protein = cmd.get_unused_name("only_protein_")
+    cmd.select(protein, "polymer")
+    povrsina = cmd.get_unused_name("protein_surface_")
+    cmd.create(povrsina, protein)
+    cmd.show("surface", povrsina)
+    cmd.color("gray70", povrsina)
+    cmd.set("transparency", 0.5, povrsina)
+    # ligand representation
+    ligand = cmd.get_unused_name("ligand_")
+    cmd.select(ligand, "organic")
+    cmd.show("licorice", ligand)
+    return povrsina, protein, ligand
+
+
+def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
+    from pymol import cmd
+
+    if aminokis_u_am is not None:
+        sele = aminokis_u_am + " or " + waters + " or organic"
+    else:
+        sele = waters + " or organic"
+    cmd.distance(
+        "polar_contacts",
+        sele,
+        "sol",
+        mode=2,
+    )
+    cmd.hide("labels")
+
+
+def _fix_pymol_camera(active_site_center=None):
+    from pymol import cmd
+
+    # reset camera
+    cmd.reset()
+    if active_site_center is not None:
+        cmd.center(active_site_center)
+    else:
+        cmd.center("waters")
+
+
+def _determine_active_site_ids(active_site_ids: list[int]):
+    from pymol import cmd
+
+    selection = ""
+    for i in active_site_ids:
+        selection += str(i) + "+"
+    selection = selection[: len(selection) - 1]
+    selection = "resi " + selection
+    aminokis_u_am: str = cmd.get_unused_name("active_site_aa")
+    cmd.select(
+        aminokis_u_am,
+        " " + selection + " and polymer ",
+    )
+    cmd.show("licorice", aminokis_u_am)
+    cmd.color("magenta", aminokis_u_am)
+    # pseudoatom in active site center
+    active_site_center = cmd.get_unused_name("activesite_center_")
+    cmd.pseudoatom(active_site_center, aminokis_u_am)
+    cmd.hide(representation="everything", selection=active_site_center)
+    return active_site_center, aminokis_u_am
+
+
+def _add_density_map(density_map: str):
+    from pymol import cmd
+
+    cmd.load(density_map)
+    cmd.volume("water_density", density_map.split(".")[0])
+
+
+def _add_crystal_waters(
+    crystal_waters, protein, ligand_resname, dist, active_site_ids, active_site_center
+):
+    from pymol import cmd
+
+    cmd.fetch(crystal_waters)
+    cmd.hide("everything", crystal_waters)
+    cmd.align(
+        "polymer and " + crystal_waters,
+        "polymer and " + protein,
+    )
+    if ligand_resname is not None:
+        cmd.select(
+            "crystal_waters",
+            "("
+            + crystal_waters
+            + " and SOL) within "
+            + str(dist)
+            + " of resname "
+            + ligand_resname,
+        )
+    elif active_site_ids is not None:
+        cmd.select(
+            "crystal_waters",
+            "("
+            + crystal_waters
+            + " and SOL) within 10 of resname "
+            + active_site_center,
+        )
+    else:
+        cmd.select("crystal_waters", crystal_waters + " and SOL")
+    cmd.show("spheres", "crystal_waters")
+    cmd.set("sphere_scale", "0.4", "crystal_waters")
+    if os.path.exists(crystal_waters + ".cif"):
+        os.remove(crystal_waters + ".cif")
+
+
+def _add_hydrogen_and_bond(wname, Hpos, Hname, resn, resi):
+    from pymol import cmd
+
+    cmd.pseudoatom(
+        wname,
+        pos=[Hpos[0], Hpos[1], Hpos[2]],
+        name=Hname,
+        resn=resn,
+        resi=resi,
+        elem="H",
+        chain="W",
+    )
+    cmd.bond(f"{wname} and name O", f"{wname} and name {Hname}")
+
+
+def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
+    from pymol import cmd
+
+    cntr = {
+        name: (
+            len(cmd.get_names("objects", False, f"model {name}*"))
+            if cmd.get_names("objects", False, f"model {name}*")
+            else 0
+        )
+        for name in ["FCW", "WCW", "HCW", "onlyO"]
+    }
+    ind = 0  # initialize index
+    while ind < len(water_type):
+        tip, Opos, H1pos, H2pos = (
+            water_type[ind],
+            waterO[ind],
+            waterH1[ind],
+            waterH2[ind],
+        )
+        cntr[tip] += 1
+        wname = tip + str(cntr[tip])
+        resis = cmd.identify("all", mode=0)
+        if len(resis) == 0:
+            highest_resi = 0
+        else:
+            highest_resi = np.max(resis)
+        if output_file is None or output_file.endswith(".pse"):
+            resn = "SOL"
+        elif output_file.endswith(".pdb"):
+            resn = f"{tip}"
+        else:
+            resn = "SOL"
+        cmd.create(wname, "none", source_state=0, target_state=0)
+        cmd.pseudoatom(
+            wname,
+            pos=[Opos[0], Opos[1], Opos[2]],
+            name="O",
+            resn=resn,
+            resi=highest_resi + 1,
+            elem="O",
+            chain="W",
+        )
+        if tip == "onlyO":
+            cmd.show("spheres", wname)
+            cmd.set("sphere_scale", 0.1, wname)
+            ind += 1
+        else:
+            _add_hydrogen_and_bond(wname, H1pos, "H1", resn, highest_resi + 1)
+            _add_hydrogen_and_bond(wname, H2pos, "H2", resn, highest_resi + 1)
+            # check future water type
+            add_ind = 0
+            ghind = 0
+            while ind + add_ind + 1 < len(water_type) and tip != "FCW":
+                if (
+                    tip == "HCW"
+                    and water_type[ind + add_ind + 1] == "HCW"
+                    and np.array_equal(Opos, waterO[ind + add_ind + 1])
+                ):
+                    _add_hydrogen_and_bond(
+                        wname,
+                        waterH2[ind + add_ind + 1],
+                        f"H{add_ind+3}",
+                        resn,
+                        highest_resi + 1,
+                    )
+                    add_ind += 1
+                elif (
+                    tip == "WCW"
+                    and water_type[ind + add_ind + 1] == "WCW"
+                    and np.array_equal(Opos, waterO[ind + add_ind + 1])
+                ):
+                    hind = 0
+                    # check for all previos Hs
+                    H1eq = [
+                        True
+                        if np.array_equal(waterH1[ind], waterH1[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ] + [
+                        True
+                        if np.array_equal(waterH2[ind], waterH1[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ]
+                    if H1eq.count(True) == 0:
+                        _add_hydrogen_and_bond(
+                            wname,
+                            waterH1[ind + add_ind + 1],
+                            f"H{add_ind+ghind+3}",
+                            resn,
+                            highest_resi + 1,
+                        )
+                        hind += 1
+                    H2eq = [
+                        True
+                        if np.array_equal(waterH1[ind], waterH2[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ] + [
+                        True
+                        if np.array_equal(waterH2[ind], waterH2[ind + dind + 1])
+                        else False
+                        for dind in range(add_ind)
+                    ]
+                    if H2eq.count(True) == 0:
+                        _add_hydrogen_and_bond(
+                            wname,
+                            waterH2[ind + add_ind + 1],
+                            f"H{add_ind+hind+ghind+3}",
+                            resn,
+                            highest_resi + 1,
+                        )
+                        hind += 1
+                    if hind > 0:
+                        add_ind += 1
+                        ghind += hind
+                else:
+                    break
+            ind += 1 + add_ind
+            if output_file is None or output_file.endswith(".pse"):
+                cmd.show("lines", wname)
+                if tip == "FCW":
+                    cmd.color("firebrick", wname)
+                elif tip == "HCW":
+                    cmd.color("skyblue", wname)
+                    if add_ind > 0:
+                        cmd.color("red", "name H1 and " + wname)
+                elif tip == "WCW":
+                    cmd.color("limegreen", wname)
+            cmd.show("sticks", wname)
+
+
 def visualise_pymol(
     water_type: list[str],
     waterO: list[list[float]],
     waterH1: list[list[float]],
     waterH2: list[list[float]],
-    aligned_protein: str | None = "aligned.pdb",
+    aligned_protein: str | None = None,
     output_file: str | None = None,
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
     ligand_resname: str | None = None,
     dist: float = 10.0,
     density_map: str | None = None,
+    polar_contacts: bool = False,
     lunch_pymol: bool = True,
     reinitialize: bool = True,
 ) -> None:
@@ -154,7 +437,7 @@ def visualise_pymol(
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
         aligned_protein (str | None, optional): file name containing protein
             configuration trajectory was aligned to. If `None` no
-            protein will be shown. Defaults to "aligned.pdb".
+            protein will be shown. Defaults to ``None``.
         output_file (str | None, optional): File to save the
             visualisation state. If ``None``, a pymol session is started
             (this probably doesn't work on Mac OSX). Defaults to None.
@@ -170,6 +453,9 @@ def visualise_pymol(
             crystal waters shall be selected. Defaults to 10.0.
         density_map (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
+        polar_contacts (bool, optional): If `True` polar contacts
+            between waters and protein will be visualised. Defaults to
+            False.
         lunch_pymol (bool, optional): If `True` pymol will be lunched
             in interactive mode. If `False` pymol will be imported
             without lunching. Defaults to True.
@@ -197,25 +483,22 @@ def visualise_pymol(
             dist = 8.0,
         )
     """
-    try:
-        import pymol
-        from pymol import cmd
-    except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
-    if output_file is None and platform.system() != "Darwin" and lunch_pymol:
-        pymol.finish_launching(["pymol", "-q"])
-    if reinitialize:
-        cmd.reinitialize()
     if platform.system() == "Darwin":
+        lunch_pymol = False
+    _initialize_pymol(reinitialize, lunch_pymol)
+    if platform.system() == "Darwin" and output_file is None:
         import warnings
 
         warnings.warn(
             "mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",
             RuntimeWarning,
         )
-        if output_file is None:
-            output_file = "pymol_water_visualization.pse"
+        output_file = "pymol_water_visualization.pse"
+    from pymol import cmd
+
     cmd.hide("everything")
+    active_site_center = None
+    aminokis_u_am = None
     if aligned_protein is not None:
         cmd.load(aligned_protein)
         cmd.hide("everything")
@@ -223,160 +506,31 @@ def visualise_pymol(
         tmpObj = cmd.get_unused_name("_tmp")
         cmd.create(tmpObj, "( all ) and polymer", zoom=0)
         # aminoacids in active site
-        if active_site_ids:
-            selection = ""
-            for i in active_site_ids:
-                selection += str(i) + "+"
-            selection = selection[: len(selection) - 1]
-            selection = "resi " + selection
-            aminokis_u_am: str = cmd.get_unused_name("active_site_aa")
-            cmd.select(
-                aminokis_u_am,
-                " " + selection + " and polymer ",
+        if active_site_ids is not None:
+            aminokis_u_am, active_site_center = _determine_active_site_ids(
+                active_site_ids
             )
-            cmd.show("licorice", aminokis_u_am)
-            cmd.color("magenta", aminokis_u_am)
-            # pseudoatom in active site center
-            active_site_center = cmd.get_unused_name("activesite_center_")
-            cmd.pseudoatom(active_site_center, aminokis_u_am)
-            cmd.hide(representation="everything", selection=active_site_center)
-        # cmd.show("sphere",active_site_center)
-        # cmd.set ("sphere_scale",0.1,active_site_center)
         # protein surface
-        protein = cmd.get_unused_name("only_protein_")
-        cmd.select(protein, "polymer")
-        povrsina = cmd.get_unused_name("protein_surface_")
-        cmd.create(povrsina, protein)
-        cmd.show("surface", povrsina)
-        cmd.color("gray70", povrsina)
-        cmd.set("transparency", 0.5, povrsina)
-        # ligand representation
-        ligand = cmd.get_unused_name("ligand_")
-        cmd.select(ligand, "organic")
-        cmd.show("licorice", ligand)
-    cntr = {"FCW": 0, "WCW": 0, "HCW": 0}
-    for tip, Opos, H1pos, H2pos in zip(water_type, waterO, waterH1, waterH2):
-        cntr[tip] += 1
-        wname = tip + str(cntr[tip])
-        print(wname)
-        cmd.fetch("hoh", wname)
-        cmd.alter_state(
-            0,
-            wname,
-            "(x,y,z)=(" + str(Opos[0]) + "," + str(Opos[1]) + "," + str(Opos[2]) + ")",
-        )
-        if tip == "onlyO":
-            cmd.delete(wname + "and elem H")
-        else:
-            indiciesH: list[int] = []
-            cmd.iterate_state(
-                -1,
-                wname + " and elem H",
-                "indiciesH.append(index)",
-                space={"indiciesH": indiciesH},
-            )
-            cmd.alter_state(
-                0,
-                wname + " and index " + str(indiciesH[0]),
-                "(x,y,z)=("
-                + str(H1pos[0])
-                + ","
-                + str(H1pos[1])
-                + ","
-                + str(H1pos[2])
-                + ")",
-            )
-            cmd.alter_state(
-                0,
-                wname + " and index " + str(indiciesH[1]),
-                "(x,y,z)=("
-                + str(H2pos[0])
-                + ","
-                + str(H2pos[1])
-                + ","
-                + str(H2pos[2])
-                + ")",
-            )
-            if output_file is None or output_file.endswith(".pse"):
-                cmd.alter_state(
-                    0,
-                    wname,
-                    "resn='SOL'",
-                )
-                cmd.show("lines", wname)
-                if tip == "FCW":
-                    cmd.color("firebrick", wname)
-                elif tip == "HCW":
-                    cmd.color("skyblue", wname)
-                elif tip == "WCW":
-                    cmd.color("limegreen", wname)
-            elif output_file.endswith(".pdb"):
-                cmd.alter_state(
-                    0,
-                    wname,
-                    "resn='" + str(tip) + "'",
-                )
-
-        if tip == "onlyO":
-            cmd.show("spheres", wname)
-            cmd.set("sphere_scale", 0.1, wname)
-        else:
-            cmd.show("sticks", wname)
+        _make_protein_surface_with_ligand()
+    _make_water_objects(water_type, waterO, waterH1, waterH2, output_file)
     waters: str = cmd.get_unused_name("waters")
     cmd.select(waters, "SOL in (FCW* or WCW* or HCW*)")
-    if active_site_ids:
-        sele = aminokis_u_am + " or " + waters + " or organic"
-    else:
-        sele = waters + " or organic"
-    cmd.distance(
-        "polar_contacts",
-        sele,
-        "sol",
-        mode=2,
-    )
-    cmd.hide("labels")
+    if polar_contacts:
+        _add_polar_contacts(waters, aminokis_u_am)
     # Add crystal waters
     if crystal_waters and aligned_protein is not None:
-        cmd.fetch(crystal_waters)
-        cmd.hide("everything", crystal_waters)
-        cmd.align(
-            "polymer and " + crystal_waters,
-            "polymer and " + protein,
+        _add_crystal_waters(
+            crystal_waters,
+            aligned_protein,
+            ligand_resname,
+            dist,
+            active_site_ids,
+            active_site_center,
         )
-        if ligand_resname is not None:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within "
-                + str(dist)
-                + " of resname "
-                + ligand_resname,
-            )
-        elif active_site_ids is not None:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within 10 of resname "
-                + active_site_center,
-            )
-        else:
-            cmd.select("crystal_waters", crystal_waters + " and SOL")
-        cmd.show("spheres", "crystal_waters")
-        cmd.set("sphere_scale", "0.4", "crystal_waters")
-        if os.path.exists(crystal_waters + ".cif"):
-            os.remove(crystal_waters + ".cif")
     # add volume density visualisation
-    if density_map:
-        cmd.load(density_map)
-        cmd.volume("water_density", density_map.split(".")[0])
-    # reset camera
-    cmd.reset()
-    if active_site_ids is not None:
-        cmd.center(active_site_center)
-    if os.path.exists("hoh.cif"):
-        os.remove("hoh.cif")
+    if density_map is not None:
+        _add_density_map(density_map)
+    _fix_pymol_camera(active_site_center)
     # save
     if output_file is not None:
         cmd.save(output_file)
@@ -389,6 +543,9 @@ def visualise_pymol_from_pdb(
     ligand_resname: str | None = None,
     dist: float = 10.0,
     density_map: str | None = None,
+    polar_contacts: bool = False,
+    lunch_pymol: bool = True,
+    reinitialize: bool = True,
 ) -> None:
     """Make a `pymol <https://pymol.org/>`__ session from a pdb file.
 
@@ -409,6 +566,15 @@ def visualise_pymol_from_pdb(
             crystal waters shall be selected. Defaults to 10.0.
         density_map (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
+        polar_contacts (bool, optional): If `True` polar contacts
+            between waters and protein will be visualised. Defaults to
+            False.
+        lunch_pymol (bool, optional): If `True` pymol will be lunched
+            in interactive mode. If `False` pymol will be imported
+            without lunching. Defaults to True.
+        reinitialize (bool, optional): If `True` pymol will be
+            reinitialized (defaults restored and objects cleaned).
+            Defaults to True.
 
     Example::
 
@@ -421,65 +587,38 @@ def visualise_pymol_from_pdb(
             density_map = "waters.dx"
         )
     """
-    try:
-        import pymol
-        from pymol import cmd
-    except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
-    if platform.system() != "Darwin":
-        pymol.finish_launching(["pymol", "-q"])
+    if platform.system() == "Darwin":
+        lunch_pymol = False
+    _initialize_pymol(reinitialize, lunch_pymol)
+    from pymol import cmd
+
     cmd.load(pdbfile)
     cmd.hide("everything")
     # polymer for surface def
     tmpObj = cmd.get_unused_name("_tmp")
     cmd.create(tmpObj, "( all ) and polymer", zoom=0)
     # aminoacids in active site
-    if active_site_ids:
-        aminokis_u_am = cmd.get_unused_name("active_site_aa")
-        selection = ""
-        for i in active_site_ids:
-            selection += str(i) + "+"
-        selection = selection[: len(selection) - 1]
-        selection = "resi " + selection
-        cmd.select(
-            aminokis_u_am,
-            " " + selection + " and polymer ",
-        )
-        cmd.show("licorice", aminokis_u_am)
-        cmd.color("magenta", aminokis_u_am)
-        # pseudoatom in active site center
-        active_site_center = cmd.get_unused_name("activesite_center_")
-        cmd.pseudoatom(active_site_center, aminokis_u_am)
-        cmd.hide(representation="everything", selection=active_site_center)
-    # cmd.show("sphere",active_site_center)
-    # cmd.set ("sphere_scale",0.1,active_site_center)
+    active_site_center = None
+    aminokis_u_am = None
+    if active_site_ids is not None:
+        aminokis_u_am, active_site_center = _determine_active_site_ids(active_site_ids)
+    else:
+        active_site_center = None
+        aminokis_u_am = None
     # protein surface
-    protein = cmd.get_unused_name("only_protein_")
-    cmd.select(protein, "polymer")
-    povrsina = cmd.get_unused_name("protein_surface_")
-    cmd.create(povrsina, protein)
-    cmd.show("surface", povrsina)
-    cmd.color("gray70", povrsina)
-    cmd.set("transparency", 0.5, povrsina)
-    # ligand representation
-    ligand = cmd.get_unused_name("ligand_")
-    cmd.select(ligand, "organic")
-    cmd.show("licorice", ligand)
+    _make_protein_surface_with_ligand()
     # add water representations
     # conserved waters
     conserved = cmd.get_unused_name("FCW_")
     cmd.select(conserved, "resname FCW")
-    cmd.show("lines", conserved)
     cmd.color("firebrick", conserved)
     # half conserved waters
     half_conserved = cmd.get_unused_name("HCW_")
     cmd.select(half_conserved, "resname HCW")
-    cmd.show("lines", half_conserved)
     cmd.color("skyblue", half_conserved)
     # semi conserved waters
     semi_conserved = cmd.get_unused_name("WCW_")
     cmd.select(semi_conserved, "resname WCW")
-    cmd.show("lines", semi_conserved)
     cmd.color("limegreen", semi_conserved)
     # all waters
     waters = cmd.get_unused_name("waters_")
@@ -487,38 +626,49 @@ def visualise_pymol_from_pdb(
         waters,
         semi_conserved + " or " + half_conserved + " or " + conserved,
     )
+    cmd.show("sticks", waters)
     # Add crystal waters
-    if crystal_waters:
-        cmd.fetch(crystal_waters)
-        cmd.hide("everything", crystal_waters)
-        cmd.align(
-            "polymer and " + crystal_waters,
-            "polymer and " + pdbfile.split(".")[0],
+    if crystal_waters is not None:
+        _add_crystal_waters(
+            crystal_waters,
+            pdbfile.split(".")[0],
+            ligand_resname,
+            dist,
+            active_site_ids,
+            active_site_center,
         )
-        if ligand_resname:
-            cmd.select(
-                "crystal_waters",
-                "("
-                + crystal_waters
-                + " and SOL) within "
-                + str(dist)
-                + " of resname "
-                + ligand_resname,
-            )
-        else:
-            cmd.select("crystal_waters", crystal_waters + " and SOL")
-        cmd.show("spheres", "crystal_waters")
-        cmd.set("sphere_scale", "0.4", "crystal_waters")
+    if polar_contacts:
+        _add_polar_contacts(waters, aminokis_u_am)
     # add volume density visualisation
-    if density_map:
-        cmd.load(density_map)
-        cmd.volume("water_density", density_map.split(".")[0])
-    # reset camera
-    cmd.reset()
-    if active_site_center is not None:
-        cmd.center(active_site_center)
-    # save
-    cmd.reinitialize()
+    if density_map is not None:
+        _add_density_map(density_map)
+    _fix_pymol_camera(active_site_center)
+
+
+def _initialize_pymol(reinitialize: bool, finish: bool):
+    """Initializes pymol.
+
+    Initializes pymol for visualisation. If `finish` is `True` pymol
+    will be lunched in interactive mode. If `False` pymol will be
+    imported without lunching.
+
+    Args:
+        reinitialize (bool): If `True` pymol will be
+            reinitialized (defaults restored and objects cleaned).
+            Defaults to False.
+        finish (bool): If `True` pymol will be lunched
+            in interactive mode. If `False` pymol will be
+            imported without lunching. Defaults to True.
+    """
+    try:
+        import pymol
+        from pymol import cmd
+    except ModuleNotFoundError:
+        raise Exception("pymol not installed. Either install pymol or use nglview")
+    if finish:
+        pymol.finish_launching(["pymol", "-q"])
+    if reinitialize:
+        cmd.reinitialize()
 
 
 def visualise_nglview(
@@ -526,7 +676,7 @@ def visualise_nglview(
     waterO: list[list[float]],
     waterH1: list[list[float]],
     waterH2: list[list[float]],
-    aligned_protein: str = "aligned.pdb",
+    aligned_protein: str | None = None,
     active_site_ids: list[int] | None = None,
     crystal_waters: str | None = None,
     density_map_file: str | None = None,
@@ -542,7 +692,7 @@ def visualise_nglview(
         waterH1 (list): Coordinates of Hydrogen1 atom in water molecules.
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
         aligned_protein (str, optional): file name containing protein
-            configuration trajectory was aligned to. Defaults to "aligned.pdb".
+            configuration trajectory was aligned to. Defaults to ``None``.
         active_site_ids (list[int] | None, optional): Residue ids -
             numbers of aminoacids in active site. These are visualised
             as licorice. Defaults to None.
