@@ -1051,12 +1051,13 @@ class WaterClustering:
                 )
         if "onlyO" in self.water_types_to_find and len(self.water_types_to_find) > 1:
             raise Exception("onlyO cannot be used with other water types")
-        for i in self.xis:
-            if type(i) is not float:
-                raise Exception("xis must contain floats")
-            if i > 1 or i < 0:
-                raise Exception("xis should be between 0 and 1")
-        if self.clustering_algorithm == "HDBSCAN":
+        if self.clustering_algorithm == "OPTICS":
+            for i in self.xis:
+                if type(i) is not float:
+                    raise Exception("xis must contain floats")
+                if i > 1 or i < 0:
+                    raise Exception("xis should be between 0 and 1")
+        elif self.clustering_algorithm == "HDBSCAN":
             self.xis = [0.0]
         # sort min_samples in descending order
         if len(self.min_samples) > 1:
