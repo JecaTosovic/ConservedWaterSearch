@@ -1,5 +1,3 @@
-import os
-import shutil
 import tempfile
 
 import nglview
@@ -12,6 +10,13 @@ from ConservedWaterSearch.utils import (
     visualise_pymol,
     _append_new_result,
 )
+
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def pymol_skip():
+    pytest.importorskip("pymol")
 
 
 def test_append_new_result():

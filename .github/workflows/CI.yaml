@@ -26,6 +26,12 @@ jobs:
         show-channel-urls: true
         miniforge-variant: Mambaforge
         use-mamba: true
+    - name: Check and Conditionally Install PyMOL
+      shell: bash -l {0}
+      run: |
+        if mamba search -c conda-forge pymol-open-source=2.5.5 python=${{ matrix.python-version }}; then
+          mamba install -c conda-forge pymol-open-source=2.5.5
+        fi
     - name: Install package
       shell: bash -l {0}
       run: |
