@@ -29,9 +29,8 @@ Determination of conserved water positions based on clustering of oxygen atoms.
     ConservedWaterSearch.water_clustering.WaterClustering.water_clusters
 
 
-.. automodule:: ConservedWaterSearch.water_clustering.WaterClustering
-    :members: __init__, run, quick_multi_stage_reclustering, multi_stage_reclustering, single_clustering, save_results, restart_cluster, read_and_set_water_clust_options, create_from_file, create_from_files_and_restart, restart_cluster, visualise_nglview, visualise_pymol
-
 .. autoclass:: ConservedWaterSearch.water_clustering.WaterClustering
     :noindex:
-    :members:  waterH1, waterH2, waterO, water_type, water_clusters
+    :show-inheritance:
+    :member-order: bysource
+    :members: __init__, run, quick_multi_stage_reclustering, multi_stage_reclustering, single_clustering, save_results, restart_cluster, read_and_set_water_clust_options, create_from_file, create_from_files_and_restart, restart_cluster, visualise_nglview, visualise_pymol, waterH1, waterH2, waterO, water_type, water_clusters
