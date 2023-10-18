@@ -182,15 +182,15 @@ def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
     cmd.hide("labels")
 
 
-def _fix_pymol_camera(active_site_center=None):
+def _fix_pymol_camera(active_site_center: str | None = None, waters: str | None = None):
     from pymol import cmd
 
     # reset camera
     cmd.reset()
     if active_site_center is not None:
         cmd.center(active_site_center)
-    else:
-        cmd.center("waters")
+    elif waters is not None:
+        cmd.center(waters)
 
 
 def _determine_active_site_ids(active_site_ids: list[int]):
@@ -530,7 +530,7 @@ def visualise_pymol(
     # add volume density visualisation
     if density_map is not None:
         _add_density_map(density_map)
-    _fix_pymol_camera(active_site_center)
+    _fix_pymol_camera(active_site_center, waters)
     # save
     if output_file is not None:
         cmd.save(output_file)
@@ -642,7 +642,7 @@ def visualise_pymol_from_pdb(
     # add volume density visualisation
     if density_map is not None:
         _add_density_map(density_map)
-    _fix_pymol_camera(active_site_center)
+    _fix_pymol_camera(active_site_center, waters)
 
 
 def _initialize_pymol(reinitialize: bool, finish: bool):
