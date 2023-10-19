@@ -33,4 +33,4 @@ Determination of conserved water positions based on clustering of oxygen atoms.
     :noindex:
     :show-inheritance:
     :member-order: bysource
-    :members: __init__, run, quick_multi_stage_reclustering, multi_stage_reclustering, single_clustering, save_results, restart_cluster, read_and_set_water_clust_options, create_from_file, create_from_files_and_restart, restart_cluster, visualise_nglview, visualise_pymol, waterH1, waterH2, waterO, water_type, water_clusters
+    :members: __init__, run, quick_multi_stage_reclustering, multi_stage_reclustering, single_clustering, save_results, read_and_set_water_clust_options, restart_cluster, create_from_file, create_from_files_and_restart, visualise_nglview, visualise_pymol, waterH1, waterH2, waterO, water_type, water_clusters
