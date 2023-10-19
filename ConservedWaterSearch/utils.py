@@ -153,15 +153,15 @@ def _make_protein_surface_with_ligand():
     from pymol import cmd
 
     protein = cmd.get_unused_name("only_protein_")
-    cmd.select(protein, "polymer")
+    cmd.select(protein, "polymer", state=1)
     povrsina = cmd.get_unused_name("protein_surface_")
-    cmd.create(povrsina, protein)
+    cmd.create(povrsina, protein, 1, 1)
     cmd.show("surface", povrsina)
     cmd.color("gray70", povrsina)
     cmd.set("transparency", 0.5, povrsina)
     # ligand representation
     ligand = cmd.get_unused_name("ligand_")
-    cmd.select(ligand, "organic")
+    cmd.select(ligand, "organic", state=1)
     cmd.show("licorice", ligand)
     return povrsina, protein, ligand
 
@@ -182,15 +182,15 @@ def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
     cmd.hide("labels")
 
 
-def _fix_pymol_camera(active_site_center=None):
+def _fix_pymol_camera(active_site_center: str | None = None, waters: str | None = None):
     from pymol import cmd
 
     # reset camera
     cmd.reset()
     if active_site_center is not None:
         cmd.center(active_site_center)
-    else:
-        cmd.center("waters")
+    elif waters is not None:
+        cmd.center(waters)
 
 
 def _determine_active_site_ids(active_site_ids: list[int]):
@@ -315,6 +315,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             resi=highest_resi + 1,
             elem="O",
             chain="W",
+            state=1
         )
         if tip == "onlyO":
             cmd.show("spheres", wname)
@@ -530,7 +531,7 @@ def visualise_pymol(
     # add volume density visualisation
     if density_map is not None:
         _add_density_map(density_map)
-    _fix_pymol_camera(active_site_center)
+    _fix_pymol_camera(active_site_center, waters)
     # save
     if output_file is not None:
         cmd.save(output_file)
@@ -642,7 +643,7 @@ def visualise_pymol_from_pdb(
     # add volume density visualisation
     if density_map is not None:
         _add_density_map(density_map)
-    _fix_pymol_camera(active_site_center)
+    _fix_pymol_camera(active_site_center, waters)
 
 
 def _initialize_pymol(reinitialize: bool, finish: bool):
