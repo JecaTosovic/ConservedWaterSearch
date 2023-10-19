@@ -2,7 +2,7 @@
 Welcome to ConservedWaterSearch's documentation!
 ================================================
 
-.. include:: introduction.rst
+.. include:: ../../README.rst
 
 Table of Contents
 =================

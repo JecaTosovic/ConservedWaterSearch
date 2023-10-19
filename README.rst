@@ -53,11 +53,28 @@ Optional visualization dependencies
 
 nglview can be installed from PyPI (:code:`pip`) or :code:`conda` or when installing CWS
 through :code:`pip` by using :code:`pip install ConservedWaterSearch[nglview]`.
-PyMOL is the recomended visualization tool for CWS and can be installed
-only using :code:`conda` or from source. 
+`PyMOL <https://PyMOL.org/2/>`_ is the recomended visualization tool for CWS and can be installed
+only using :code:`conda` or from source. PyMOL is not available via PyPI
+(:code:`pip`), but can be installed from conda-forge. If PyMOL is
+already installed in your current ``python`` environment it can be used
+with CWS. If not, the free (open-source) version can be installed from
+`conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or
+:code:`mamba`): 
 
-Matplotlib is only required for analyzing of clustering and is usefull
-if default values of clustering parameters need to be fine tuned (which
+.. code:: bash
+
+   conda install -c conda-forge pymol-open-source
+
+and paid (licensed version) from schrodinger channel (see `here
+<https://PyMOL.org/conda/>`_ for more details) via :code:`conda` (or
+:code:`mamba`): 
+
+.. code:: bash
+
+   conda install -c conda-forge -c schrodinger pymol-bundle
+
+Matplotlib is only required for analyzing of clustering and is useful
+if default values of clustering parameters need to be fine-tuned (which
 should be relatively rarely). You can install it from :code:`pip` or :code:`conda` or
 when installing CWS through :code:`pip` by using :code:`pip install ConservedWaterSearch[matplotlib]`. 
 Both mpl and nglveiw can be installed when installing CWS by using:
@@ -87,6 +104,9 @@ The easiest way to use CWS is by calling :code:`WaterClustering` class. The star
    print(wc.water_type)
    # "aligned.pdb" should be the snapshot original trajectory was aligned to.
    wc.visualise_pymol(aligned_protein = "aligned.pdb", output_file = "waters.pse")
+
+.. image:: https://raw.githubusercontent.com/JecaTosovic/ConservedWaterSearch/main/docs/source/figs/Results.png
+  :width: 700
 
 Sometimes users might want to explicitly classify conserved water molecules. A simple python code can be used to classify waters into categories given an array of 3D oxygen coordinates and their related relative hydrogen orientations:
 
