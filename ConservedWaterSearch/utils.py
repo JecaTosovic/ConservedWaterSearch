@@ -153,15 +153,15 @@ def _make_protein_surface_with_ligand():
     from pymol import cmd
 
     protein = cmd.get_unused_name("only_protein_")
-    cmd.select(protein, "polymer")
+    cmd.select(protein, "polymer", state=1)
     povrsina = cmd.get_unused_name("protein_surface_")
-    cmd.create(povrsina, protein)
+    cmd.create(povrsina, protein, 1, 1)
     cmd.show("surface", povrsina)
     cmd.color("gray70", povrsina)
     cmd.set("transparency", 0.5, povrsina)
     # ligand representation
     ligand = cmd.get_unused_name("ligand_")
-    cmd.select(ligand, "organic")
+    cmd.select(ligand, "organic", state=1)
     cmd.show("licorice", ligand)
     return povrsina, protein, ligand
 
