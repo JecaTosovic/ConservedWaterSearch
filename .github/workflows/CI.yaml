@@ -8,7 +8,7 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        python-version: ["3.9","3.10","3.11"]
+        python-version: ["3.9","3.10","3.11","3.12"]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,6 +26,14 @@ jobs:
         show-channel-urls: true
         miniforge-variant: Mambaforge
         use-mamba: true
+    - name: Check and Conditionally Install PyMOL
+      shell: bash -l {0}
+      run: |
+        PYTHON_VER=${{ matrix.python-version }}
+        PYTHON_VER=${PYTHON_VER//./}  # Remove the dot from the Python version
+        if mamba search -c conda-forge pymol-open-source | grep -q "py${PYTHON_VER}"; then
+          mamba install -c conda-forge pymol-open-source=2.5.0
+        fi
     - name: Install package
       shell: bash -l {0}
       run: |
