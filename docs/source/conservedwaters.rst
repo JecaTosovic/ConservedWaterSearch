@@ -1,7 +1,7 @@
 Theory, Background, and Methods
 ===============================
 
-Understanding Conserved Waters
+Understanding Conserved Water Molecules
 ------------------------------
 
 Conserved water refers to water molecules that maintain specific, stable positions and orientations within biological systems, such as the active sites of proteins. These waters play pivotal roles in biochemical processes like protein-ligand binding and enzymatic reactions. Their presence and orientations significantly influence both the thermodynamics and kinetics of these processes. The importance of these water networks in influencing the thermodynamic signature of ligand-protein binding has been the subject of several studies. For example, researchers studied how water networks affect the thermodynamics of binding between phosphonopeptide inhibitors and the enzyme thermolysin. They found a direct correlation between the structure of the water networks and the thermodynamic profiles of the binding interactions :cite:`Betz2016,ENGLERT2010,Biela2012,Biela2013,Krimmer2014,Krimmer2016,Cramer2017`. In another study, mutations that disrupted nearby water networks were found to lower the affinity of ligand-protein binding in the *Haemophilus influenzae virulence* protein SiaP :cite:`Darby2019`. These findings highlight that the stabilization of water molecules through water network formation leads to more favorable binding signatures, emphasizing the critical role that conserved water plays in biochemical interactions.
