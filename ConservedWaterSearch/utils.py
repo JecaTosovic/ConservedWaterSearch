@@ -287,12 +287,12 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
     }
     ind = 0  # initialize index
     while ind < len(water_type):
-        tip, Opos, H1pos, H2pos = (
-            water_type[ind],
-            waterO[ind],
-            waterH1[ind],
-            waterH2[ind],
-        )
+        tip, Opos = (water_type[ind], waterO[ind])
+        if water_type[ind] != "O_clust":
+            H1pos, H2pos = (
+                waterH1[ind],
+                waterH2[ind],
+            )
         cntr[tip] += 1
         wname = tip + str(cntr[tip])
         resis = cmd.identify("all", mode=0)
@@ -317,7 +317,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             chain="W",
             state=1
         )
-        if tip == "onlyO":
+        if tip == "O_clust":
             cmd.show("spheres", wname)
             cmd.set("sphere_scale", 0.1, wname)
             ind += 1
