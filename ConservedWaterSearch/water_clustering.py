@@ -840,7 +840,7 @@ class WaterClustering:
                         if len(waters) > 0:
                             found = True
                             if wt == "onlyO":
-                                Odata = self._delete_data(idcs, Odata)
+                                Odata, _, _ = self._delete_data(idcs, Odata)
                             else:
                                 Odata, H1, H2 = self._delete_data(idcs, Odata, H1, H2)
                             self._add_water_solutions(waters)
