@@ -283,7 +283,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             if cmd.get_names("objects", False, f"model {name}*")
             else 0
         )
-        for name in ["FCW", "WCW", "HCW", "onlyO"]
+        for name in ["FCW", "WCW", "HCW", "O_clust"]
     }
     ind = 0  # initialize index
     while ind < len(water_type):
