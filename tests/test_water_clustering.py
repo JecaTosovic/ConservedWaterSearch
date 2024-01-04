@@ -39,8 +39,8 @@ def test_save_results_onlyO():
         wc = WaterClustering(10)
         wc._waterO.append(np.asarray([0.0, 0.0, 0.0]))
         wc._waterO.append(np.asarray([0.0, 2.0, 0.0]))
-        wc._water_type.append("onlyO")
-        wc._water_type.append("onlyO")
+        wc._water_type.append("O_clust")
+        wc._water_type.append("O_clust")
         wc.save_results(f.name)
         a, b, _, _ = read_results(f.name)
         for i, j in zip(a, wc.water_type):
@@ -159,13 +159,13 @@ def test_restart_cluster_onlyO():
         wc = WaterClustering(10, water_types_to_find=["onlyO"])
         wc._waterO.append(np.asarray([0.0, 0.0, 0.0]))
         wc._waterO.append(np.asarray([0.0, 2.0, 0.0]))
-        wc._water_type.append("onlyO")
-        wc._water_type.append("onlyO")
+        wc._water_type.append("O_clust")
+        wc._water_type.append("O_clust")
         wc.save_results(partial_results_file.name)
         # restart clustering
         wc.restart_cluster(partial_results_file.name, partial_data_file.name)
         # check results
-        assert wc.water_type == ["onlyO", "onlyO"]
+        assert wc.water_type == ["O_clust", "O_clust"]
         npt.assert_allclose(wc.waterO, np.asarray([[0.0, 0.0, 0.0], [0.0, 2.0, 0.0]]))
 
 
