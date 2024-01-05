@@ -94,7 +94,7 @@ def test_read_results_without_hydrogens():
     assert len(waterO) == 20
     assert len(waterH1) == 20
     assert len(waterH2) == 20
-    assert water_type[0] == "onlyO"
+    assert water_type[0] == "O_clust"
     npt.assert_allclose(
         waterO[0],
         np.array(
