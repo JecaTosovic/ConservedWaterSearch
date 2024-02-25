@@ -315,7 +315,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             resi=highest_resi + 1,
             elem="O",
             chain="W",
-            state=1
+            state=1,
         )
         if tip == "O_clust":
             cmd.show("spheres", wname)

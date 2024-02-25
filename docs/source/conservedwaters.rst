@@ -23,12 +23,12 @@ Types of Conserved Waters in Our Approach
 Conserved waters are categorized into three main types based on hydrogen atom orientations:
 
 - **Fully Conserved Water (FCW)**: Both hydrogen atoms exhibit a unique preferred orientation.
-  
+
 - **Half Conserved Water (HCW)**: One hydrogen atom has a unique preferred orientation, while the other hydrogen atom can have multiple orientations. HCWs are further divided into two subtypes:
-  
+
   - **HCW-I**: One hydrogen is strongly oriented toward one acceptor, while the other switches between two different acceptors.
   - **HCW-II**: One hydrogen maintains a strong orientation toward a single acceptor, while the other moves in a circle, maintaining an optimal water angle.
-  
+
 - **Weakly Conserved Water (WCW)**: Hydrogen atoms can have several sets of preferred orientations without a single dominant one. WCWs can have different configurations, such as doublets (WCW-I), triplet (WCW-II), or a circular orientation (WCW-III).
 
 

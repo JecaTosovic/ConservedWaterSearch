@@ -935,7 +935,7 @@ def __hydrogen_orient_plots(
             __plotreachability(122, orientations, cc, fig=fig, tit=rtit)
 
 
-def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
+def __plot3Dorients(subplot, labels: int, orientations: np.ndarray, tip: str) -> Figure:
     """Function for plotting 3D orientations.
 
     For debuging only.
@@ -946,10 +946,10 @@ def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
     except ModuleNotFoundError:
         raise Exception("install matplotlib")
 
-    fig: Figure = plt.figure()
-    if type(labels) == int:
+    fig = plt.figure()
+    if isinstance(labels, int):
         return fig
-    ax: Axes = fig.add_subplot(subplot, projection="3d")
+    ax = fig.add_subplot(subplot, projection="3d")
     ax.set_title(tip)
     for j in np.unique(labels):
         jaba = orientations[labels == j]

@@ -1,8 +1,6 @@
 from __future__ import annotations
-from shutil import which
 from typing import TYPE_CHECKING
 
-import ConservedWaterSearch
 
 try:
     from matplotlib.axes import Axes
@@ -16,7 +14,7 @@ except ImportError:
     NGLWidget = None
 
 if TYPE_CHECKING:
-    from io import TextIOWrapper
+    pass
 
 import os
 import warnings
@@ -785,7 +783,9 @@ class WaterClustering:
                 # loop over minsamps- from N(snapshots) to 0.75*N(snapshots)
                 for i in self.min_samples:
                     if self.clustering_algorithm == "OPTICS":
-                        clust: OPTICS | HDBSCAN = OPTICS(min_samples=int(i), n_jobs=self.njobs)  # type: ignore
+                        clust: OPTICS | HDBSCAN = OPTICS(
+                            min_samples=int(i), n_jobs=self.njobs
+                        )  # type: ignore
                         clust.fit(Odata)
                     # loop over xi
                     for j in self.xis:
@@ -1032,9 +1032,9 @@ class WaterClustering:
             with some rows deleted.
         """
         Odata = np.delete(Odata, elements, 0)
-        if not (H1 is None):
+        if H1 is not None:
             H1 = np.delete(H1, elements, 0)
-        if not (H2 is None):
+        if H2 is not None:
             H2 = np.delete(H2, elements, 0)
         return Odata, H1, H2
 
@@ -1045,7 +1045,7 @@ class WaterClustering:
         ):
             raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
         for i in self.water_types_to_find:
-            if not (i in ["FCW", "HCW", "WCW", "onlyO"]):
+            if i not in ["FCW", "HCW", "WCW", "onlyO"]:
                 raise Exception(
                     "whichH supports onlyO or any combination of FCW, HCW and WCW"
                 )
@@ -1053,7 +1053,7 @@ class WaterClustering:
             raise Exception("onlyO cannot be used with other water types")
         if self.clustering_algorithm == "OPTICS":
             for i in self.xis:
-                if type(i) is not float:
+                if not isinstance(i, float):
                     raise Exception("xis must contain floats")
                 if i > 1 or i < 0:
                     raise Exception("xis should be between 0 and 1")
@@ -1066,13 +1066,13 @@ class WaterClustering:
     def _check_and_setup_single(self, xis, minsamp):
         if minsamp is None:
             minsamp = int(self.numbpct_oxygen * self.nsnaps)
-        elif type(minsamp) is not int:
+        elif not isinstance(minsamp, int):
             raise Exception("minsamp must be an int")
         elif minsamp > self.nsnaps or minsamp <= 0:
             raise Exception("minsamp must be between 0 and nsnaps")
         if xis is None:
             xis = 0.05
-        elif type(xis) is not float:
+        elif not isinstance(xis, float):
             raise Exception("xi must be a float")
         elif xis < 0 or xis > 1:
             raise Exception("xis should be between 0 and 1")
@@ -1081,7 +1081,7 @@ class WaterClustering:
     def _check_and_setup_MSRC(self, lower_minsamp_pct, every_minsamp):
         if lower_minsamp_pct > 1.0000001 or lower_minsamp_pct < 0:
             raise Exception("lower_misamp_pct must be between 0 and 1")
-        if type(every_minsamp) is not int:
+        if not isinstance(every_minsamp, int):
             raise Exception("every_minsamp must be integer")
         if every_minsamp <= 0 or every_minsamp > self.nsnaps:
             raise Exception("every_minsamp must be  0<every_minsamp<=nsnaps")

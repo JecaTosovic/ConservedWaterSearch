@@ -2,9 +2,9 @@
 Installation
 ============
 
-The default installations from PyPI and conda-forge don't include any of the optional dependencies required for visualization (see below). This is done to avoid potential conflicts with user defined PyMOL installations. 
+The default installations from PyPI and conda-forge don't include any of the optional dependencies required for visualization (see below). This is done to avoid potential conflicts with user defined PyMOL installations.
 
-Installation via conda 
+Installation via conda
 ======================
 
 ConservedWaterSearch is available through `conda-forge <https://conda-forge.org/>`_ using :code:`conda` (or :code:`mamba`) and this is the recommended way to install it:
@@ -60,7 +60,7 @@ Known Issues
 ============
 
 :code:`AttributeError: 'super' object has no attribute '_ipython_display_'`
-Some versions of Jupyter notebook are incpompatible with ipython (`see here <https://stackoverflow.com/questions/74279848/nglview-installed-but-will-not-import-inside-juypter-notebook-via-anaconda-navig>`_). To resolve install version of :code:`ipywidgets<8` using :code:`conda`: 
+Some versions of Jupyter notebook are incpompatible with ipython (`see here <https://stackoverflow.com/questions/74279848/nglview-installed-but-will-not-import-inside-juypter-notebook-via-anaconda-navig>`_). To resolve install version of :code:`ipywidgets<8` using :code:`conda`:
 
 .. code:: bash
 
