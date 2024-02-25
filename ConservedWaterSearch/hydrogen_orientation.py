@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -413,7 +414,7 @@ def find_half_conserved_orientations(
         angdiff_cutoff (float, optional): Maximum standard
             deviation of angle allowed for HCW to be considered
             correct water angle. Defaults to 15.
-        HCW_angstd_cutoff (float, optional): Maximum standard deviation
+        angstd_cutoff (float, optional): Maximum standard deviation
             cutoff for WCW angles to be considered correct water angles.
             Defaults to 17.
         xi (float, optional): Xi value for OPTICS clustering for HCW. Don't
@@ -544,6 +545,8 @@ def find_weakly_conserved_orientations(
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
+        lower_bound_pct_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.35.
         min_samp_data_size_pct (float, optional): Minimum samples to
             choose for OPTICS or HDBSCAN clustering as percentage of
             number of water molecules considered for HCW and WCW.

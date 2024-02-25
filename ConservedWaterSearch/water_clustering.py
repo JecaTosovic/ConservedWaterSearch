@@ -1,6 +1,6 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
 
+from typing import TYPE_CHECKING
 
 try:
     from matplotlib.axes import Axes
@@ -18,18 +18,19 @@ if TYPE_CHECKING:
 
 import os
 import warnings
+
 import numpy as np
-from sklearn.cluster import OPTICS, cluster_optics_xi, HDBSCAN
+from sklearn.cluster import HDBSCAN, OPTICS, cluster_optics_xi
 
 from ConservedWaterSearch.hydrogen_orientation import (
     hydrogen_orientation_analysis,
 )
 from ConservedWaterSearch.utils import (
+    _append_new_result,
+    _check_mpl_installation,
     read_results,
     visualise_nglview,
     visualise_pymol,
-    _check_mpl_installation,
-    _append_new_result,
 )
 
 
@@ -508,7 +509,7 @@ class WaterClustering:
                 procedure parameters will be read.
         """
         if os.path.isfile(file_name):
-            with open(file_name, "r") as f:
+            with open(file_name) as f:
                 lines: list[str] = f.read().splitlines()
                 self.nsnaps = int(lines[0].strip())
                 self.clustering_algorithm = lines[1].strip(" ")

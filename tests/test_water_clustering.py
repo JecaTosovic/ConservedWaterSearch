@@ -1,8 +1,8 @@
 import os
+import tempfile
 
 import numpy as np
 import numpy.testing as npt
-import tempfile
 
 from ConservedWaterSearch.utils import (
     get_orientations_from_positions,
@@ -94,7 +94,7 @@ def test_save_clustering_options():
     )
     with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
         wc._save_clustering_options(fname=f.name)
-        with open(f.name, "r") as f2:
+        with open(f.name) as f2:
             lines = f2.readlines()
             assert int(lines[0]) == wc.nsnaps
             assert lines[1].strip() == wc.clustering_algorithm

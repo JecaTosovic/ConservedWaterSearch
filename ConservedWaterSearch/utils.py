@@ -1,9 +1,11 @@
 # %%
 from __future__ import annotations
+
 import os
 import platform
-import numpy as np
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     try:
@@ -73,7 +75,7 @@ def read_results(
             fname = "Clust_res.dat",
         )
     """
-    with open(fname, "r") as f:
+    with open(fname) as f:
         # rewind to line 27
         for _ in range(27):
             next(f)
