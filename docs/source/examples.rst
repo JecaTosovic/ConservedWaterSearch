@@ -5,18 +5,18 @@ Examples
 Identification of conserved waters from molecular dynamics trajectories
 -----------------------------------------------------------------------
 
-The most freqeunt use case is one where a molecular dynamics (MD) trajectory is analysed for identification of conserved waters. 
+The most freqeunt use case is one where a molecular dynamics (MD) trajectory is analysed for identification of conserved waters.
 
 Preprocessing of trajectories using WaterNetworkAnalysis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The first step is to align the trajectory on to the desired snapshot. If this is done by user, one should make sure to save the snapshot onto which the trajectory was aligned to for visualisation of results.
 
-Since clustering procedure does not employ periodic boundary conditions, the simulation box should be centered in such a way that the center of the region within which conserved water molecules are studied is in the centere of the simulation box. Alternatively, users should ensure that the region of interest does not span across periodic images and belongs to a single periodic image and does not cross the periodic boundary. 
+Since clustering procedure does not employ periodic boundary conditions, the simulation box should be centered in such a way that the center of the region within which conserved water molecules are studied is in the centere of the simulation box. Alternatively, users should ensure that the region of interest does not span across periodic images and belongs to a single periodic image and does not cross the periodic boundary.
 
 Next, water atom coordinates in specific simulation region should be extracted.The arrays containing this data must be set up in specific way. Each atom type in water molecule needs to be represented in a single numpy array or a list (3 in total - one for oxygen and two hydrogen arrays containing three dimensional coordiantes). Each row in each of these arrays has to belong to the same water molecule. Oxygen array should contain xyz coordinates, while hydrogen arrays should contain orientations from central oxygen atom instead. One can convert from an oxygen coordinates array and a hydrogen coordinates array using :py:meth:`ConservedWaterSearch.utils.get_orientations_from_positions`. Hydrogen array should contain hydrogen coordinates of the same water molecule one after another in the same order as in oxygen coordinates array.
 
-We host a seperate package which serves this purpose called `WaterNetworkAnalysis (WNA) <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_. Since WNA uses `MDAnalysis <https://www.mdanalysis.org/>`_ most file types can be read in for analysis. For more information on preprocessing trajectory data, please refer to the `WaterNetworkAnalysis documentation <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_. 
+We host a seperate package which serves this purpose called `WaterNetworkAnalysis (WNA) <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_. Since WNA uses `MDAnalysis <https://www.mdanalysis.org/>`_ most file types can be read in for analysis. For more information on preprocessing trajectory data, please refer to the `WaterNetworkAnalysis documentation <https://github.com/JecaTosovic/WaterNetworkAnalysis>`_.
 
 Identification of conserved waters using only oxygen data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

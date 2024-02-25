@@ -20,5 +20,3 @@ Analysis of hydrogen orientations is used to classify conserved waters into 3 di
     :member-order: bysource
     :synopsis: Classification of conserved water molecules based on hydrogen orientation.
     :members: hydrogen_orientation_analysis, find_fully_conserved_orientations, find_half_conserved_orientations, find_weakly_conserved_orientations
-
-

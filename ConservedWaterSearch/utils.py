@@ -1,9 +1,11 @@
 # %%
 from __future__ import annotations
+
 import os
 import platform
-import numpy as np
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 if TYPE_CHECKING:
     try:
@@ -73,7 +75,7 @@ def read_results(
             fname = "Clust_res.dat",
         )
     """
-    with open(fname, "r") as f:
+    with open(fname) as f:
         # rewind to line 27
         for _ in range(27):
             next(f)
@@ -315,7 +317,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
             resi=highest_resi + 1,
             elem="O",
             chain="W",
-            state=1
+            state=1,
         )
         if tip == "O_clust":
             cmd.show("spheres", wname)

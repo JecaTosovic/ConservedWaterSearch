@@ -1,11 +1,11 @@
-"""
-Unit and regression test for the ConservedWaterSearch package.
+"""Unit and regression test for the ConservedWaterSearch package.
 """
 
 # Import package, test suite, and other packages as needed
-import ConservedWaterSearch.hydrogen_orientation
-import pytest
 import numpy as np
+import pytest
+
+import ConservedWaterSearch.hydrogen_orientation
 
 make_ho_plots = 0
 

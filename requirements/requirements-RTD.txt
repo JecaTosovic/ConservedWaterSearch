@@ -1,6 +1,6 @@
-sphinxcontrib-bibtex
-sphinx_rtd_theme
 jupyter_packaging
 matplotlib
 nglview
 scikit-learn>=1.3
+sphinx_rtd_theme
+sphinxcontrib-bibtex

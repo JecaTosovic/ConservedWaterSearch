@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -413,7 +414,7 @@ def find_half_conserved_orientations(
         angdiff_cutoff (float, optional): Maximum standard
             deviation of angle allowed for HCW to be considered
             correct water angle. Defaults to 15.
-        HCW_angstd_cutoff (float, optional): Maximum standard deviation
+        angstd_cutoff (float, optional): Maximum standard deviation
             cutoff for WCW angles to be considered correct water angles.
             Defaults to 17.
         xi (float, optional): Xi value for OPTICS clustering for HCW. Don't
@@ -544,6 +545,8 @@ def find_weakly_conserved_orientations(
             orientations in space
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
+        lower_bound_pct_buffer (float, optional): Minimum allowed size of the
+            hydrogen orientation cluster. Defaults to 0.35.
         min_samp_data_size_pct (float, optional): Minimum samples to
             choose for OPTICS or HDBSCAN clustering as percentage of
             number of water molecules considered for HCW and WCW.
@@ -935,7 +938,7 @@ def __hydrogen_orient_plots(
             __plotreachability(122, orientations, cc, fig=fig, tit=rtit)
 
 
-def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
+def __plot3Dorients(subplot, labels: int, orientations: np.ndarray, tip: str) -> Figure:
     """Function for plotting 3D orientations.
 
     For debuging only.
@@ -946,10 +949,10 @@ def __plot3Dorients(subplot, labels, orientations, tip) -> Figure:
     except ModuleNotFoundError:
         raise Exception("install matplotlib")
 
-    fig: Figure = plt.figure()
-    if type(labels) == int:
+    fig = plt.figure()
+    if isinstance(labels, int):
         return fig
-    ax: Axes = fig.add_subplot(subplot, projection="3d")
+    ax = fig.add_subplot(subplot, projection="3d")
     ax.set_title(tip)
     for j in np.unique(labels):
         jaba = orientations[labels == j]

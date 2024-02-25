@@ -21,7 +21,7 @@ Table of Contents
    :caption: API
 
    modules
-   
+
 .. toctree::
    :maxdepth: 2
    :caption: Reference
