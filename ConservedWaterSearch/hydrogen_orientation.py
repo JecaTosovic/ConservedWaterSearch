@@ -39,7 +39,7 @@ def hydrogen_orientation_analysis(
 
     High level function that does hydrogen orientation analysis. Checks
     if the water cluster belongs into one of the following groups by
-    analizing hydrogen orientations:
+    analyzing hydrogen orientations:
 
     - FCW (Fully Conserved Water): hydrogens are strongly oriented in
       two directions with angle of 104.5
@@ -47,7 +47,7 @@ def hydrogen_orientation_analysis(
       oriented in certain directions and other are spread into different
       orientations with angle of 104.5
     - WCW (Weakly Conserved Water): several orientation combinations
-      exsist with satisfying water angles
+      exist with satisfying water angles
 
     See :cite:`conservedwatersearch2022` for more information on water
     classification :ref:`conservedwaters:theory, background and methods`.
@@ -126,7 +126,10 @@ def hydrogen_orientation_analysis(
         value_error_string = "Orientations must be vectors of dimension 3"
         raise ValueError(value_error_string)
     if Hnum < 2 or Hnum % 2 != 0:
-        value_error_string = "Number of orientations must be even! Each water molecule has 2 hydrogen atoms!"
+        value_error_string = (
+            "Number of orientations must be even!"
+            " Each water molecule has 2 hydrogen atoms!"
+        )
         raise ValueError(value_error_string)
     if normalize_orientations:
         orientations = orientations / np.linalg.norm(
@@ -209,10 +212,10 @@ def find_fully_conserved_orientations(
     water is one which has well defined hydrogen orientations in two
     distinctive groups (ie strongly hydrogen bonded for both hydrogens).
     To check if water is conserved, one first checks if k means
-    clustering of hydrogen orientations gives two destinctive clusters
+    clustering of hydrogen orientations gives two distinctive clusters
     with low inertia and required angle between the clusters. Afterwards
     more rigorous check is carried out with OPTICS clustering where
-    again the sperad of orientations and angle is considered.
+    again the spread of orientations and angle is considered.
 
     Args:
         orientations (np.ndarray): array of hydrogen
@@ -239,7 +242,7 @@ def find_fully_conserved_orientations(
         verbose (int, optional): verbosity of output. Defaults to 0.
         debugH (int, optional): debug level for orientations. Defaults to 0.
         plotreach (bool, optional): weather to plot the reachability
-            plot for OPTICS when debuging. Defaults to False.
+            plot for OPTICS when debugging. Defaults to False.
 
     Returns:
         list: returns a list containing two orientations of hydrogens
@@ -267,7 +270,8 @@ def find_fully_conserved_orientations(
     if len(kmeans.cluster_centers_) == 2:
         Kcv1 = kmeans.cluster_centers_[0]
         Kcv2 = kmeans.cluster_centers_[1]
-        # Calculate angles between centers of clusters that represent hydrogen orientation
+        # Calculate angles between centers of clusters that
+        # represent hydrogen orientation
         ang = (
             360.0
             / (2.0 * np.pi)
@@ -282,12 +286,15 @@ def find_fully_conserved_orientations(
                 )
             )
         )
-        # check if angle between cluster centres is about right and check if spread (variance) of orientations is sufficiently low
+        # check if angle between cluster centres is about right and
+        # check if spread (variance) of orientations is sufficiently low
         if (
             ang < kmeans_ang_cutoff
             and kmeans.inertia_ / len(orientations) < kmeans_inertia_cutoff
         ):
-            # Perform OPTICS clustering on hydrogen orientations; minsamp is same for all water types, however here we force min_cluster size to be given.
+            # Perform OPTICS clustering on hydrogen orientations; minsamp is
+            # same for all water types, however here we force min_cluster size
+            # to be given.
             msp = int(neioc * pct_size_buffer)
             msp = msp if msp >= 2 else 2
             cc = OPTICS(min_samples=msp, xi=xi, n_jobs=njobs)
@@ -300,7 +307,8 @@ def find_fully_conserved_orientations(
                 # find two biggest clusters
                 biggest = values[np.argsort(counts)[-1]]
                 secondbiggest = values[np.argsort(counts)[-2]]
-                # check if size of two biggest clusters are between 0.85 and 1.15*sizeofOxygenCluster
+                # check if size of two biggest clusters are between
+                # 0.85 and 1.15*sizeofOxygenCluster
                 if (
                     len(orientations[labels == biggest])
                     <= neioc * (2 - pct_size_buffer)
@@ -313,7 +321,8 @@ def find_fully_conserved_orientations(
                     # calculate the average orientation of two biggest clusters
                     avang1 = np.mean(orientations[labels == biggest], axis=0)
                     avang2 = np.mean(orientations[labels == secondbiggest], axis=0)
-                    # calculate average angle between average orientation of one cluster with elements(orientations) of the other cluster
+                    # calculate average angle between average orientation of
+                    # one cluster with elements(orientations) of the other cluster
                     angs12 = (
                         np.arccos(
                             np.dot(orientations[labels == secondbiggest], avang1.T)
@@ -326,7 +335,8 @@ def find_fully_conserved_orientations(
                         * 360.0
                         / (2.0 * np.pi)
                     )
-                    # check if average angles are low and that their std. deviation is low
+                    # check if average angles are low and that their
+                    # std. deviation is low
                     if (
                         np.abs(np.mean(angs21) - np.mean(angs12)) < angdiff_cutoff
                         and np.std(angs12) < angstd_cutoff
@@ -344,22 +354,31 @@ def find_fully_conserved_orientations(
                                 "FCW",
                             )
                         )
-    # Debug needs neoic,orientations,kmeans,ang,k,counts,biggest,secondbiggest,angs12,angs21,cc
-    # kmeans
+    # Debug needs neoic,orientations,kmeans,ang,k,counts,biggest,
+    # s econdbiggest,angs12,angs21,cc kmeans
     if verbose > 0 or debugH > 0:
         sk = (
             f"Conserved - kmeans analysis:\n"
-            f"angle - mean: {ang:.2f}(calced)<{kmeans_ang_cutoff:.2f}; inertia per H: {kmeans.inertia_/len(orientations):.2f}(calced)<{kmeans_inertia_cutoff:.2f}\n"
+            f"angle - mean: {ang:.2f}(calced)<{kmeans_ang_cutoff:.2f};"
+            f" inertia per H: {kmeans.inertia_/len(orientations):.2f}"
+            f"(calced)<{kmeans_inertia_cutoff:.2f}\n"
         )
     if debugH == 2 or (debugH == 1 and len(fully_conserved) > 0):
         __plot3Dorients(111, kmeans.labels_, orientations, sk)
     # OPTICS
     if debugH > 0 or verbose > 0:
         ss = (
-            f"Fully Conserved - OPTICS analysis;depends on pct size buffer:{pct_size_buffer:.2f}\n"
-            f"cluster sizes: {counts}; clust labels:{values};biggest: {biggest}; secondbiggest: {secondbiggest}\n"
-            f"clusters size: {neioc*pct_size_buffer:.2f}<{len(orientations[labels == biggest])},{len(orientations[labels == secondbiggest])}(calced)<{neioc*(2-pct_size_buffer):.2f}\n"
-            f"angle mean: {np.abs(np.mean(angs21)-np.mean(angs12)):.2f}(calced)<{angdiff_cutoff:.2f}); 12 std : {np.std(angs12):.2f};21 std: {np.std(angs21):.2f} (both <{angstd_cutoff:.2f})\n"
+            f"Fully Conserved - OPTICS analysis;depends on pct size"
+            f" buffer:{pct_size_buffer:.2f}\n"
+            f"cluster sizes: {counts}; clust labels:{values};biggest: {biggest}"
+            f"; secondbiggest: {secondbiggest}\n"
+            f"clusters size: {neioc*pct_size_buffer:.2f}<"
+            f"{len(orientations[labels == biggest])},"
+            f"{len(orientations[labels == secondbiggest])}"
+            f"(calced)<{neioc*(2-pct_size_buffer):.2f}\n"
+            f"angle mean: {np.abs(np.mean(angs21)-np.mean(angs12)):.2f}(calced)"
+            f"<{angdiff_cutoff:.2f}); 12 std : {np.std(angs12):.2f};21 std: "
+            f"{np.std(angs21):.2f} (both <{angstd_cutoff:.2f})\n"
         )
     # Printing
     if verbose == 2 or (verbose == 1 and len(fully_conserved) > 0):
@@ -370,7 +389,10 @@ def find_fully_conserved_orientations(
         orientations,
         cc,
         ss,
-        f"Reachability of optics plot\n minsamples={int(neioc*pct_size_buffer)}; xi={xi}",
+        (
+            f"Reachability of optics plot\n"
+            f"minsamples={int(neioc*pct_size_buffer)}; xi={xi}"
+        ),
         len(fully_conserved) > 0,
         debugH,
         plotreach,
@@ -398,7 +420,7 @@ def find_half_conserved_orientations(
     which has one well defined hydrogen orientation (ie one strongly
     hydrogen bonded hydrogen). To check if water is half conserved, one
     calculates OPTICS clustering of hydrogen orientations. One then
-    loops over clusters in an atempt to find a hydrogen orientation
+    loops over clusters in an attempt to find a hydrogen orientation
     cluster which is the size of oxygen cluster and weather the angle
     between that cluster with all other orientations is of right angle
     and if spread of orientations is sufficiently low.
@@ -426,7 +448,7 @@ def find_half_conserved_orientations(
         verbose (int, optional): verbosity of output. Defaults to 0.
         debugH (int, optional): debug level for orientations. Defaults to 0.
         plotreach (bool, optional): weather to plot the reachability
-            plot for OPTICS when debuging. Defaults to False.
+            plot for OPTICS when debugging. Defaults to False.
 
     Returns:
         list: returns a list containing two orientations of hydrogens
@@ -458,13 +480,16 @@ def find_half_conserved_orientations(
         N_elems = len(orientations[labels == bestcand])
         # Debug
         if verbose > 0:
-            sk += f"Cluster {bestcand} has {neioc*pct_size_buffer:.2f}<{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
-        # check if number of elements in hydrogen orientation cluster is between 0.80 and 1.20 elements of Oxygen cluster
+            sk += f"Cluster {bestcand} has {neioc*pct_size_buffer:.2f}<"
+            sk += f"{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
+        # check if number of elements in hydrogen orientation cluster is
+        # between 0.80 and 1.20 elements of Oxygen cluster
         if (
             N_elems < neioc * (2 - pct_size_buffer)
             and N_elems > neioc * pct_size_buffer
         ):
-            # calculating average angle between average orientation of selected cluster and all other orientations
+            # calculating average angle between average orientation of selected
+            # cluster and all other orientations
             avang1 = np.mean(orientations[labels == bestcand], axis=0)
             angs1all = (
                 np.arccos(np.dot(orientations[labels != bestcand], avang1.T))
@@ -473,14 +498,18 @@ def find_half_conserved_orientations(
             )
             # Debug
             if verbose > 0 or debugH > 0:
-                sk += f"result angles: mean= {np.abs(np.mean(angs1all)-104.5):.2f}(Calced)<{angdiff_cutoff:.2f}; std dev={np.std(angs1all):.2f}(Calced)<{angstd_cutoff:.2f}\n"
+                sk += "result angles: mean= "
+                sk += f"{np.abs(np.mean(angs1all)-104.5):.2f}(Calced)<"
+                sk += f"{angdiff_cutoff:.2f}; std dev={np.std(angs1all):.2f}"
+                sk += f"(Calced)<{angstd_cutoff:.2f}\n"
             # check if angle and its std deviation is satisfactory
             if (
                 np.abs(np.mean(angs1all) - 104.5) < angdiff_cutoff
                 and np.std(angs1all) < angstd_cutoff
             ):
                 for j in np.unique(labels[labels != bestcand]):
-                    # -1 has to be inclueded in case main cluster is ok and -1 is everywhere, to produce a HCW still
+                    # -1 has to be inclueded in case main cluster is ok and -1
+                    # is everywhere, to produce a HCW still
                     if verbose > 0:
                         print("half conserved found", bestcand, j)
                     half_conserved.append(
@@ -492,7 +521,11 @@ def find_half_conserved_orientations(
     if verbose > 0 or debugH > 0:
         ss = (
             f"Half Conserved - OPTICS analysis;xi={xi}"
-            f"best: {bestcand}; N_hyd_cls (w/o -1): {len(np.unique(labels[labels!=-1]))};\n N elem in biggest:{neioc*(2-pct_size_buffer):.2f}>{len(orientations[labels==bestcand])}>{neioc*pct_size_buffer:.2f}\n"
+            f"best: {bestcand}; N_hyd_cls (w/o -1): "
+            f"{len(np.unique(labels[labels!=-1]))};\n N elem in biggest:"
+            f"{neioc*(2-pct_size_buffer):.2f}>"
+            f"{len(orientations[labels==bestcand])}>"
+            f"{neioc*pct_size_buffer:.2f}\n"
         )
     # Printing
     if verbose == 2 or (verbose == 1 and len(half_conserved) > 0):
@@ -503,7 +536,10 @@ def find_half_conserved_orientations(
         orientations,
         cc,
         ss + sk,
-        f"Reachability of optics plot\n minsamples={int(neioc*min_samp_data_size_pct)}; xi={xi}",
+        (
+            f"Reachability of optics plot\n minsamples="
+            f"{int(neioc*min_samp_data_size_pct)}; xi={xi}"
+        ),
         len(half_conserved) > 0,
         debugH,
         plotreach,
@@ -609,8 +645,10 @@ def find_weakly_conserved_orientations(
             N_elems = len(orientations[labels == ii])
             # Debug
             if verbose > 0 or debugH > 0:
-                sk += f"Cluster {ii} has {neioc*lower_bound_pct_buffer:.2f}<{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
-            # check if size of hydorgen orientation cluster is between 1.20 and lower_bound_pct_buffer times number of elements in oxygen cluster
+                sk += f"Cluster {ii} has {neioc*lower_bound_pct_buffer:.2f}<"
+                sk += f"{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
+            # check if size of hydorgen orientation cluster is between 1.20
+            # and lower_bound_pct_buffer times number of elements in oxygen cluster
             if (
                 N_elems < neioc * (2 - pct_size_buffer)
                 and N_elems > neioc * lower_bound_pct_buffer
@@ -624,7 +662,8 @@ def find_weakly_conserved_orientations(
                         break
                     if jj in used:
                         continue
-                    # calculate average angle between average orientation of ii and all orientations in cluster jj
+                    # calculate average angle between average orientation of ii
+                    # and all orientations in cluster jj
                     angs1j = (
                         np.arccos(np.dot(orientations[labels == jj], avang1.T))
                         * 360.0
@@ -633,10 +672,18 @@ def find_weakly_conserved_orientations(
                     N_elems_jj = len(orientations[labels == jj])
                     # Debug
                     if verbose > 0 or debugH > 0:
-                        sk += f"cluster combo:{ii} & {jj}size:{N_elems},{neioc*lower_bound_pct_buffer:.2f}<{N_elems_jj}<{neioc*(2-pct_size_buffer):.2f}\n"
-                        sk += f"size comparison {np.abs(N_elems -N_elems_jj)} (calced) < {(1 - pct_size_buffer) * np.max([N_elems, N_elems_jj])} \n"
-                        sk += f"ang diff={np.abs(np.mean(angs1j)-104.5):.2f}(calced)<{angdiff_cutoff:.2f},std dev:{angstd_cutoff:.2f}>{np.std(angs1j):.2f}(calced)\n"
-                    # check if size of new cluster and check if size of clusters is about equal
+                        maxcomp = np.max([N_elems, N_elems_jj])
+                        calcedcomp = (1 - pct_size_buffer) * maxcomp
+                        sk += f"cluster combo:{ii} & {jj}size:{N_elems},"
+                        sk += f"{neioc*lower_bound_pct_buffer:.2f}<{N_elems_jj}<"
+                        sk += f"{neioc*(2-pct_size_buffer):.2f}\n"
+                        sk += f"size comparison {np.abs(N_elems -N_elems_jj)}"
+                        sk += f"(calced) < {calcedcomp} \n"
+                        sk += f"ang diff={np.abs(np.mean(angs1j)-104.5):.2f}"
+                        sk += f"(calced)<{angdiff_cutoff:.2f},std dev:"
+                        sk += f"{angstd_cutoff:.2f}>{np.std(angs1j):.2f}(calced)\n"
+                    # check if size of new cluster and check if size of clusters
+                    # is about equal
                     if (
                         N_elems_jj > neioc * (2 - pct_size_buffer)
                         or N_elems_jj < neioc * lower_bound_pct_buffer
@@ -657,7 +704,8 @@ def find_weakly_conserved_orientations(
                         used.append(jj)
                         weakly.append([ii, jj])
                         break
-        # check for triplets if cluster ii has same size as clusters jj+kk and satisfactory angles
+        # check for triplets if cluster ii has same size as clusters jj+kk
+        # and satisfactory angles
         # loop over OPTICS clusters
         for ii in lbls[lbls != -1]:
             # check if in used
@@ -687,7 +735,8 @@ def find_weakly_conserved_orientations(
                         continue
                     N_elems_kk = len(orientations[labels == kk])
                     avangk = np.mean(orientations[labels == kk], axis=0)
-                    # calculate average angle between average orientation of ii and all orientations in cluster jj and kk
+                    # calculate average angle between average orientation of ii
+                    # and all orientations in cluster jj and kk
                     angs1jk = (
                         np.arccos(
                             np.dot(
@@ -740,14 +789,31 @@ def find_weakly_conserved_orientations(
                     )
                     # Debug
                     if verbose > 0 or debugH > 0:
-                        sk += f"cluster combo:{ii} & {jj} & {kk} size:{N_elems},{N_elems_jj}, {N_elems_kk} \n"
-                        sk += f"size check {np.abs(N_elems - (N_elems_jj + N_elems_kk))} (calced)< {(1 - pct_size_buffer) * np.max([N_elems, N_elems_jj + N_elems_kk])}\n"
-                        sk += f"ang diff={np.abs(np.mean(angs1jk)-104.5):.2f}(calced)<{angdiff_cutoff:.2f},std dev:{angstd_cutoff:.2f}>{np.std(angs1jk):.2f}(calced)\n"
-                        sk += f"ij {ii},{jj}, {np.abs(np.mean(angs1j)-104.5)},<,angdiff_cutoff,and std {np.std(angs1j)}<{angstd_cutoff} \n"
-                        sk += f"ik {ii},{kk}, {np.abs(np.mean(angs1k)-104.5)},<,angdiff_cutoff,and std {np.std(angs1k)}<{angstd_cutoff} \n"
-                        sk += f"kj {kk},{jj}, {np.abs(np.mean(angskj)-104.5)},<,angdiff_cutoff,and std {np.std(angskj)}<{angstd_cutoff} \n"
-                        sk += f"jk {jj},{kk}, {np.abs(np.mean(angsjk)-104.5)},<,angdiff_cutoff,and std {np.std(angsjk)}<{angstd_cutoff} \n"
-                    # check if size of clusters is about equal ii==jj+kk with angle combination
+                        maxprint = np.max([N_elems, N_elems_jj + N_elems_kk])
+                        sizeingprint = (1 - pct_size_buffer) * maxprint
+                        sk += f"cluster combo:{ii} & {jj} & {kk} size:"
+                        sk += f"{N_elems},{N_elems_jj}, {N_elems_kk} \n"
+                        sk += "size check "
+                        sk += f"{np.abs(N_elems - (N_elems_jj + N_elems_kk))}"
+                        sk += f"(calced)< {sizeingprint}\n"
+                        sk += f"ang diff={np.abs(np.mean(angs1jk)-104.5):.2f}"
+                        sk += f"(calced)<{angdiff_cutoff:.2f},std dev:"
+                        sk += f"{angstd_cutoff:.2f}>{np.std(angs1jk):.2f}"
+                        sk += "(calced)\n"
+                        sk += f"ij {ii},{jj}, {np.abs(np.mean(angs1j)-104.5)},"
+                        sk += f"<,angdiff_cutoff,and std {np.std(angs1j)}<"
+                        sk += f"{angstd_cutoff} \n"
+                        sk += f"ik {ii},{kk}, {np.abs(np.mean(angs1k)-104.5)},"
+                        sk += f"<,angdiff_cutoff,and std {np.std(angs1k)}<"
+                        sk += f"{angstd_cutoff} \n"
+                        sk += f"kj {kk},{jj}, {np.abs(np.mean(angskj)-104.5)},"
+                        sk += f"<,angdiff_cutoff,and std {np.std(angskj)}<"
+                        sk += f"{angstd_cutoff} \n"
+                        sk += f"jk {jj},{kk}, {np.abs(np.mean(angsjk)-104.5)},"
+                        sk += f"<,angdiff_cutoff,and std {np.std(angsjk)}<"
+                        sk += f"{angstd_cutoff} \n"
+                    # check if size of clusters is about equal ii==jj+kk
+                    # with angle combination
                     if (
                         np.abs(N_elems - (N_elems_jj + N_elems_kk))
                         < (1 - pct_size_buffer)
@@ -797,7 +863,9 @@ def find_weakly_conserved_orientations(
                     orientations, labels, ws[0], ws[1], "WCW"
                 )
             )
-    else:  # or if angle beteween a larger set of clusters is water angle for all of them - this means that this is circular triplet or multiplet
+    # or if angle beteween a larger set of clusters is water angle for all of
+    # them - this means that this is circular triplet or multiplet
+    else:
         used = []
         weakly = []
         # loop over OPTICS clusters
@@ -838,7 +906,10 @@ def find_weakly_conserved_orientations(
                     / (2.0 * np.pi)
                 )
                 if verbose > 0 or debugH > 0:
-                    sk += f"ij,{ii},{jj}, angs and std ij: {np.abs(np.mean(angsij) - 104.5)}, {np.std(angsij)}; ji: {np.abs(np.mean(angsji) - 104.5)}, {np.std(angsji)} \n"
+                    sk += f"ij,{ii},{jj}, angs and std ij: "
+                    sk += f"{np.abs(np.mean(angsij) - 104.5)}, {np.std(angsij)};"
+                    sk += f"ji: {np.abs(np.mean(angsji) - 104.5)},"
+                    sk += f" {np.std(angsji)} \n"
                 if (
                     np.abs(np.mean(angsij) - 104.5) < angdiff_cutoff
                     and np.std(angsij) < angstd_cutoff
@@ -870,7 +941,11 @@ def find_weakly_conserved_orientations(
                             / (2.0 * np.pi)
                         )
                         if verbose > 0 or debugH > 0:
-                            sk += f"jk,{jj},{kk}, angs and std jk: {np.abs(np.mean(angsjk) - 104.5)}, {np.std(angsjk)}; kj: {np.abs(np.mean(angskj) - 104.5)}, {np.std(angskj)} \n"
+                            sk += f"jk,{jj},{kk}, angs and std jk:"
+                            sk += f"{np.abs(np.mean(angsjk) - 104.5)}, "
+                            sk += f"{np.std(angsjk)}; "
+                            sk += f"kj: {np.abs(np.mean(angskj) - 104.5)}, "
+                            sk += f"{np.std(angskj)} \n"
                         if (
                             np.abs(np.mean(angskj) - 104.5) > angdiff_cutoff
                             and np.std(angskj) > angstd_cutoff
@@ -904,7 +979,10 @@ def find_weakly_conserved_orientations(
     if verbose > 0 or debugH > 0:
         ss = (
             f"weakly Conserved - OPTICS analysis;xi={xi}\n"
-            f"Number of hydrogen clusters : {len(np.unique(labels))};\n number of elements : {counts}; range needed for best cluster:(depends on numbpct) {neioc*(2-pct_size_buffer):.2f},{neioc*lower_bound_pct_buffer:.2f}\n"
+            f"Number of hydrogen clusters : {len(np.unique(labels))};\n"
+            f"number of elements : {counts}; range needed for best cluster:"
+            f"(depends on numbpct) {neioc*(2-pct_size_buffer):.2f},"
+            f"{neioc*lower_bound_pct_buffer:.2f}\n"
         )
     # Debug Printing
     if verbose == 2 or (verbose == 1 and len(weakly_conserved) > 0):
@@ -915,7 +993,10 @@ def find_weakly_conserved_orientations(
         orientations,
         cc,
         ss,
-        f"Reachability of optics plot\n minsamples={int(neioc*min_samp_data_size_pct)}; xi={xi}",
+        (
+            f"Reachability of optics plot\n"
+            f"minsamples={int(neioc*min_samp_data_size_pct)}; xi={xi}"
+        ),
         len(weakly_conserved) > 0,
         debugH,
         plotreach,
@@ -1015,17 +1096,19 @@ def __plotreachability(
         ax2.set_title(tit)
     for clst in np.unique(lblls):
         if clst == -1:
+            label = np.mean(np.ma.masked_invalid(cc.reachability_[labels == clst]))
             ax2.plot(
                 space[lblls == clst],
                 reachability[lblls == clst],
-                label=f"{clst} ({len(space[lblls==clst])}), avg reach={np.mean(np.ma.masked_invalid(cc.reachability_[labels==clst]))}",
+                label=f"{clst} ({len(space[lblls==clst])}), avg reach={label}",
                 color="blue",
             )
         else:
+            label = np.mean(np.ma.masked_invalid(cc.reachability_[labels == clst]))
             ax2.plot(
                 space[lblls == clst],
                 reachability[lblls == clst],
-                label=f"{clst} ({len(space[lblls==clst])}), avg reach={np.mean(np.ma.masked_invalid(cc.reachability_[labels==clst]))}",
+                label=f"{clst} ({len(space[lblls==clst])}), avg reach={label}",
             )
     ax2.legend()
     return fig
