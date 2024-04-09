@@ -14,7 +14,7 @@ from ConservedWaterSearch.utils import (
 
 
 @pytest.fixture(autouse=True)
-def pymol_skip():
+def _pymol_skip():
     pytest.importorskip("pymol")
 
 

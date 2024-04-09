@@ -693,7 +693,7 @@ def visualise_nglview(
 ) -> NGLWidget:
     """Creates a nglview visualisation widget for results.
 
-    Starts a `nglview <https://github.com/nglviewer/nglview>`__ visualisation 
+    Starts a `nglview <https://github.com/nglviewer/nglview>`__ visualisation
     instance from clustering results.
 
     Args:
