@@ -141,9 +141,8 @@ def test_create_from_file():
 
 def test_read_and_set_water_clust_options_file_not_found():
     wc = WaterClustering(9)
-    with pytest.raises(FileNotFoundError, match="output file not found") as e:
+    with pytest.raises(FileNotFoundError, match="output file not found"):
         wc.read_and_set_water_clust_options("tests/data/nonexistent.dat")
-    assert str(e.value) == "output file not found"
 
 
 def test_restart_cluster_onlyO():

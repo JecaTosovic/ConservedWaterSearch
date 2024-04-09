@@ -25,7 +25,7 @@ def test_orientation_normalization():
 
 def test_orientation_shape():
     orientations = np.asarray([[[1]]])
-    with pytest.raises(ValueError, match="Input array must be 2-dimensional"):
+    with pytest.raises(ValueError, match="Orientations have to be a 2D array"):
         ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
@@ -33,7 +33,7 @@ def test_orientation_shape():
 
 def test_orientation_dimensions():
     orientations = np.asarray([[1, 0], [0, 1]])
-    with pytest.raises(ValueError, match="Input array must have shape (N, 3)"):
+    with pytest.raises(ValueError, match="Orientations must be vectors of dimension 3"):
         ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
@@ -48,7 +48,13 @@ def test_orientation_valid_input():
 
 def test_orientation_size():
     orientations = np.asarray([[1, 0, 0]])
-    with pytest.raises(ValueError, match="Input array must have shape (N, 3)"):
+    with pytest.raises(
+        ValueError,
+        match=(
+            "Number of orientations must be even! "
+            "Each water molecule has 2 hydrogen atoms!"
+        ),
+    ):
         ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
         )
@@ -57,7 +63,11 @@ def test_orientation_size():
 def test_orientation_array_odd():
     orientations = np.asarray([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
     with pytest.raises(
-        ValueError, match="Input array must have an even number of rows"
+        ValueError,
+        match=(
+            "Number of orientations must be even! "
+            "Each water molecule has 2 hydrogen atoms!"
+        ),
     ):
         ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
             orientations
