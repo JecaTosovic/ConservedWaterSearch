@@ -118,15 +118,16 @@ def hydrogen_orientation_analysis(
     # check length of orientations - it has to be bigger then 1 and even
     orishape = orientations.shape
     if len(orishape) != 2:
-        raise ValueError("Orientations have to be a 2D array")
+        value_error_string = "Orientations have to be a 2D array"
+        raise ValueError(value_error_string)
     Hnum = orishape[0]
     dimnum = orishape[1]
     if dimnum != 3:
-        raise ValueError("Orientations must be vectors of dimension 3")
+        value_error_string = "Orientations must be vectors of dimension 3"
+        raise ValueError(value_error_string)
     if Hnum < 2 or Hnum % 2 != 0:
-        raise ValueError(
-            "Number of orientations must be even! Each water molecule has 2 hydrogen atoms!"
-        )
+        value_error_string = "Number of orientations must be even! Each water molecule has 2 hydrogen atoms!"
+        raise ValueError(value_error_string)
     if normalize_orientations:
         orientations = orientations / np.linalg.norm(
             orientations, axis=1, keepdims=True
@@ -946,8 +947,9 @@ def __plot3Dorients(subplot, labels: int, orientations: np.ndarray, tip: str) ->
     """
     try:
         import matplotlib.pyplot as plt
-    except ModuleNotFoundError:
-        raise Exception("install matplotlib")
+    except ModuleNotFoundError as err:
+        msg = "install matplotlib"
+        raise Exception(msg) from err
 
     fig = plt.figure()
     if isinstance(labels, int):
@@ -994,8 +996,9 @@ def __plotreachability(
     """
     try:
         import matplotlib.pyplot as plt
-    except ModuleNotFoundError:
-        raise Exception("install matplotlib")
+    except ModuleNotFoundError as err:
+        msg = "install matplotlib"
+        raise Exception(msg) from err
 
     if fig is None:
         fig: Figure = plt.figure()
@@ -1035,7 +1038,7 @@ def __return_normalized_orientation_pair(
     j: int,
     typel: str,
 ) -> list[np.ndarray | str]:
-    """Helper function for normalizing orientations
+    """Helper function for normalizing orientations.
 
     Not ment for general usage.
 
