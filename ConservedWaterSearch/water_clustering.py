@@ -857,7 +857,6 @@ class WaterClustering:
                             self._add_water_solutions(waters)
                             if self.restart_data_file is not None:
                                 self._save_intermediate_data(Odata, H1, H2)
-                            i = i - 1
                             break
                     if (found and self.restart_after_find) or len(Odata) < self.nsnaps:
                         break
