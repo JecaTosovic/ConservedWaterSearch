@@ -50,7 +50,7 @@ def hydrogen_orientation_analysis(
       exist with satisfying water angles
 
     See :cite:`conservedwatersearch2022` for more information on water
-    classification :ref:`conservedwaters:theory, background and methods`.
+    classification :ref:`conservedwaters_theory_background_methods`.
     If orientations don't satisfy the criteria for any of the waters, an
     empty list is returned.
 

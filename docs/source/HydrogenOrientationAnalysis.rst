@@ -2,7 +2,7 @@
 Hydrogen Orientation Analysis
 -----------------------------
 
-Analysis of hydrogen orientations is used to classify conserved waters into 3 different types: Fully Conserved Water (FCW), Half Conserved Water (HCW) and Weakly Conserved Waters (WCW). See :ref:`conservedwaters:theory, background and methods` for more information.
+Analysis of hydrogen orientations is used to classify conserved waters into 3 different types: Fully Conserved Water (FCW), Half Conserved Water (HCW) and Weakly Conserved Waters (WCW). See :ref:`conservedwaters_theory_background_methods` for more information.
 
 .. rubric:: Overview
 
