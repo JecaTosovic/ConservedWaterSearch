@@ -65,19 +65,10 @@ class WaterClustering:
         self,
         nsnaps: int,
         clustering_algorithm: str = "OPTICS",
-        water_types_to_find: list[str] = ["FCW", "HCW", "WCW"],
+        water_types_to_find: list[str] | None = None,
         restart_after_found: bool = False,
-        min_samples: list[int] = None,
-        xis: list[float] = [
-            0.1,
-            0.05,
-            0.01,
-            0.005,
-            0.001,
-            0.0005,
-            0.0001,
-            0.00001,
-        ],
+        min_samples: list[int] | None = None,
+        xis: list[float] | None = None,
         numbpct_oxygen: float = 0.8,
         normalize_orientations: bool = True,
         numbpct_hyd_orient_analysis: float = 0.85,
@@ -90,9 +81,9 @@ class WaterClustering:
         HCW_angstd_cutoff: float = 17,
         WCW_angstd_cutoff: float = 20,
         weakly_explained: float = 0.7,
-        xiFCW: list[float] = [0.03],
-        xiHCW: list[float] = [0.05, 0.01],
-        xiWCW: list[float] = [0.05, 0.001],
+        xiFCW: list[float] | None = None,
+        xiHCW: list[float] | None = None,
+        xiWCW: list[float] | None = None,
         njobs: int = 1,
         verbose: int = 0,
         debugO: int = 0,
@@ -199,10 +190,22 @@ class WaterClustering:
                 ``output_file`` have to be provided for clustering
                 restarting. Defaults to None.
         """
+        if xiWCW is None:
+            xiWCW = [0.05, 0.001]
+        if xiHCW is None:
+            xiHCW = [0.05, 0.01]
+        if xiFCW is None:
+            xiFCW = [0.03]
+        if water_types_to_find is None:
+            water_types_to_find = ["FCW", "HCW", "WCW"]
+        if xis is None:
+            xis = [0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 1e-05]
         if nsnaps <= 0:
-            raise Exception(f"nsnaps must be positive {nsnaps}")
+            msg = f"nsnaps must be positive {nsnaps}"
+            raise Exception(msg)
         if not isinstance(nsnaps, int):
-            raise Exception(f"nsnaps must be an integer, but its {type(nsnaps)}")
+            msg = f"nsnaps must be an integer, but its {type(nsnaps)}"
+            raise Exception(msg)
         self.nsnaps: int = nsnaps
         self.clustering_algorithm = clustering_algorithm
         self.water_types_to_find = water_types_to_find
@@ -274,17 +277,8 @@ class WaterClustering:
         clustering_algorithm: str = "OPTICS",
         lower_minsamp_pct: float = 0.25,
         every_minsamp: int = 1,
-        xis: list[float] = [
-            0.1,
-            0.05,
-            0.01,
-            0.005,
-            0.001,
-            0.0005,
-            0.0001,
-            0.00001,
-        ],
-        whichH: list[str] = ["FCW", "HCW", "WCW"],
+        xis: list[float] | None = None,
+        whichH: list[str] | None = None,
     ) -> None:
         """Multi Stage ReClustering (MSRC) procedure for obtaining conserved
         water molecules.
@@ -322,6 +316,10 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
+        if whichH is None:
+            whichH = ["FCW", "HCW", "WCW"]
+        if xis is None:
+            xis = [0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 1e-05]
         self.restart_after_find = True
         self.clustering_algorithm = clustering_algorithm
         self.xis = xis
@@ -338,17 +336,8 @@ class WaterClustering:
         clustering_algorithm: str = "OPTICS",
         lower_minsamp_pct: float = 0.25,
         every_minsamp: int = 1,
-        xis: list[float] = [
-            0.1,
-            0.05,
-            0.01,
-            0.005,
-            0.001,
-            0.0005,
-            0.0001,
-            0.00001,
-        ],
-        whichH: list[str] = ["FCW", "HCW", "WCW"],
+        xis: list[float] | None = None,
+        whichH: list[str] | None = None,
     ) -> None:
         """Quick Multi Stage ReClustering (QMSRC) procedure for
         obtaining conserved water molecules.
@@ -387,6 +376,10 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
+        if whichH is None:
+            whichH = ["FCW", "HCW", "WCW"]
+        if xis is None:
+            xis = [0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 1e-05]
         self.restart_after_find = False
         self.clustering_algorithm = clustering_algorithm
         self.xis = xis
@@ -403,7 +396,7 @@ class WaterClustering:
         clustering_algorithm: str = "OPTICS",
         minsamp: int | None = None,
         xi: float | None = None,
-        whichH: list[str] = ["FCW", "HCW", "WCW"],
+        whichH: list[str] | None = None,
     ) -> None:
         """Single clustering procedure.
 
@@ -432,6 +425,8 @@ class WaterClustering:
                 allowed, or "onlyO" for oxygen clustering only.
                 Defaults to ["FCW", "HCW", "WCW"].
         """
+        if whichH is None:
+            whichH = ["FCW", "HCW", "WCW"]
         self.restart_after_find = False
         self.clustering_algorithm = clustering_algorithm
         self.water_types_to_find = whichH
@@ -489,14 +484,16 @@ class WaterClustering:
                 H1 = data[:, 3:6]
                 H2 = data[:, 6:9]
         else:
-            raise Exception("data file not found")
+            msg = "data file not found"
+            raise Exception(msg)
         if os.path.isfile(partial_results_file):
             self.read_and_set_water_clust_options(partial_results_file)
             self._water_type, self._waterO, self._waterH1, self._waterH2 = read_results(
                 partial_results_file
             )
         else:
-            raise Exception("partial results file not found")
+            msg = "partial results file not found"
+            raise Exception(msg)
         self.run(Odata, H1, H2)
 
     def read_and_set_water_clust_options(self, file_name: str) -> None:
@@ -539,7 +536,8 @@ class WaterClustering:
                 self.plotreach = lines[25] == "True"
                 self.plotend = lines[26] == "True"
         else:
-            raise Exception("output file not found")
+            msg = "output file not found"
+            raise Exception(msg)
 
     @classmethod
     def create_from_file(
@@ -1040,24 +1038,24 @@ class WaterClustering:
         return Odata, H1, H2
 
     def _check_cls_alg_and_whichH(self):
-        if (
-            self.clustering_algorithm != "OPTICS"
-            and self.clustering_algorithm != "HDBSCAN"
-        ):
-            raise Exception("clustering algorithm must be OPTICS or HDBSCAN")
+        if self.clustering_algorithm not in ("OPTICS", "HDBSCAN"):
+            msg = "clustering algorithm must be OPTICS or HDBSCAN"
+            raise Exception(msg)
         for i in self.water_types_to_find:
             if i not in ["FCW", "HCW", "WCW", "onlyO"]:
-                raise Exception(
-                    "whichH supports onlyO or any combination of FCW, HCW and WCW"
-                )
+                msg = "whichH supports onlyO or any combination of FCW, HCW and WCW"
+                raise Exception(msg)
         if "onlyO" in self.water_types_to_find and len(self.water_types_to_find) > 1:
-            raise Exception("onlyO cannot be used with other water types")
+            msg = "onlyO cannot be used with other water types"
+            raise Exception(msg)
         if self.clustering_algorithm == "OPTICS":
             for i in self.xis:
                 if not isinstance(i, float):
-                    raise Exception("xis must contain floats")
+                    msg = "xis must contain floats"
+                    raise Exception(msg)
                 if i > 1 or i < 0:
-                    raise Exception("xis should be between 0 and 1")
+                    msg = "xis should be between 0 and 1"
+                    raise Exception(msg)
         elif self.clustering_algorithm == "HDBSCAN":
             self.xis = [0.0]
         # sort min_samples in descending order
@@ -1068,24 +1066,31 @@ class WaterClustering:
         if minsamp is None:
             minsamp = int(self.numbpct_oxygen * self.nsnaps)
         elif not isinstance(minsamp, int):
-            raise Exception("minsamp must be an int")
+            msg = "minsamp must be an int"
+            raise Exception(msg)
         elif minsamp > self.nsnaps or minsamp <= 0:
-            raise Exception("minsamp must be between 0 and nsnaps")
+            msg = "minsamp must be between 0 and nsnaps"
+            raise Exception(msg)
         if xis is None:
             xis = 0.05
         elif not isinstance(xis, float):
-            raise Exception("xi must be a float")
+            msg = "xi must be a float"
+            raise Exception(msg)
         elif xis < 0 or xis > 1:
-            raise Exception("xis should be between 0 and 1")
+            msg = "xis should be between 0 and 1"
+            raise Exception(msg)
         return [minsamp], [xis]
 
     def _check_and_setup_MSRC(self, lower_minsamp_pct, every_minsamp):
         if lower_minsamp_pct > 1.0000001 or lower_minsamp_pct < 0:
-            raise Exception("lower_misamp_pct must be between 0 and 1")
+            msg = "lower_misamp_pct must be between 0 and 1"
+            raise Exception(msg)
         if not isinstance(every_minsamp, int):
-            raise Exception("every_minsamp must be integer")
+            msg = "every_minsamp must be integer"
+            raise Exception(msg)
         if every_minsamp <= 0 or every_minsamp > self.nsnaps:
-            raise Exception("every_minsamp must be  0<every_minsamp<=nsnaps")
+            msg = "every_minsamp must be  0<every_minsamp<=nsnaps"
+            raise Exception(msg)
         minsamps: list = list(
             reversed(
                 range(
@@ -1099,12 +1104,12 @@ class WaterClustering:
 
     def _check_data(self, Odata, H1, H2):
         if (H1 is None or H2 is None) and "onlyO" not in self.water_types_to_find:
-            raise Exception(
-                f"H1 and H2 have to be provided for non oxygen only search. Run type {self.water_types_to_find}"
-            )
+            msg = f"H1 and H2 have to be provided for non oxygen only search. Run type {self.water_types_to_find}"
+            raise Exception(msg)
         if H1 is not None and H2 is not None:
             if len(Odata) != len(H1) or len(Odata) != len(H2) or len(H1) != len(H2):
-                raise Exception("Odata, H1 and H2 have to be of same length")
+                msg = "Odata, H1 and H2 have to be of same length"
+                raise Exception(msg)
 
     def _save_intermediate_data(self, Oxygen, H1, H2) -> None:
         if self.restart_data_file is not None:

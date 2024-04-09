@@ -25,9 +25,8 @@ def _check_mpl_installation():
     try:
         import matplotlib.pyplot as plt
     except ModuleNotFoundError:
-        raise Exception(
-            "install matplotlib using conda install -c conda-forge matplotlib or pip install matplotlib"
-        )
+        msg = "install matplotlib using conda install -c conda-forge matplotlib or pip install matplotlib"
+        raise Exception(msg)
     return plt
 
 
@@ -137,8 +136,9 @@ def get_orientations_from_positions(
             a: np.ndarray = h1 - o
             b: np.ndarray = h2 - o
             if (np.linalg.norm(h1 - o) > 1.2) or (np.linalg.norm(h2 - o) > 1.2):
+                msg = "bad input HO bonds in water longer than 1.2A; value:"
                 raise ValueError(
-                    "bad input HO bonds in water longer than 1.2A; value:",
+                    msg,
                     np.linalg.norm(h1 - o),
                     np.linalg.norm(h2 - o),
                 )
@@ -148,7 +148,8 @@ def get_orientations_from_positions(
         H2orientdata: np.ndarray = np.asarray(v2)
         return Odata, H1orientdata, H2orientdata
     else:
-        raise Exception("Hydrogen array of wrong length")
+        msg = "Hydrogen array of wrong length"
+        raise Exception(msg)
 
 
 def _make_protein_surface_with_ligand():
@@ -667,7 +668,8 @@ def _initialize_pymol(reinitialize: bool, finish: bool):
         import pymol
         from pymol import cmd
     except ModuleNotFoundError:
-        raise Exception("pymol not installed. Either install pymol or use nglview")
+        msg = "pymol not installed. Either install pymol or use nglview"
+        raise Exception(msg)
     if finish:
         pymol.finish_launching(["pymol", "-q"])
     if reinitialize:
@@ -730,7 +732,8 @@ def visualise_nglview(
     try:
         import nglview as ngl
     except ModuleNotFoundError:
-        raise Exception("nglview not installed. Either install pymol or nglview")
+        msg = "nglview not installed. Either install pymol or nglview"
+        raise Exception(msg)
 
     if aligned_protein is not None:
         view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
