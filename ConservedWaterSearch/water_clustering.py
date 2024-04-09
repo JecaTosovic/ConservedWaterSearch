@@ -49,7 +49,7 @@ class WaterClustering:
           orientations are spread into different orientations with angle
           of 104.5
         - WCW (Weakly Conserved Water): several orientation combinations
-          exsist with satisfying water angles
+          exist with satisfying water angles
 
     To run the calculation use either :py:meth:`multi_stage_reclustering`
     function to start Multi Stage ReClustering (MSRC) procedure or
@@ -96,7 +96,7 @@ class WaterClustering:
         """Initialise :py:class:`WaterClustering` class.
 
         The input parameters determine the options for oxygen clustering and
-        hydrogen orienataion analysis if applicable.
+        hydrogen orientation analysis if applicable.
 
         Args:
             nsnaps (int): Number of trajectory snapshots related to
@@ -173,11 +173,12 @@ class WaterClustering:
             njobs (int, optional): how many cpu cores to use for clustering.
                 Defaults to 1.
             verbose (int, optional): verbosity of output. Defaults to 0.
+            debugO (int, optional): debug level for oxygen clustering.
             debugH (int, optional): debug level for orientations. Defaults to 0.
             plotend (bool, optional): weather to plot everything at end
                 of run. Defaults to False.
             plotreach (bool, optional): weather to plot the reachability
-                plot for OPTICS when debuging. Defaults to False.
+                plot for OPTICS when debugging. Defaults to False.
             restart_data_file (str, optional): Restart data file. If
                 ``None`` restarting is not possible and no restart file
                 is generated. Both ``restart_data_file`` and
@@ -242,7 +243,11 @@ class WaterClustering:
             if not (self.debugH < 2 or self.debugO < 2):
                 self.plotend = False
                 warnings.warn(
-                    "plotend set to True while debugH or debugO are >1; setting back to False"
+                    (
+                        "plotend set to True while debugH or debugO are >1;"
+                        " setting back to False"
+                    ),
+                    stacklevel=2,
                 )
         self._waterO: list[np.ndarray] = []
         self._waterH1: list[np.ndarray] = []
@@ -280,8 +285,7 @@ class WaterClustering:
         xis: list[float] | None = None,
         whichH: list[str] | None = None,
     ) -> None:
-        """Multi Stage ReClustering (MSRC) procedure for obtaining conserved
-        water molecules.
+        """Multi Stage ReClustering (MSRC) procedure.
 
         Main loop - loops over water clustering parameter space
         (minsamp and xi) and clusters oxygens first - if a clustering
@@ -339,8 +343,7 @@ class WaterClustering:
         xis: list[float] | None = None,
         whichH: list[str] | None = None,
     ) -> None:
-        """Quick Multi Stage ReClustering (QMSRC) procedure for
-        obtaining conserved water molecules.
+        """Quick Multi Stage ReClustering (QMSRC) procedure.
 
         Main loop - loops over water clustering parameter space
         (minsamp and xi) and clusters oxygens first - clusters with
@@ -435,13 +438,13 @@ class WaterClustering:
         self.run(Odata, H1, H2)
 
     def save_results(self, file_name: str) -> None:
-        """Saves clustering results and paramters to a file.
+        """Saves clustering results and parameters to a file.
 
-        Top of the results file contains clustering parametrs after
+        Top of the results file contains clustering parameters after
         which results are saved in the same file.
 
         Args:
-            file_name str: File name of the file that will contain results.
+            file_name (str): File name to save results to.
         """
         self._save_clustering_options(file_name)
         for i in range(len(self._waterO)):
@@ -463,14 +466,13 @@ class WaterClustering:
         partial_results_file: str,
         partial_data_file: str,
     ) -> None:
-        """Read the clustering options and intermediate results from a
-        file and restart the clustering procedure.
+        """Read the options and results and restart the clustering procedure.
 
         Args:
-            partial_data_file str: File name of the file containing
+            partial_data_file (str): File name of the file containing
                 intermediate set of data of hydrogen and oxygen
                 coordinates.
-            partial_results_file str: File name containing partial
+            partial_results_file (str): File name containing partial
                 results with determined water coordinates.
         """
         if os.path.isfile(partial_data_file):
@@ -497,12 +499,14 @@ class WaterClustering:
         self.run(Odata, H1, H2)
 
     def read_and_set_water_clust_options(self, file_name: str) -> None:
-        """Reads all class clustering options from save file and sets
+        """Reads clustering options from file.
+
+        Reads all class clustering options from save file and sets
         the parameters. Reads all parameters except clustering protocol
         and protocol parameters.
 
         Args:
-            file_name str: Results or partial results file from which
+            file_name (str): Results or partial results file from which
                 procedure parameters will be read.
         """
         if os.path.isfile(file_name):
@@ -536,19 +540,18 @@ class WaterClustering:
                 self.plotreach = lines[25] == "True"
                 self.plotend = lines[26] == "True"
         else:
-            msg = "output file not found"
-            raise Exception(msg)
+            error_msg = "output file not found"
+            raise FileNotFoundError(error_msg)
 
     @classmethod
     def create_from_file(
         cls,
         file_name: str,
     ) -> WaterClustering:
-        """Create a WaterClustering class from saved clustering options
-        file or full or partial results file.
+        """Create a :py:class:`WaterClustering` class from a file.
 
         Args:
-            file_name str: Results or partial results file from which
+            file_name (str): Results or partial results file from which
                 procedure parameters will be read.
 
         Returns:
@@ -563,13 +566,12 @@ class WaterClustering:
     def create_from_files_and_restart(
         cls, partial_output: str, partial_data_file: str
     ) -> WaterClustering:
-        """Create a WaterClustering class from saved clustering restart
-        and partial results files and restart clustering.
+        """Create a :py:class:`WaterClustering` from file and restart the procedure.
 
         Args:
-            partial_file_name str: Partial results file from which
+            partial_output (str): Partial results file from which
                 procedure parameters will be read.
-            partial_data_file str: Partial data file from which
+            partial_data_file (str): Partial data file from which
                 data will be read.
 
         Returns:
@@ -649,7 +651,12 @@ class WaterClustering:
         crystal_waters: str | None = None,
         density_map: str | None = None,
     ) -> NGLWidget:
-        """Visualise the results using `nglview <https://github.com/nglviewer/nglview>`__.
+        """Visualise the results using nglview.
+
+        `nglview <https://github.com/nglviewer/nglview>`__ can be used to
+        visualise the results of the clustering procedure. We recommend using
+        pymol visualisation as it is more informative and provides more
+        options.
 
         Args:
             aligned_protein (str, optional): File containing protein
@@ -706,8 +713,7 @@ class WaterClustering:
 
     @property
     def waterO(self) -> list[np.ndarray]:
-        """Contains coordiantes of Oxygens of water molecules classified
-        with water clustering.
+        """Oxygen coordinates of water molecules classified using clustering.
 
         Returns:
             list[np.ndarray]: Returns a list of 3D xyz
@@ -717,8 +723,7 @@ class WaterClustering:
 
     @property
     def waterH1(self) -> list[np.ndarray]:
-        """Contains coordinates of first Hydrogen atom of water
-        molecules classified with water clustering.
+        """Coordinates of first Hydrogen atom of water molecules from clustering.
 
         Returns:
             list[np.ndarray]: Returns a list of 3D xyz
@@ -728,8 +733,7 @@ class WaterClustering:
 
     @property
     def waterH2(self) -> list[np.ndarray]:
-        """Contains coordinates of second Hydrogen atom of water
-        molecules classified with water clustering.
+        """Coordinates of first Hydrogen atom of water molecules from clustering.
 
         Returns:
             list[np.ndarray]: Returns a list of 3D xyz
@@ -788,7 +792,8 @@ class WaterClustering:
                         clust.fit(Odata)
                     # loop over xi
                     for j in self.xis:
-                        # recalculate reachability - OPTICS reachability has to be recaculated when changing minsamp
+                        # recalculate reachability - OPTICS reachability has
+                        # to be recaculated when changing minsamp
                         if self.clustering_algorithm == "HDBSCAN":
                             clust = HDBSCAN(
                                 min_cluster_size=int(self.nsnaps * self.numbpct_oxygen),
@@ -818,8 +823,15 @@ class WaterClustering:
                             if self.verbose > 0:
                                 (aa, bb) = np.unique(clusters, return_counts=True)
                                 dbgt = (
-                                    f"Oxygen clustering {type(clust)} minsamp={i}, xi={j}, {len(np.unique(clusters[clusters!=-1]))} clusters \n"
-                                    f"Required N(elem) range:{self.nsnaps*self.numbpct_oxygen:.2f} to {(2-self.numbpct_oxygen)*self.nsnaps}; (tar cls size={self.nsnaps} and numbpct={self.numbpct_oxygen:.2f})\n"
+                                    f"Oxygen clustering {type(clust)} "
+                                    f"minsamp={i}, xi={j}, "
+                                    f"{len(np.unique(clusters[clusters!=-1]))} "
+                                    f"clusters \n"
+                                    f"Required N(elem) range:"
+                                    f"{self.nsnaps*self.numbpct_oxygen:.2f} to "
+                                    f"{(2-self.numbpct_oxygen)*self.nsnaps}; "
+                                    f"(tar cls size={self.nsnaps} and numbpct="
+                                    f"{self.numbpct_oxygen:.2f})\n"
                                     f"N(elements) for each cluster: {bb}\n"
                                 )
                                 print(dbgt)
@@ -849,7 +861,8 @@ class WaterClustering:
                             break
                     if (found and self.restart_after_find) or len(Odata) < self.nsnaps:
                         break
-                # check if size of remaining data set is bigger then number of snapshots
+                # check if size of remaining data set is bigger
+                # then number of snapshots
                 if len(Odata) < self.nsnaps or self.restart_after_find is False:
                     break
         if (self.debugH == 1 or self.debugO == 1) and self.plotend:
@@ -864,8 +877,7 @@ class WaterClustering:
         clusters: np.ndarray,
         whichH: list[str],
     ) -> tuple[list[np.ndarray], list[int]]:
-        """Helper function for analysing oxygen clustering and invoking
-        hydrogen orientation clustering.
+        """Helper function for analysing oxygen and hydrogen clustering.
 
         Analyzes clusters for oxygen clustering. For oxygen clusters
         which have the size around number of samples, the hydrogen
@@ -880,6 +892,7 @@ class WaterClustering:
                 must be "onlyO".
             clusters (np.ndarray):  Output of clustering
                 results from OPTICS or HDBSCAN.
+            whichH (list[str]): Defines which water types to search for.
 
         Returns:
             tuple[list[np.ndarray], list[int]]:
@@ -902,7 +915,8 @@ class WaterClustering:
             mask = clusters == k
             # Number of elements in oxygen cluster
             neioc = np.count_nonzero(mask)
-            # If number of elements in oxygen cluster is  Nsnap*0.85<Nelem<Nsnap*1.15 then ignore
+            # If number of elements in oxygen cluster is
+            # Nsnap*0.85<Nelem<Nsnap*1.15 then ignore
             if min_neioc < neioc < max_neioc:
                 if self.verbose > 0:
                     print(f"O clust {k}, size {len(clusters[clusters==k])}\n")
@@ -910,7 +924,8 @@ class WaterClustering:
                 if "onlyO" not in self.water_types_to_find:
                     # Construct array of hydrogen orientations
                     orientations = np.vstack([H1[mask], H2[mask]])
-                    # Analyse clustering with hydrogen orientation analysis and more debug stuff
+                    # Analyse clustering with hydrogen orientation analysis
+                    # and more debug stuff
                     hyd = hydrogen_orientation_analysis(
                         orientations,
                         self.numbpct_hyd_orient_analysis,
@@ -1012,8 +1027,7 @@ class WaterClustering:
         H1: None | np.ndarray = None,
         H2: None | np.ndarray = None,
     ) -> tuple[np.ndarray, np.ndarray | None, np.ndarray | None]:
-        """A helper function for deleting data from the dataset during
-        MSRC procedure.
+        """A helper function for deleting data from during MSRC procedure.
 
         Args:
             elements (np.ndarray): Indices to delete.
@@ -1104,7 +1118,10 @@ class WaterClustering:
 
     def _check_data(self, Odata, H1, H2):
         if (H1 is None or H2 is None) and "onlyO" not in self.water_types_to_find:
-            msg = f"H1 and H2 have to be provided for non oxygen only search. Run type {self.water_types_to_find}"
+            msg = (
+                f"H1 and H2 have to be provided for non oxygen only"
+                f" search. Run type {self.water_types_to_find}"
+            )
             raise Exception(msg)
         if H1 is not None and H2 is not None:
             if len(Odata) != len(H1) or len(Odata) != len(H2) or len(H1) != len(H2):
@@ -1122,8 +1139,7 @@ class WaterClustering:
         self,
         waters: list,
     ) -> None:
-        """A helper function which extends the solutions obtained from
-        analysing hydrogen orientations.
+        """A helper function which adds new water clusters found.
 
         Args:
             waters (list): List containing results - coordinates of
