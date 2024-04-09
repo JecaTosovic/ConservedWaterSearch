@@ -25,14 +25,14 @@ def hydrogen_orientation_analysis(
     HCW_angstd_cutoff: float = 17,
     WCW_angstd_cutoff: float = 20,
     weakly_explained: float = 0.7,
-    xiFCW: list[float] = [0.03],
-    xiHCW: list[float] = [0.05, 0.01],
-    xiWCW: list[float] = [0.05, 0.001],
+    xiFCW: tuple[float]|list[float] = (0.03,),
+    xiHCW: tuple[float]|list[float] = (0.05, 0.01),
+    xiWCW: tuple[float]|list[float] = (0.05, 0.001),
     njobs: int = 1,
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-    which: list[str] = ["FCW", "HCW", "WCW"],
+    which: tuple[str]|list[str] = ("FCW", "HCW", "WCW"),
     normalize_orientations: bool = True,
 ) -> list:
     """Determines if the water cluster is conserved and of what type.
@@ -87,21 +87,21 @@ def hydrogen_orientation_analysis(
         weakly_explained (float, optional): percentage of explained
             hydrogen orientations for water to be considered WCW.
             Defaults to 0.7.
-        xiFCW (list, optional): Xi value for OPTICS clustering for FCW. Don't
-            touch this unless you know what you are doing. Defaults to [0.03].
-        xiHCW (list, optional): Xi value for OPTICS clustering for HCW. Don't
+        xiFCW (tuple, optional): Xi value for OPTICS clustering for FCW. Don't
+            touch this unless you know what you are doing. Defaults to (0.03).
+        xiHCW (tuple, optional): Xi value for OPTICS clustering for HCW. Don't
             touch this unless you know what you are doing.
-            Defaults to [0.05, 0.01].
-        xiWCW (list, optional): Xi value for OPTICS clustering for WCW. Don't
+            Defaults to (0.05, 0.01).
+        xiWCW (tuple, optional): Xi value for OPTICS clustering for WCW. Don't
             touch this unless you know what you are doing.
-            Defaults to [0.05, 0.001].
+            Defaults to (0.05, 0.001).
         njobs (int, optional): how many cpu cores to use for clustering.
             Defaults to 1.
         verbose (int, optional): verbosity of output. Defaults to 0.
         debugH (int, optional): debug level for orientations. Defaults to 0.
         plotreach (bool, optional): weather to plot the reachability
             plot for OPTICS when debuging. Defaults to False.
-        which (list, optional): list of strings denoting which water types to
+        which (tuple, optional): tuple of strings denoting which water types to
             search for. Allowed is any combination of FCW (fully
             conserved waters), HCW (half conserved waters) and WCW
             (weakly conserved waters). Defaults to ["FCW", "HCW",
