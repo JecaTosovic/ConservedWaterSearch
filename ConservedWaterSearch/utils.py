@@ -24,9 +24,12 @@ def _check_mpl_installation():
     """Check if matplotlib is installed."""
     try:
         import matplotlib.pyplot as plt
-    except ModuleNotFoundError:
-        msg = "install matplotlib using conda install -c conda-forge matplotlib or pip install matplotlib"
-        raise Exception(msg)
+    except ModuleNotFoundError as err:
+        msg = (
+            "install matplotlib using conda install -c conda-forge"
+            "matplotlib or pip install matplotlib"
+        )
+        raise Exception(msg) from err
     return plt
 
 
@@ -59,13 +62,12 @@ def read_results(
     processing.
 
     Args:
-        fname str: File name of the file that contains
-            clustering results
+        fname (str): Name of the file containing results.
 
     Returns:
         tuple[ list[str], list[np.ndarray], list[np.ndarray], list[np.ndarray] ]:
         returns list of strings which represents water types, and arrays
-        of locations of oxygen and two hyrogens. If only oxygens were
+        of locations of oxygen and two hydrogens. If only oxygens were
         saved returned hydrogen coordinates are empty arrays
 
     Examples::
@@ -82,8 +84,8 @@ def read_results(
         waterO = []
         waterH1 = []
         waterH2 = []
-        for line in f:
-            line = line.split()
+        for line_read in f:
+            line = line_read.split()
             water_type.append(line[0])
             waterO.append(np.asarray([float(line[1]), float(line[2]), float(line[3])]))
             if len(line) == 10:
@@ -147,9 +149,8 @@ def get_orientations_from_positions(
         H1orientdata: np.ndarray = np.asarray(v1)
         H2orientdata: np.ndarray = np.asarray(v2)
         return Odata, H1orientdata, H2orientdata
-    else:
-        msg = "Hydrogen array of wrong length"
-        raise Exception(msg)
+    msg = "Hydrogen array of wrong length"
+    raise Exception(msg)
 
 
 def _make_protein_surface_with_ligand():
@@ -430,13 +431,13 @@ def visualise_pymol(
 
     Visualises results using pymol in a pymol session or saves to a file.
     On mac OS the interactive pymol session will fail to lunch. If `output_file`
-    is `None`, a visalisation state will be saved to
+    is `None`, a visualisation state will be saved to
     `pymol_water_visualization.pse` in this case on mac OS.
 
     Args:
         water_type (list): List containing water type results from
             water clustering.
-        waterO (list): Coordiantes of Oxygen atom in water molecules.
+        waterO (list): Coordinates of Oxygen atom in water molecules.
         waterH1 (list): Coordinates of Hydrogen1 atom in water molecules.
         waterH2 (list): Coordinates of Hydrogen2 atom in water molecules.
         aligned_protein (str | None, optional): file name containing protein
@@ -472,9 +473,8 @@ def visualise_pymol(
         # Read the results from files
         water_types, coord_O, coord_H1, coord_H2 = read_results(
             fname = "Clust_res.dat",
-            typefname = "Type_Clust_res.dat",
         )
-        visualis_pymol(
+        visualise_pymol(
             water_type = water_types,
             waterO = coord_O,
             waterH1 = coord_H1,
@@ -494,8 +494,13 @@ def visualise_pymol(
         import warnings
 
         warnings.warn(
-            "mac OS detected interactive pymol session cannot be lunched. Visualisation state will be saved to pymol_water_visualization.pse",
+            (
+                "mac OS detected interactive pymol session cannot be lunched."
+                " Visualisation state will be saved to "
+                "pymol_water_visualization.pse"
+            ),
             RuntimeWarning,
+            stacklevel=2,
         )
         output_file = "pymol_water_visualization.pse"
     from pymol import cmd
@@ -667,9 +672,9 @@ def _initialize_pymol(reinitialize: bool, finish: bool):
     try:
         import pymol
         from pymol import cmd
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as err:
         msg = "pymol not installed. Either install pymol or use nglview"
-        raise Exception(msg)
+        raise Exception(msg) from err
     if finish:
         pymol.finish_launching(["pymol", "-q"])
     if reinitialize:
@@ -686,9 +691,10 @@ def visualise_nglview(
     crystal_waters: str | None = None,
     density_map_file: str | None = None,
 ) -> NGLWidget:
-    """Creates `nglview <https://github.com/nglviewer/nglview>`__  visualisation widget for results.
+    """Creates a nglview visualisation widget for results.
 
-    Starts a nglview visualisation instance from clustering results.
+    Starts a `nglview <https://github.com/nglviewer/nglview>`__ visualisation 
+    instance from clustering results.
 
     Args:
         water_type (list): List containing water type results from
@@ -703,7 +709,7 @@ def visualise_nglview(
             as licorice. Defaults to None.
         crystal_waters (str | None, optional): PDBid from which crystal
             waters will attempted to be extracted. Defaults to None.
-        density_map (str | None, optional): Water density map to add to
+        density_map_file (str | None, optional): Water density map to add to
             visualisation session (usually .dx file). Defaults to None.
 
     Returns:
@@ -715,7 +721,6 @@ def visualise_nglview(
         # read results and visualise them using nglview
         water_types, coord_O, coord_H1, coord_H2 = read_results(
             fname = "Clust_res.dat",
-            typefname = "Type_Clust_res.dat",
         )
         view = visualise_nglview(
             water_type = water_types,
@@ -731,9 +736,9 @@ def visualise_nglview(
     """
     try:
         import nglview as ngl
-    except ModuleNotFoundError:
+    except ModuleNotFoundError as err:
         msg = "nglview not installed. Either install pymol or nglview"
-        raise Exception(msg)
+        raise Exception(msg) from err
 
     if aligned_protein is not None:
         view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
