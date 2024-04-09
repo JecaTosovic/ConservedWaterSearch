@@ -59,7 +59,7 @@ only using :code:`conda` or from source. PyMOL is not available via PyPI
 already installed in your current ``python`` environment it can be used
 with CWS. If not, the free (open-source) version can be installed from
 `conda-forge <https://conda-forge.org/>`_ via :code:`conda` (or
-:code:`mamba`): 
+:code:`mamba`):
 
 .. code:: bash
 
@@ -67,7 +67,7 @@ with CWS. If not, the free (open-source) version can be installed from
 
 and paid (licensed version) from schrodinger channel (see `here
 <https://PyMOL.org/conda/>`_ for more details) via :code:`conda` (or
-:code:`mamba`): 
+:code:`mamba`):
 
 .. code:: bash
 
@@ -76,7 +76,7 @@ and paid (licensed version) from schrodinger channel (see `here
 Matplotlib is only required for analyzing of clustering and is useful
 if default values of clustering parameters need to be fine-tuned (which
 should be relatively rarely). You can install it from :code:`pip` or :code:`conda` or
-when installing CWS through :code:`pip` by using :code:`pip install ConservedWaterSearch[matplotlib]`. 
+when installing CWS through :code:`pip` by using :code:`pip install ConservedWaterSearch[matplotlib]`.
 Both mpl and nglveiw can be installed when installing CWS by using:
 
 .. code:: bash

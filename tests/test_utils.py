@@ -3,19 +3,18 @@ import tempfile
 import nglview
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from ConservedWaterSearch.utils import (
+    _append_new_result,
     read_results,
     visualise_nglview,
     visualise_pymol,
-    _append_new_result,
 )
-
-import pytest
 
 
 @pytest.fixture(autouse=True)
-def pymol_skip():
+def _pymol_skip():
     pytest.importorskip("pymol")
 
 
@@ -26,7 +25,7 @@ def test_append_new_result():
         _append_new_result("FCW", [1, 2, 3], [4, 5, 6], [7, 8, 9], f.name)
 
         # Read the contents of the file
-        with open(f.name, "r") as file:
+        with open(f.name) as file:
             contents = file.read()
 
         # Check that the contents are as expected
@@ -37,7 +36,7 @@ def test_append_new_result():
         _append_new_result("HCW", [10, 11, 12], None, None, f.name)
 
         # Read the contents of the file again
-        with open(f.name, "r") as file:
+        with open(f.name) as file:
             contents = file.read()
 
         # Check that the contents are as expected
