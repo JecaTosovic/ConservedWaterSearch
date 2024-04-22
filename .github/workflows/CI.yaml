@@ -31,7 +31,7 @@ jobs:
       run: |
         PYTHON_VER=${{ matrix.python-version }}
         PYTHON_VER=${PYTHON_VER//./}  # Remove the dot from the Python version
-        if mamba search -c conda-forge pymol-open-source | grep -q "py${PYTHON_VER}"; then
+        if mamba search -c conda-forge pymol-open-source=3.0.0 | grep -q "py${PYTHON_VER}"; then
           mamba install -c conda-forge pymol-open-source=3.0.0
         fi
     - name: Install package
