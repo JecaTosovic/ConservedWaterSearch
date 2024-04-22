@@ -32,7 +32,7 @@ jobs:
         PYTHON_VER=${{ matrix.python-version }}
         PYTHON_VER=${PYTHON_VER//./}  # Remove the dot from the Python version
         if mamba search -c conda-forge pymol-open-source | grep -q "py${PYTHON_VER}"; then
-          mamba install -c conda-forge pymol-open-source=2.5.0
+          mamba install -c conda-forge pymol-open-source=3.0.0
         fi
     - name: Install package
       shell: bash -l {0}
