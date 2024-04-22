@@ -200,6 +200,21 @@ class WaterClustering:
                 ``output_file`` have to be provided for clustering
                 restarting. Defaults to None.
         """
+        if not isinstance(water_types_to_find, (tuple, list)):
+            if isinstance(water_types_to_find, str):
+                water_types_to_find = (water_types_to_find,)
+        if not isinstance(xis, (tuple, list)):
+            if isinstance(xis, float):
+                xis = tuple(xis)
+        if not isinstance(xiFCW, (tuple, list)):
+            if isinstance(xiFCW, float):
+                xiFCW = tuple(xiFCW)
+        if not isinstance(xiHCW, (tuple, list)):
+            if isinstance(xiHCW, float):
+                xiHCW = tuple(xiHCW)
+        if not isinstance(xiWCW, (tuple, list)):
+            if isinstance(xiWCW, float):
+                xiWCW = tuple(xiWCW)
         if nsnaps <= 0:
             msg = f"nsnaps must be positive {nsnaps}"
             raise Exception(msg)
@@ -1055,7 +1070,10 @@ class WaterClustering:
             raise Exception(msg)
         for i in self.water_types_to_find:
             if i not in ["FCW", "HCW", "WCW", "onlyO"]:
-                msg = "whichH supports onlyO or any combination of FCW, HCW and WCW"
+                msg = (
+                    "whichH supports onlyO or any combination of FCW, HCW and WCW"
+                    f" given option is invalid {i}"
+                )
                 raise Exception(msg)
         if "onlyO" in self.water_types_to_find and len(self.water_types_to_find) > 1:
             msg = "onlyO cannot be used with other water types"
