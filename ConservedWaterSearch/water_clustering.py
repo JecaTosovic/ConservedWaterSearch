@@ -513,10 +513,10 @@ class WaterClustering:
                 lines: list[str] = f.read().splitlines()
                 self.nsnaps = int(lines[0].strip())
                 self.clustering_algorithm = lines[1].strip(" ")
-                self.water_types_to_find = [i for i in lines[2].split(" ")]
+                self.water_types_to_find = tuple([i for i in lines[2].split(" ")])
                 self.restart_after_find = lines[3] == "True"
                 self.min_samples = [int(i) for i in lines[4].split(" ")]
-                self.xis = [float(i) for i in lines[5].split(" ")]
+                self.xis = tuple([float(i) for i in lines[5].split(" ")])
                 self.numbpct_oxygen = float(lines[6])
                 self.normalize_orientations = lines[7] == "True"
                 self.numbpct_hyd_orient_analysis = float(lines[8])
@@ -529,9 +529,9 @@ class WaterClustering:
                 self.halfcon_angstd_cutoff = float(lines[15])
                 self.weakly_angstd_cutoff = float(lines[16])
                 self.weakly_explained = float(lines[17])
-                self.xiFCW = [float(i) for i in lines[18].split(" ")]
-                self.xiHCW = [float(i) for i in lines[19].split(" ")]
-                self.xiWCW = [float(i) for i in lines[20].split(" ")]
+                self.xiFCW = tuple([float(i) for i in lines[18].split(" ")])
+                self.xiHCW = tuple([float(i) for i in lines[19].split(" ")])
+                self.xiWCW = tuple([float(i) for i in lines[20].split(" ")])
                 self.njobs = int(lines[21])
                 self.verbose = int(lines[22])
                 self.debugO = int(lines[23])
