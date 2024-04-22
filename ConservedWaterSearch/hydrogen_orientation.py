@@ -25,14 +25,14 @@ def hydrogen_orientation_analysis(
     HCW_angstd_cutoff: float = 17,
     WCW_angstd_cutoff: float = 20,
     weakly_explained: float = 0.7,
-    xiFCW: tuple[float]|list[float] = (0.03,),
-    xiHCW: tuple[float]|list[float] = (0.05, 0.01),
-    xiWCW: tuple[float]|list[float] = (0.05, 0.001),
+    xiFCW: tuple[float] | list[float] = (0.03,),
+    xiHCW: tuple[float] | list[float] = (0.05, 0.01),
+    xiWCW: tuple[float] | list[float] = (0.05, 0.001),
     njobs: int = 1,
     verbose: int = 0,
     debugH: int = 0,
     plotreach: bool = False,
-    which: tuple[str]|list[str] = ("FCW", "HCW", "WCW"),
+    which: tuple[str] | list[str] = ("FCW", "HCW", "WCW"),
     normalize_orientations: bool = True,
 ) -> list:
     """Determines if the water cluster is conserved and of what type.
@@ -66,13 +66,13 @@ def hydrogen_orientation_analysis(
             kmeans inertia (measure of spread of data in a cluster).
             Defaults to 0.4.
         FCW_angdiff_cutoff (float, optional): Maximum value of angle (in
-            deg) allowed for FCW in OPTICS/HDBSCAN clustering to be
+            deg) allowed for FCW in OPTICS clustering to be
             considered correct water angle. Defaults to 5.
         FCW_angstd_cutoff (float, optional): Maximal standard deviation
             of angle distribution of orientations of two hydrogens
             allowed for water to be considered FCW. Defaults to 17.
         min_samp_data_size_pct (float, optional): Minimum samples to
-            choose for OPTICS or HDBSCAN clustering as percentage of
+            choose for OPTICS clustering as percentage of
             number of water molecules considered for HCW and WCW.
             Defaults to 0.15.
         nonFCW_angdiff_cutoff (float, optional): Maximum standard
@@ -229,7 +229,7 @@ def find_fully_conserved_orientations(
             kmeans inertia (measure of spread of data in a cluster).
             Defaults to 0.4.
         angdiff_cutoff (float, optional): Maximum value of angle (in
-            deg) allowed for FCW in OPTICS/HDBSCAN clustering to be
+            deg) allowed for FCW in OPTICS clustering to be
             considered correct water angle. Defaults to 5.
         angstd_cutoff (float, optional): Maximal standard deviation
             of angle distribution of orientations of two hydrogens
@@ -431,7 +431,7 @@ def find_half_conserved_orientations(
         pct_size_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.85.
         min_samp_data_size_pct (float, optional): Minimum samples to
-            choose for OPTICS or HDBSCAN clustering as percentage of
+            choose for OPTICS clustering as percentage of
             number of water molecules considered for HCW and WCW.
             Defaults to 0.15.
         angdiff_cutoff (float, optional): Maximum standard
@@ -585,7 +585,7 @@ def find_weakly_conserved_orientations(
         lower_bound_pct_buffer (float, optional): Minimum allowed size of the
             hydrogen orientation cluster. Defaults to 0.35.
         min_samp_data_size_pct (float, optional): Minimum samples to
-            choose for OPTICS or HDBSCAN clustering as percentage of
+            choose for OPTICS clustering as percentage of
             number of water molecules considered for HCW and WCW.
             Defaults to 0.15.
         pct_explained (float, optional): percentage of explained

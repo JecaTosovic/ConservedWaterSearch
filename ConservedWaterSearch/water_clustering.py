@@ -65,10 +65,19 @@ class WaterClustering:
         self,
         nsnaps: int,
         clustering_algorithm: str = "OPTICS",
-        water_types_to_find: list[str] | None = None,
+        water_types_to_find: tuple[str] | list[str] = ("FCW", "HCW", "WCW"),
         restart_after_found: bool = False,
         min_samples: list[int] | None = None,
-        xis: list[float] | None = None,
+        xis: tuple[float] | list[float] = (
+            0.1,
+            0.05,
+            0.01,
+            0.005,
+            0.001,
+            0.0005,
+            0.0001,
+            1e-05,
+        ),
         numbpct_oxygen: float = 0.8,
         normalize_orientations: bool = True,
         numbpct_hyd_orient_analysis: float = 0.85,
@@ -81,9 +90,9 @@ class WaterClustering:
         HCW_angstd_cutoff: float = 17,
         WCW_angstd_cutoff: float = 20,
         weakly_explained: float = 0.7,
-        xiFCW: list[float] | None = None,
-        xiHCW: list[float] | None = None,
-        xiWCW: list[float] | None = None,
+        xiFCW: tuple[float] | list[float] = (0.03,),
+        xiHCW: tuple[float] | list[float] = (0.05, 0.01),
+        xiWCW: tuple[float] | list[float] = (0.05, 0.001),
         njobs: int = 1,
         verbose: int = 0,
         debugO: int = 0,
@@ -104,24 +113,24 @@ class WaterClustering:
             clustering_algorithm (str, optional): Options are "OPTICS"
                 or "HDBSCAN". OPTICS provides slightly better results,
                 but is also slightly slower. Defaults to "OPTICS".
-            water_types_to_find (list[str], optional): Defines which
+            water_types_to_find (tuple[str], optional): Defines which
                 water types to search for. Any combination of "FCW",
                 "HWC" and "WCW" is allowed, or "onlyO" for oxygen
-                clustering only. Defaults to ["FCW", "HCW", "WCW"].
+                clustering only. Defaults to ("FCW", "HCW", "WCW").
             restart_after_found (bool, optional): If ``True`` restarts
                 clustering after each water is found. ``False`` will
-                give the quick version of multi-stage reculstering
+                give the quick version of multi-stage reclustering
                 approach. Defaults to False.
             min_samples (list[int], optional): List of minimum samples
                 for OPTICS or HDBSCAN. If ``None`` following range is
                 used ``[int(0.25 * nsnaps), nsnaps]`` is used. For single
                 clustering users should provide a single integer between
                 0 and ``nsnaps`` in a list. Defaults to None.
-            xis (list[float], optional): List of xis for OPTICS
+            xis (tuple[float], optional): List or tuple of xis for OPTICS
                 clustering. This is ignored for HDBSCAN. Defaults to
-                [ 0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001,
-                0.00001]. For single clustering users should provide a
-                single float between 0 and 1 in a list.
+                (0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001,
+                0.00001). For single clustering, users should provide a
+                single float between 0 and 1 in a list/tuple.
             numbpct_oxygen (float, optional): Percentage of
                 ``nsnaps`` required for oxygen cluster to be considered
                 valid and water conserved. The check is enforced on
@@ -161,15 +170,15 @@ class WaterClustering:
             weakly_explained (float, optional): percentage of explained
                 hydrogen orientations for water to be considered WCW.
                 Defaults to 0.7.
-            xiFCW (list, optional): Xi value for OPTICS clustering for
-                FCW. Don't touch this unless you know what you are
-                doing. Defaults to [0.03].
-            xiHCW (list, optional): Xi value for OPTICS clustering for
-                HCW. Don't touch this unless you know what you are doing.
-                Defaults to [0.05, 0.01].
-            xiWCW (list, optional): Xi value for OPTICS clustering for
-                WCW. Don't touch this unless you know what you are doing.
-                Defaults to [0.05, 0.001].
+            xiFCW (tuple[float], optional): Xi value for hydrogen clustering of
+                FCWs for OPTICS algorithm. Avoid changing the defaults if
+                possible. Defaults to (0.03,).
+            xiHCW (tuple[float], optional): Xi value for OPTICS clustering for
+                HCW. Avoid changing the defaults if possible.
+                Defaults to (0.05, 0.01).
+            xiWCW (tuple[float], optional): Xi value for OPTICS clustering for
+                WCW. Avoid changing the defaults if possible.
+                Defaults to (0.05, 0.001).
             njobs (int, optional): how many cpu cores to use for clustering.
                 Defaults to 1.
             verbose (int, optional): verbosity of output. Defaults to 0.
@@ -191,16 +200,6 @@ class WaterClustering:
                 ``output_file`` have to be provided for clustering
                 restarting. Defaults to None.
         """
-        if xiWCW is None:
-            xiWCW = [0.05, 0.001]
-        if xiHCW is None:
-            xiHCW = [0.05, 0.01]
-        if xiFCW is None:
-            xiFCW = [0.03]
-        if water_types_to_find is None:
-            water_types_to_find = ["FCW", "HCW", "WCW"]
-        if xis is None:
-            xis = [0.1, 0.05, 0.01, 0.005, 0.001, 0.0005, 0.0001, 1e-05]
         if nsnaps <= 0:
             msg = f"nsnaps must be positive {nsnaps}"
             raise Exception(msg)
