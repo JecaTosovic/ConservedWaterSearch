@@ -23,4 +23,3 @@ For citations, the following BibTeX entry can be used:
     doi = {10.1021/acs.jcim.2c00801},
     URL = {https://doi.org/10.1021/acs.jcim.2c00801},
     }
-
