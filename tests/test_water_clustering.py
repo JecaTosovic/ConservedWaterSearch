@@ -128,7 +128,7 @@ def test_save_clustering_options():
 
 def test_create_from_file():
     ca = "OPTICS"
-    whichH = ("onlyO")
+    whichH = "onlyO"
     wc = WaterClustering(10, clustering_algorithm=ca, water_types_to_find=whichH)
     with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
         wc._save_clustering_options(f.name)
