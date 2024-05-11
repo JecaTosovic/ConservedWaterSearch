@@ -12,12 +12,6 @@ def orientations_not_normalized():
     return np.asarray([[1, 0, 0], [-0.25038, 0.96814764, 0]])
 
 
-@pytest.fixture()
-def load_orientations(request):
-    path = f"tests/data/{request.param}"
-    return np.loadtxt(path)
-
-
 @pytest.fixture(
     params=[
         "tests/data/conserved_sample_FCW.dat",
