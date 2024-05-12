@@ -18,94 +18,89 @@ def _pymol_skip():
     pytest.importorskip("pymol")
 
 
-def test_append_new_result():
-    # Create a temporary file using with for writing and reading
+@pytest.mark.parametrize(
+    ("water_type", "waterO", "waterH1", "waterH2", "expected"),
+    [
+        ("FCW", [1, 2, 3], [4, 5, 6], [7, 8, 9], "FCW 1 2 3 4 5 6 7 8 9\n"),
+        ("HCW", [10, 11, 12], None, None, "HCW 10 11 12\n"),
+    ],
+)
+def test_append_new_result(water_type, waterO, waterH1, waterH2, expected):
     with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
-        # Call the function with some test data
-        _append_new_result("FCW", [1, 2, 3], [4, 5, 6], [7, 8, 9], f.name)
+        _append_new_result(water_type, waterO, waterH1, waterH2, f.name)
 
-        # Read the contents of the file
-        with open(f.name) as file:
-            contents = file.read()
+        # Ensure file pointer is at the beginning
+        f.seek(0)
+        contents = f.read()
 
-        # Check that the contents are as expected
-        expected = "FCW 1 2 3 4 5 6 7 8 9\n"
         assert contents == expected
 
-        # Call the function again with different test data
+
+def test_append_multiple_results():
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
+        # First append
+        _append_new_result("FCW", [1, 2, 3], [4, 5, 6], [7, 8, 9], f.name)
+        # Second append
         _append_new_result("HCW", [10, 11, 12], None, None, f.name)
 
-        # Read the contents of the file again
-        with open(f.name) as file:
-            contents = file.read()
-
-        # Check that the contents are as expected
-        expected += "HCW 10 11 12\n"
+        # Ensure file pointer is at the beginning
+        f.seek(0)
+        contents = f.read()
+        expected = "FCW 1 2 3 4 5 6 7 8 9\nHCW 10 11 12\n"
         assert contents == expected
 
 
-def test_read_results_with_hydrogens():
-    water_type, waterO, waterH1, waterH2 = read_results(
-        "tests/data/merged_new_clustering_results.dat",
-    )
+# Fixture for reading results from different files
+@pytest.fixture(
+    params=[
+        {
+            "filename": "tests/data/merged_new_clustering_results.dat",
+            "has_hydrogens": True,
+        },
+        {
+            "filename": "tests/data/merged_new_clustering_results_noH.dat",
+            "has_hydrogens": False,
+        },
+    ]
+)
+def water_results(request):
+    # Read results from the specified file
+    water_type, waterO, waterH1, waterH2 = read_results(request.param["filename"])
+    return water_type, waterO, waterH1, waterH2, request.param["has_hydrogens"]
+
+
+# Parametrized test to handle both scenarios
+def test_read_results(water_results):
+    water_type, waterO, waterH1, waterH2, has_hydrogens = water_results
     assert len(water_type) == 20
     assert len(waterO) == 20
     assert len(waterH1) == 20
     assert len(waterH2) == 20
-    assert water_type[0] == "FCW"
-    npt.assert_allclose(
-        waterO[0],
-        np.array(
-            [
-                -8.498636033210043905e00,
-                -8.528824215611816584e00,
-                -8.558124911970363513e00,
-            ]
-        ),
-    )
-    npt.assert_allclose(
-        waterH1[0],
-        np.array(
-            [
-                -8.612760033927649772e00,
-                -8.398256579537193289e00,
-                -9.542974039943826980e00,
-            ]
-        ),
-    )
-    npt.assert_allclose(
-        waterH2[0],
-        np.array(
-            [
-                -7.847825970288877961e00,
-                -7.856730538101417416e00,
-                -8.204944574676375169e00,
-            ]
-        ),
-    )
 
+    # Expected first type based on whether the dataset includes hydrogens
+    expected_first_type = "FCW" if has_hydrogens else "O_clust"
+    assert water_type[0] == expected_first_type
 
-def test_read_results_without_hydrogens():
-    water_type, waterO, waterH1, waterH2 = read_results(
-        "tests/data/merged_new_clustering_results_noH.dat",
+    # Expected coordinates of waterO
+    expected_waterO = np.array(
+        [-8.498636033210043905, -8.528824215611816584, -8.558124911970363513]
     )
-    assert len(water_type) == 20
-    assert len(waterO) == 20
-    assert len(waterH1) == 20
-    assert len(waterH2) == 20
-    assert water_type[0] == "O_clust"
-    npt.assert_allclose(
-        waterO[0],
-        np.array(
-            [
-                -8.498636033210043905e00,
-                -8.528824215611816584e00,
-                -8.558124911970363513e00,
-            ]
-        ),
-    )
-    assert waterH1[0] == []
-    assert waterH2[0] == []
+    npt.assert_allclose(waterO[0], expected_waterO, atol=1e-6)
+
+    if has_hydrogens:
+        # Expected coordinates for waterH1 and waterH2 if hydrogens are present
+        expected_waterH1 = np.array(
+            [-8.612760033927649772, -8.398256579537193289, -9.542974039943826980]
+        )
+        expected_waterH2 = np.array(
+            [-7.847825970288877961, -7.856730538101417416, -8.204944574676375169]
+        )
+        npt.assert_allclose(waterH1[0], expected_waterH1, atol=1e-6)
+        npt.assert_allclose(waterH2[0], expected_waterH2, atol=1e-6)
+    else:
+        # Ensure waterH1 and waterH2 are empty if hydrogens are not present
+        assert waterH1[0] == []
+        assert waterH2[0] == []
 
 
 def test_visualise_pymol():
@@ -142,32 +137,19 @@ def test_visualise_pymol2():
         )
 
 
-def test_visualise_pymol3():
+# Visualise pymol tests
+@pytest.mark.parametrize(
+    ("output_file", "align_file"),
+    [
+        ("tests/data/merged_new_clustering_results.dat", None),
+        ("tests/data/merged_new_clustering_results.dat", "tests/data/aligned.pdb"),
+        ("tests/data/merged_new_clustering_results_noH.dat", "tests/data/aligned.pdb"),
+    ],
+)
+def test_visualise_pymol_with_align_protein(output_file, align_file):
     visualise_pymol(
-        *read_results(
-            "tests/data/merged_new_clustering_results.dat",
-        ),
-        aligned_protein=None,
-        lunch_pymol=False,
-    )
-
-
-def test_visualise_pymol4():
-    visualise_pymol(
-        *read_results(
-            "tests/data/merged_new_clustering_results.dat",
-        ),
-        aligned_protein="tests/data/aligned.pdb",
-        lunch_pymol=False,
-    )
-
-
-def test_visualise_pymol5():
-    visualise_pymol(
-        *read_results(
-            "tests/data/merged_new_clustering_results_noH.dat",
-        ),
-        aligned_protein="tests/data/aligned.pdb",
+        *read_results(output_file),
+        aligned_protein=align_file,
         lunch_pymol=False,
     )
 
@@ -180,4 +162,4 @@ def test_visualise_nglview():
         aligned_protein=None,
         crystal_waters="3T74",
     )
-    assert type(vv) is nglview.NGLWidget
+    assert isinstance(vv, nglview.NGLWidget)
