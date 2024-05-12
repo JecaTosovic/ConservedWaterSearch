@@ -13,11 +13,6 @@ from ConservedWaterSearch.utils import (
 )
 
 
-@pytest.fixture(autouse=True)
-def _pymol_skip():
-    pytest.importorskip("pymol")
-
-
 @pytest.mark.parametrize(
     ("water_type", "waterO", "waterH1", "waterH2", "expected"),
     [
