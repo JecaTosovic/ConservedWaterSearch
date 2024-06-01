@@ -1,4 +1,4 @@
-matplotlib==3.8.4
+matplotlib==3.9.0
 nglview==3.1.2
 numpy==1.26.4
-scikit-learn==1.4.2
+scikit-learn==1.5.0
