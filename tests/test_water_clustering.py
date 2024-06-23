@@ -12,66 +12,24 @@ from ConservedWaterSearch.utils import (
 from ConservedWaterSearch.water_clustering import WaterClustering
 
 
-def test_save_results_water_types():
+def test_save_results(water_clustering_setup):
+    wc, onlyO = water_clustering_setup
     with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
-        wc = WaterClustering(10)
-        wc._waterO.append(np.asarray([0.0, 0.0, 0.0]))
-        wc._waterO.append(np.asarray([0.0, 2.0, 0.0]))
-        wc._waterH1.append(np.asarray([1.0, 0.0, 0.0]))
-        wc._waterH1.append(np.asarray([0.0, 0.8, 0.5]))
-        wc._waterH2.append(np.asarray([2.5, 2.0, 2.8]))
-        wc._waterH2.append(np.asarray([0.0, 3.0, 0.0]))
-        wc._water_type.append("FCW")
-        wc._water_type.append("HCW")
         wc.save_results(f.name)
         a, b, c, d = read_results(f.name)
-        for i, j in zip(a, wc.water_type):
-            assert i == j
-        for i, j in zip(b, wc.waterO):
-            npt.assert_allclose(i, j)
-        for i, j in zip(c, wc.waterH1):
-            npt.assert_allclose(i, j)
-        for i, j in zip(d, wc.waterH2):
-            npt.assert_allclose(i, j)
 
-
-def test_save_results_onlyO():
-    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
-        wc = WaterClustering(10)
-        wc._waterO.append(np.asarray([0.0, 0.0, 0.0]))
-        wc._waterO.append(np.asarray([0.0, 2.0, 0.0]))
-        wc._water_type.append("O_clust")
-        wc._water_type.append("O_clust")
-        wc.save_results(f.name)
-        a, b, _, _ = read_results(f.name)
+        # Assertions for both scenarios
         for i, j in zip(a, wc.water_type):
             assert i == j
         for i, j in zip(b, wc.waterO):
             npt.assert_allclose(i, j)
 
-
-def test_delete_data_onlyO():
-    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as dat:
-        with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res:
-            wc = WaterClustering(10, output_file=res, restart_data_file=dat)
-            Odata = np.asarray([[0.1, 0.1, 0.1], [1.5, 1.6, 1.7], [1.9, 5.8, 5.6]])
-            Onew, _, _ = wc._delete_data([0, 2], Odata=Odata)
-            npt.assert_allclose(Onew[0], Odata[1])
-            assert os.path.isfile(dat.name)
-
-
-def test_delete_data_all_waters():
-    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as dat:
-        with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res:
-            wc = WaterClustering(10, output_file=res, restart_data_file=dat)
-            Odata = np.asarray([[0.1, 0.1, 0.1], [1.5, 1.6, 1.7], [1.9, 5.8, 5.6]])
-            H1 = np.asarray([[0.8, 0.5, 0.8], [1.4, 0.6, 3.7], [3.9, 5.1, 5.9]])
-            H2 = np.asarray([[0.4, 0.7, 0.1], [1.7, 3.6, 2.7], [1.8, 3.8, 5.1]])
-            Onew, H1new, H2new = wc._delete_data([1, 2], Odata, H1, H2)
-            npt.assert_allclose(Onew[0], Odata[0])
-            npt.assert_allclose(H1new[0], H1[0])
-            npt.assert_allclose(H2new[0], H2[0])
-            assert os.path.isfile(dat.name)
+        if not onlyO:
+            # Additional assertions for hydrogen presence
+            for i, j in zip(c, wc.waterH1):
+                npt.assert_allclose(i, j)
+            for i, j in zip(d, wc.waterH2):
+                npt.assert_allclose(i, j)
 
 
 def test_delete_data_not_restart():
@@ -82,6 +40,22 @@ def test_delete_data_not_restart():
         H2 = np.asarray([[0.4, 0.7, 0.1], [1.7, 3.6, 2.7], [1.8, 3.8, 5.1]])
         _, _, _ = wc._delete_data([1, 2], Odata, H1, H2)
         assert os.path.isfile(dat.name)
+
+
+def test_delete_data_onlyO(water_clustering_setup_for_deletion):
+    wc, dat_name, Odata, _, _ = water_clustering_setup_for_deletion
+    Onew, _, _ = wc._delete_data([0, 2], Odata=Odata)
+    npt.assert_allclose(Onew, np.asarray([Odata[1]]))
+    assert os.path.isfile(dat_name)
+
+
+def test_delete_data_all_waters(water_clustering_setup_for_deletion):
+    wc, dat_name, Odata, H1, H2 = water_clustering_setup_for_deletion
+    Onew, H1new, H2new = wc._delete_data([1, 2], Odata, H1, H2)
+    npt.assert_allclose(Onew, np.asarray([Odata[0]]))
+    npt.assert_allclose(H1new, np.asarray([H1[0]]))
+    npt.assert_allclose(H2new, np.asarray([H2[0]]))
+    assert os.path.isfile(dat_name)
 
 
 def test_save_clustering_options():
@@ -203,145 +177,95 @@ def test_restart_cluster_and_create_class_from_file():
     )
 
 
-def test_single_clustering_OPTICS():
-    Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
-    wc = WaterClustering(Nsnap)
-    wc.single_clustering(*get_orientations_from_positions(Opos, Hpos))
-    a, b, c, d = read_results("tests/data/Single_OPTICS.dat")
-    npt.assert_allclose(b, wc.waterO)
-    npt.assert_allclose(c, wc.waterH1)
-    npt.assert_allclose(d, wc.waterH2)
+def sort_data_by_x(data):
+    data = np.asarray(data)
+    return data[data[:, 0].argsort()]
+
+
+def compare_results(wc, result_file, tol=1e-4):
+    a, b, c, d = read_results(result_file)
     assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
+    npt.assert_allclose(sort_data_by_x(b), sort_data_by_x(wc.waterO), atol=tol)
+    npt.assert_allclose(sort_data_by_x(c), sort_data_by_x(wc.waterH1), atol=tol)
+    npt.assert_allclose(sort_data_by_x(d), sort_data_by_x(wc.waterH2), atol=tol)
 
 
-def test_single_clustering_HDBSCAN():
+@pytest.mark.parametrize(
+    ("clustering_func", "algorithm", "result_file", "tol"),
+    [
+        ("single_clustering", None, "tests/data/Single_OPTICS.dat", 1e-4),
+        ("single_clustering", "HDBSCAN", "tests/data/Single_HDBSCAN.dat", 1e-4),
+        ("multi_stage_reclustering", None, "tests/data/MSR_OPTICS.dat", 1e-4),
+        ("multi_stage_reclustering", "HDBSCAN", "tests/data/MSR_HDBSCAN.dat", 1e-1),
+        ("quick_multi_stage_reclustering", None, "tests/data/MSR_OPTICS.dat", 1e-4),
+        (
+            "quick_multi_stage_reclustering",
+            "HDBSCAN",
+            "tests/data/MSR_HDBSCAN.dat",
+            1e-1,
+        ),
+    ],
+)
+def test_clustering_methods(
+    water_clustering_data, clustering_func, algorithm, result_file, tol
+):
     Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
+    Opos, Hpos = water_clustering_data
     wc = WaterClustering(Nsnap)
-    wc.single_clustering(
-        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
-    )
-    a, b, c, d = read_results("tests/data/Single_HDBSCAN.dat")
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
-    # sort wc.waterO according to b
-    # b is xyz coordinates of water Oxygen. Sort them according to x
-    b = np.asarray(b)
-    b = b[b[:, 0].argsort()]
-    c = np.asarray(c)
-    c = c[c[:, 0].argsort()]
-    d = np.asarray(d)
-    d = d[d[:, 0].argsort()]
-    # now dothe same for water
-    b1 = np.asarray(wc.waterO)
-    b1 = b1[b1[:, 0].argsort()]
-    c1 = np.asarray(wc.waterH1)
-    c1 = c1[c1[:, 0].argsort()]
-    d1 = np.asarray(wc.waterH2)
-    d1 = d1[d1[:, 0].argsort()]
-    npt.assert_allclose(b, b1)
-    npt.assert_allclose(c, c1)
-    npt.assert_allclose(d, d1)
+    func = getattr(wc, clustering_func)
+    if algorithm:
+        func(
+            *get_orientations_from_positions(Opos, Hpos), clustering_algorithm=algorithm
+        )
+    else:
+        func(*get_orientations_from_positions(Opos, Hpos))
+    compare_results(wc, result_file, tol)
 
 
-def test_multistage_reclustering_OPTICS():
-    Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
+QMSRC_HDBSCAN_results_file = "tests/data/Clustering_results_HDBSCAN_QMSRC.dat"
+
+
+@pytest.mark.parametrize(
+    ("clustering_func", "algorithm", "result_file", "tol"),
+    [
+        ("single_clustering", "OPTICS", "SC", 1e-4),
+        ("single_clustering", "HDBSCAN", "SC", 1e-4),
+        ("multi_stage_reclustering", "OPTICS", "MSRC", 1e-4),
+        ("multi_stage_reclustering", "HDBSCAN", "MSRC", 1e-4),
+        ("quick_multi_stage_reclustering", "OPTICS", "QMSRC", 1e-4),
+        ("quick_multi_stage_reclustering", "HDBSCAN", "QMSRC", 1e-4),
+    ],
+)
+def test_from_files_input_clustering(clustering_func, algorithm, result_file, tol):
+    Nsnap = 10
+    data = np.loadtxt("tests/data/CWS_input_3T73.dat")
+    O_coords = data[:, :3]
+    H1 = data[:, 3:6]
+    H2 = data[:, 6:9]
     wc = WaterClustering(Nsnap)
-    wc.multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
-    a, b, c, d = read_results("tests/data/MSR_OPTICS.dat")
-    npt.assert_allclose(b, wc.waterO)
-    npt.assert_allclose(c, wc.waterH1)
-    npt.assert_allclose(d, wc.waterH2)
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
+    # make temporary result file name but dont create it
+    temp_file_output_results = tempfile.NamedTemporaryFile(mode="w+", delete=True).name
+    func = getattr(wc, clustering_func)
+    func(O_coords, H1, H2, clustering_algorithm=algorithm)
+    wc.save_results(temp_file_output_results)
+    solution = f"tests/data/Clustering_results_{algorithm}_{result_file}.dat"
 
-
-def test_multistage_reclustering_HDBSCAN():
-    Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
-    wc = WaterClustering(Nsnap)
-    wc.multi_stage_reclustering(
-        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
-    )
-    a, b, c, d = read_results("tests/data/MSR_HDBSCAN.dat")
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
-    tol = 1e-1
-    # b is xyz coordinates of water Oxygen. Sort them according to x
-    b = np.asarray(b)
-    b = b[b[:, 0].argsort()]
-    c = np.asarray(c)
-    c = c[c[:, 0].argsort()]
-    d = np.asarray(d)
-    d = d[d[:, 0].argsort()]
-    # now dothe same for water
-    b1 = np.asarray(wc.waterO)
-    b1 = b1[b1[:, 0].argsort()]
-    c1 = np.asarray(wc.waterH1)
-    c1 = c1[c1[:, 0].argsort()]
-    d1 = np.asarray(wc.waterH2)
-    d1 = d1[d1[:, 0].argsort()]
-    npt.assert_allclose(b, b1, atol=tol)
-    npt.assert_allclose(c, c1, atol=tol)
-    npt.assert_allclose(d, d1, atol=tol)
-
-
-def test_quick_multistage_reclustering_OPTICS():
-    Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
-    wc = WaterClustering(Nsnap)
-    wc.quick_multi_stage_reclustering(*get_orientations_from_positions(Opos, Hpos))
-    a, b, c, d = read_results("tests/data/MSR_OPTICS.dat")
-    tol = 1e-4
-    # b is xyz coordinates of water Oxygen. Sort them according to x
-    b = np.asarray(b)
-    b = b[b[:, 0].argsort()]
-    c = np.asarray(c)
-    c = c[c[:, 0].argsort()]
-    d = np.asarray(d)
-    d = d[d[:, 0].argsort()]
-    # now do the same for water
-    b1 = np.asarray(wc.waterO)
-    b1 = b1[b1[:, 0].argsort()]
-    c1 = np.asarray(wc.waterH1)
-    c1 = c1[c1[:, 0].argsort()]
-    d1 = np.asarray(wc.waterH2)
-    d1 = d1[d1[:, 0].argsort()]
-    npt.assert_allclose(b, b1, atol=tol)
-    npt.assert_allclose(c, c1, atol=tol)
-    npt.assert_allclose(d, d1, atol=tol)
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
-
-
-def test_quick_multistage_reclustering_HDBSCAN():
-    Nsnap = 20
-    Opos = np.loadtxt("tests/data/testdataO.dat")
-    Hpos = np.loadtxt("tests/data/testdataH.dat")
-    wc = WaterClustering(Nsnap)
-    wc.quick_multi_stage_reclustering(
-        *get_orientations_from_positions(Opos, Hpos), clustering_algorithm="HDBSCAN"
-    )
-    a, b, c, d = read_results("tests/data/MSR_HDBSCAN.dat")
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
-    tol = 1e-1
-    # b is xyz coordinates of water Oxygen. Sort them according to x
-    b = np.asarray(b)
-    b = b[b[:, 0].argsort()]
-    c = np.asarray(c)
-    c = c[c[:, 0].argsort()]
-    d = np.asarray(d)
-    d = d[d[:, 0].argsort()]
-    # now do the same for water
-    b1 = np.asarray(wc.waterO)
-    b1 = b1[b1[:, 0].argsort()]
-    c1 = np.asarray(wc.waterH1)
-    c1 = c1[c1[:, 0].argsort()]
-    d1 = np.asarray(wc.waterH2)
-    d1 = d1[d1[:, 0].argsort()]
-    npt.assert_allclose(b, b1, atol=tol)
-    npt.assert_allclose(c, c1, atol=tol)
-    npt.assert_allclose(d, d1, atol=tol)
+    # Check if the temp file is the same as original files
+    with open(temp_file_output_results) as f1, open(solution) as f2:
+        data1 = f1.read().split("\n")
+        data2 = f2.read().split("\n")
+        assert len(data1) == len(data2)
+        for l1, l2 in zip(data1[27:], data2[27:]):
+            computed_l1 = l1.strip().split()
+            original_l2 = l2.strip().split()
+            if len(computed_l1) == 0 and len(original_l2) == 0:
+                continue
+            # first element is STRING  - compare these
+            assert computed_l1[0] == original_l2[0]
+            # rest are floats
+            npt.assert_allclose(
+                list(map(float, computed_l1[1:])),
+                list(map(float, original_l2[1:])),
+                rtol=1e-5,
+                atol=1e-5,
+            )
