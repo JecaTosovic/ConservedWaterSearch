@@ -37,7 +37,7 @@ def water_data(request):
     return np.loadtxt(request.param), request.param.split("/")[-1].split(".")[0]
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def _pymol_skip():
     pytest.importorskip("pymol")
 
