@@ -98,6 +98,7 @@ def test_read_results(water_results):
         assert waterH2[0] == []
 
 
+@pytest.mark.usefixtures("_pymol_skip")
 def test_visualise_pymol():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pse", delete=True) as f:
@@ -117,6 +118,7 @@ def test_visualise_pymol():
         )
 
 
+@pytest.mark.usefixtures("_pymol_skip")
 def test_visualise_pymol2():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pdb", delete=True) as f:
@@ -133,6 +135,7 @@ def test_visualise_pymol2():
 
 
 # Visualise pymol tests
+@pytest.mark.usefixtures("_pymol_skip")
 @pytest.mark.parametrize(
     ("output_file", "align_file"),
     [

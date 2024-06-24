@@ -1,5 +1,4 @@
-"""Unit and regression test for the ConservedWaterSearch package.
-"""
+"""Unit and regression test for the ConservedWaterSearch package."""
 
 # Import package, test suite, and other packages as needed
 import numpy as np
