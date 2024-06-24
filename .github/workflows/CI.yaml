@@ -20,7 +20,6 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
-        environment-file: .github/workflows/envs/environment.yml
         channels: conda-forge
         activate-environment: test
         show-channel-urls: true
@@ -29,10 +28,13 @@ jobs:
     - name: Check and Conditionally Install PyMOL
       shell: bash -l {0}
       run: |
+        PYMOL_VER=3.0.0
         PYTHON_VER=${{ matrix.python-version }}
         PYTHON_VER=${PYTHON_VER//./}  # Remove the dot from the Python version
-        if mamba search -c conda-forge pymol-open-source=3.0.0 | grep -q "py${PYTHON_VER}"; then
-          mamba install -c conda-forge pymol-open-source=3.0.0
+        if mamba search -c conda-forge pymol-open-source==${PYMOL_VER} | grep -q "py${PYTHON_VER}"; then
+           mamba install -c conda-forge pymol-open-source==${PYMOL_VER} --file requirements/requirements-test.txt
+        else
+           mamba install -c conda-forge --file requirements/requirements-test.txt
         fi
     - name: Install package
       shell: bash -l {0}
@@ -42,5 +44,4 @@ jobs:
       shell: bash -l {0}
       run: |
         which python
-        python -m pip install pytest
-        pytest
+        python -m pytest
