@@ -98,7 +98,8 @@ def test_read_results(water_results):
         assert waterH2[0] == []
 
 
-def test_visualise_pymol(_pymol_skip):
+@pytest.mark.usefixtures("_pymol_skip")
+def test_visualise_pymol():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pse", delete=True) as f:
         tip_res, resO, resH1, resH2 = read_results(
@@ -117,7 +118,8 @@ def test_visualise_pymol(_pymol_skip):
         )
 
 
-def test_visualise_pymol2(_pymol_skip):
+@pytest.mark.usefixtures("_pymol_skip")
+def test_visualise_pymol2():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pdb", delete=True) as f:
         visualise_pymol(
@@ -133,6 +135,7 @@ def test_visualise_pymol2(_pymol_skip):
 
 
 # Visualise pymol tests
+@pytest.mark.usefixtures("_pymol_skip")
 @pytest.mark.parametrize(
     ("output_file", "align_file"),
     [
@@ -141,7 +144,7 @@ def test_visualise_pymol2(_pymol_skip):
         ("tests/data/merged_new_clustering_results_noH.dat", "tests/data/aligned.pdb"),
     ],
 )
-def test_visualise_pymol_with_align_protein(output_file, align_file, _pymol_skip):
+def test_visualise_pymol_with_align_protein(output_file, align_file):
     visualise_pymol(
         *read_results(output_file),
         aligned_protein=align_file,
