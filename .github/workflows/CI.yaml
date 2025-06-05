@@ -20,11 +20,11 @@ jobs:
       uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ matrix.python-version }}
+        mamba-version: "*"
         channels: conda-forge
+        channel-priority: true
         activate-environment: test
         show-channel-urls: true
-        miniforge-variant: Mambaforge
-        use-mamba: true
     - name: Check and Conditionally Install PyMOL
       shell: bash -l {0}
       run: |
@@ -39,7 +39,7 @@ jobs:
     - name: Install package
       shell: bash -l {0}
       run: |
-        pip install -e .
+        pip install .
     - name: Test with pytest
       shell: bash -l {0}
       run: |
