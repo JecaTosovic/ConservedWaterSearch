@@ -45,5 +45,3 @@ jobs:
       run: |
         which python
         python -m pytest
-
-        name: PUSH
