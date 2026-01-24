@@ -11,6 +11,26 @@ from ConservedWaterSearch.utils import (
     visualise_nglview,
     visualise_pymol,
 )
+from ConservedWaterSearch.water_clustering import WaterClustering
+
+
+def _write_sample_results_file(path, with_hydrogens=True):
+    wc = WaterClustering(10, water_types_to_find=["FCW"] if with_hydrogens else ["onlyO"])
+    wc._water_type = ["FCW", "HCW"] if with_hydrogens else ["O_clust", "O_clust"]
+    wc._waterO = [
+        np.asarray([0.0, 0.0, 0.0]),
+        np.asarray([1.0, 1.0, 1.0]),
+    ]
+    if with_hydrogens:
+        wc._waterH1 = [
+            np.asarray([1.0, 0.0, 0.0]),
+            np.asarray([1.0, 1.1, 1.0]),
+        ]
+        wc._waterH2 = [
+            np.asarray([0.0, 1.0, 0.0]),
+            np.asarray([1.0, 1.0, 1.1]),
+        ]
+    wc.save_results(path)
 
 
 @pytest.mark.parametrize(
@@ -46,50 +66,34 @@ def test_append_multiple_results():
 
 
 # Fixture for reading results from different files
-@pytest.fixture(
-    params=[
-        {
-            "filename": "tests/data/merged_new_clustering_results.dat",
-            "has_hydrogens": True,
-        },
-        {
-            "filename": "tests/data/merged_new_clustering_results_noH.dat",
-            "has_hydrogens": False,
-        },
-    ]
-)
+@pytest.fixture(params=[True, False])
 def water_results(request):
-    # Read results from the specified file
-    water_type, waterO, waterH1, waterH2 = read_results(request.param["filename"])
-    return water_type, waterO, waterH1, waterH2, request.param["has_hydrogens"]
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as f:
+        _write_sample_results_file(f.name, with_hydrogens=request.param)
+        water_type, waterO, waterH1, waterH2 = read_results(f.name)
+    return water_type, waterO, waterH1, waterH2, request.param
 
 
 # Parametrized test to handle both scenarios
 def test_read_results(water_results):
     water_type, waterO, waterH1, waterH2, has_hydrogens = water_results
-    assert len(water_type) == 20
-    assert len(waterO) == 20
-    assert len(waterH1) == 20
-    assert len(waterH2) == 20
+    assert len(water_type) == 2
+    assert len(waterO) == 2
+    assert len(waterH1) == 2
+    assert len(waterH2) == 2
 
     # Expected first type based on whether the dataset includes hydrogens
     expected_first_type = "FCW" if has_hydrogens else "O_clust"
     assert water_type[0] == expected_first_type
 
     # Expected coordinates of waterO
-    expected_waterO = np.array(
-        [-8.498636033210043905, -8.528824215611816584, -8.558124911970363513]
-    )
+    expected_waterO = np.array([0.0, 0.0, 0.0])
     npt.assert_allclose(waterO[0], expected_waterO, atol=1e-6)
 
     if has_hydrogens:
         # Expected coordinates for waterH1 and waterH2 if hydrogens are present
-        expected_waterH1 = np.array(
-            [-8.612760033927649772, -8.398256579537193289, -9.542974039943826980]
-        )
-        expected_waterH2 = np.array(
-            [-7.847825970288877961, -7.856730538101417416, -8.204944574676375169]
-        )
+        expected_waterH1 = np.array([1.0, 0.0, 0.0])
+        expected_waterH2 = np.array([0.0, 1.0, 0.0])
         npt.assert_allclose(waterH1[0], expected_waterH1, atol=1e-6)
         npt.assert_allclose(waterH2[0], expected_waterH2, atol=1e-6)
     else:
@@ -102,11 +106,11 @@ def test_read_results(water_results):
 def test_visualise_pymol():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pse", delete=True) as f:
-        tip_res, resO, resH1, resH2 = read_results(
-            "tests/data/merged_new_clustering_results.dat",
-        )
-        tip_res[2] = "WCW"
-        tip_res[4] = "HCW"
+        with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res_file:
+            _write_sample_results_file(res_file.name, with_hydrogens=True)
+            tip_res, resO, resH1, resH2 = read_results(res_file.name)
+        tip_res[0] = "WCW"
+        tip_res[1] = "HCW"
         visualise_pymol(
             tip_res,
             resO,
@@ -122,42 +126,33 @@ def test_visualise_pymol():
 def test_visualise_pymol2():
     # Create a temporary file using with for writing and reading
     with tempfile.NamedTemporaryFile(mode="w+", suffix=".pdb", delete=True) as f:
-        visualise_pymol(
-            *read_results(
-                "tests/data/merged_new_clustering_results.dat",
-            ),
-            aligned_protein=None,
-            output_file=f.name,
-            crystal_waters="3T74",
-            ligand_resname="UBY",
-            lunch_pymol=False,
-        )
+        with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res_file:
+            _write_sample_results_file(res_file.name, with_hydrogens=True)
+            visualise_pymol(
+                *read_results(res_file.name),
+                aligned_protein=None,
+                output_file=f.name,
+                lunch_pymol=False,
+            )
 
 
 # Visualise pymol tests
 @pytest.mark.usefixtures("_pymol_skip")
-@pytest.mark.parametrize(
-    ("output_file", "align_file"),
-    [
-        ("tests/data/merged_new_clustering_results.dat", None),
-        ("tests/data/merged_new_clustering_results.dat", "tests/data/aligned.pdb"),
-        ("tests/data/merged_new_clustering_results_noH.dat", "tests/data/aligned.pdb"),
-    ],
-)
-def test_visualise_pymol_with_align_protein(output_file, align_file):
-    visualise_pymol(
-        *read_results(output_file),
-        aligned_protein=align_file,
-        lunch_pymol=False,
-    )
+def test_visualise_pymol_with_align_protein():
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res_file:
+        _write_sample_results_file(res_file.name, with_hydrogens=True)
+        visualise_pymol(
+            *read_results(res_file.name),
+            aligned_protein=None,
+            lunch_pymol=False,
+        )
 
 
 def test_visualise_nglview():
-    vv = visualise_nglview(
-        *read_results(
-            "tests/data/merged_new_clustering_results.dat",
-        ),
-        aligned_protein=None,
-        crystal_waters="3T74",
-    )
-    assert isinstance(vv, nglview.NGLWidget)
+    with tempfile.NamedTemporaryFile(mode="w+", delete=True) as res_file:
+        _write_sample_results_file(res_file.name, with_hydrogens=True)
+        vv = visualise_nglview(
+            *read_results(res_file.name),
+            aligned_protein=None,
+        )
+        assert isinstance(vv, nglview.NGLWidget)
