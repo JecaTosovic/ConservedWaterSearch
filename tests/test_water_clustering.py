@@ -12,8 +12,8 @@ from ConservedWaterSearch.utils import (
 from ConservedWaterSearch.water_clustering import WaterClustering
 from tests.synthetic_cluster_data import (
     DATASET_CONFIGS,
-    dataset_path,
     expected_for,
+    generate_dataset,
 )
 
 
@@ -200,8 +200,9 @@ def sort_data_by_x(data):
     return data[data[:, 0].argsort()]
 
 
-def _load_cluster_dataset(path):
-    data = np.loadtxt(path)
+def _load_cluster_dataset(dataset_name):
+    config = DATASET_CONFIGS[dataset_name]
+    data, _ = generate_dataset(config["seed"], config["layout"])
     Opos = data[:, :3]
     H1pos = data[:, 3:6]
     H2pos = data[:, 6:9]
@@ -265,7 +266,7 @@ def _angle_near_water(h1, h2, tol_deg=15.0):
 
 @pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
 def test_onlyO_mode_clustering(dataset_name):
-    Odata, _, _ = _load_cluster_dataset(dataset_path(dataset_name))
+    Odata, _, _ = _load_cluster_dataset(dataset_name)
     wc = WaterClustering(30, water_types_to_find=["onlyO"])
     wc.single_clustering(
         Odata, None, None, whichH=["onlyO"], clustering_algorithm="OPTICS"
@@ -287,7 +288,7 @@ def test_onlyO_mode_clustering(dataset_name):
     ],
 )
 def test_clustering_all_water_types(dataset_name, clustering_func, algorithm):
-    Odata, H1, H2 = _load_cluster_dataset(dataset_path(dataset_name))
+    Odata, H1, H2 = _load_cluster_dataset(dataset_name)
     expected = expected_for(dataset_name)
     wc = WaterClustering(30, kmeans_inertia_cutoff=0.05)
     func = getattr(wc, clustering_func)
