@@ -12,6 +12,9 @@ from ConservedWaterSearch.utils import (
 from ConservedWaterSearch.water_clustering import WaterClustering
 from tests.synthetic_cluster_data import (
     DATASET_CONFIGS,
+    N_SNAPSHOTS,
+    N_WATERS,
+    WATER_ANGLE_DEG,
     expected_for,
     generate_dataset,
 )
@@ -202,7 +205,9 @@ def sort_data_by_x(data):
 
 def _load_cluster_dataset(dataset_name):
     config = DATASET_CONFIGS[dataset_name]
-    data, _ = generate_dataset(config["seed"], config["layout"])
+    data, _ = generate_dataset(
+        config["seed"], config["layout"], config["hcw_modes"]
+    )
     Opos = data[:, :3]
     H1pos = data[:, 3:6]
     H2pos = data[:, 6:9]
@@ -290,7 +295,7 @@ def test_onlyO_mode_clustering(dataset_name):
 def test_clustering_all_water_types(dataset_name, clustering_func, algorithm):
     Odata, H1, H2 = _load_cluster_dataset(dataset_name)
     expected = expected_for(dataset_name)
-    wc = WaterClustering(30, kmeans_inertia_cutoff=0.05)
+    wc = WaterClustering(30)
     func = getattr(wc, clustering_func)
     func(Odata, H1, H2, clustering_algorithm=algorithm)
 
@@ -300,11 +305,67 @@ def test_clustering_all_water_types(dataset_name, clustering_func, algorithm):
     for water_idx, result_indices in mapping.items():
         assert result_indices
         expected_type = expected["types"][water_idx]
+        hcw_mode = expected["hcw_modes"][water_idx]
         for res_idx in result_indices:
             assert wc.water_type[res_idx] == expected_type
             h1_vec = wc.waterH1[res_idx] - wc.waterO[res_idx]
             h2_vec = wc.waterH2[res_idx] - wc.waterO[res_idx]
             centers = expected["orient_centers"][water_idx]
             assert _orientation_close(h1_vec, centers)
-            assert _orientation_close(h2_vec, centers)
-            assert _angle_near_water(h1_vec, h2_vec)
+            if expected_type == "HCW" and hcw_mode == "random":
+                pass
+            else:
+                assert _orientation_close(h2_vec, centers)
+            if expected_type == "FCW" or (
+                expected_type == "HCW" and hcw_mode != "random"
+            ):
+                assert _angle_near_water(h1_vec, h2_vec)
+
+
+def _angle_deg(vec1, vec2):
+    vec1 = vec1 / np.linalg.norm(vec1)
+    vec2 = vec2 / np.linalg.norm(vec2)
+    dot = float(np.dot(vec1, vec2))
+    dot = max(-1.0, min(1.0, dot))
+    return float(np.rad2deg(np.arccos(dot)))
+
+
+@pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
+def test_hcw_generation_modes(dataset_name):
+    config = DATASET_CONFIGS[dataset_name]
+    data, expected = generate_dataset(
+        config["seed"], config["layout"], config["hcw_modes"]
+    )
+    per_water = [data[i::N_WATERS] for i in range(N_WATERS)]
+    for idx, wtype in enumerate(expected["types"]):
+        if wtype != "HCW":
+            continue
+        mode = expected["hcw_modes"][idx]
+        water = per_water[idx]
+        Opos = water[:, :3]
+        H1pos = water[:, 3:6]
+        H2pos = water[:, 6:9]
+        h1_dirs = H1pos - Opos
+        h2_dirs = H2pos - Opos
+        h1_dirs /= np.linalg.norm(h1_dirs, axis=1, keepdims=True)
+        h2_dirs /= np.linalg.norm(h2_dirs, axis=1, keepdims=True)
+        angles = np.array(
+            [_angle_deg(h1, h2) for h1, h2 in zip(h1_dirs, h2_dirs)]
+        )
+        assert abs(float(np.mean(angles)) - WATER_ANGLE_DEG) < 5.0
+        if mode == "bimodal":
+            centers = expected["orient_centers"][idx][1:]
+            assert len(centers) == 2
+            center_angle = _angle_deg(centers[0], centers[1])
+            assert center_angle >= 60.0
+            counts = [0, 0]
+            for h2 in h2_dirs:
+                d0 = _angle_deg(h2, centers[0])
+                d1 = _angle_deg(h2, centers[1])
+                counts[int(d1 < d0)] += 1
+            assert min(counts) >= int(0.3 * N_SNAPSHOTS)
+        elif mode == "random":
+            h2_mean = np.mean(h2_dirs, axis=0)
+            assert np.linalg.norm(h2_mean) < 0.7
+        else:
+            raise AssertionError(f"Unexpected HCW mode: {mode}")
