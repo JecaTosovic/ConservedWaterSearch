@@ -19,8 +19,6 @@ from tests.synthetic_cluster_data import (
     generate_dataset,
 )
 
-np_major = int(np.__version__.split(".")[0])
-
 
 def test_save_results(water_clustering_setup):
     wc, onlyO = water_clustering_setup
