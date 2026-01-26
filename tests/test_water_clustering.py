@@ -10,6 +10,14 @@ from ConservedWaterSearch.utils import (
     read_results,
 )
 from ConservedWaterSearch.water_clustering import WaterClustering
+from tests.synthetic_cluster_data import (
+    DATASET_CONFIGS,
+    N_SNAPSHOTS,
+    N_WATERS,
+    WATER_ANGLE_DEG,
+    expected_for,
+    generate_dataset,
+)
 
 
 def test_save_results(water_clustering_setup):
@@ -115,8 +123,10 @@ def test_create_from_file():
 
 def test_read_and_set_water_clust_options_file_not_found():
     wc = WaterClustering(9)
-    with pytest.raises(FileNotFoundError, match="output file not found"):
-        wc.read_and_set_water_clust_options("tests/data/nonexistent.dat")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        missing = os.path.join(tmpdir, "nonexistent.dat")
+        with pytest.raises(FileNotFoundError, match="output file not found"):
+            wc.read_and_set_water_clust_options(missing)
 
 
 def test_restart_cluster_onlyO():
@@ -171,10 +181,21 @@ def test_restart_cluster_water_types():
             newWC.restart_cluster(res.name, dat.name)
 
 
-def test_restart_cluster_and_create_class_from_file():
-    WaterClustering.create_from_files_and_restart(
-        "tests/data/restart_partial_results.dat", "tests/data/restart_data.dat"
-    )
+def test_restart_cluster_and_create_class_from_file(water_clustering_data):
+    Opos, Hpos, _ = water_clustering_data
+    Odata, H1, H2 = get_orientations_from_positions(Opos, Hpos)
+    with tempfile.NamedTemporaryFile(
+        mode="w+", delete=True
+    ) as partial_data, tempfile.NamedTemporaryFile(
+        mode="w+", delete=True
+    ) as partial_results:
+        np.savetxt(partial_data.name, np.c_[Odata, H1, H2])
+        wc = WaterClustering(12)
+        wc.single_clustering(Odata, H1, H2)
+        wc.save_results(partial_results.name)
+        WaterClustering.create_from_files_and_restart(
+            partial_results.name, partial_data.name
+        )
 
 
 def sort_data_by_x(data):
@@ -182,90 +203,156 @@ def sort_data_by_x(data):
     return data[data[:, 0].argsort()]
 
 
-def compare_results(wc, result_file, tol=1e-4):
-    a, b, c, d = read_results(result_file)
-    assert all(wc.water_type[i] == a[i] for i in range(len(wc.water_type)))
-    npt.assert_allclose(sort_data_by_x(b), sort_data_by_x(wc.waterO), atol=tol)
-    npt.assert_allclose(sort_data_by_x(c), sort_data_by_x(wc.waterH1), atol=tol)
-    npt.assert_allclose(sort_data_by_x(d), sort_data_by_x(wc.waterH2), atol=tol)
+def _load_cluster_dataset(dataset_name):
+    config = DATASET_CONFIGS[dataset_name]
+    data, _ = generate_dataset(config["seed"], config["layout"], config["hcw_modes"])
+    Opos = data[:, :3]
+    H1pos = data[:, 3:6]
+    H2pos = data[:, 6:9]
+    coordsH = np.empty((len(Opos) * 2, 3))
+    coordsH[0::2] = H1pos
+    coordsH[1::2] = H2pos
+    return get_orientations_from_positions(Opos, coordsH)
 
 
+def _match_results_to_centers(wc, centers, tol=0.25):
+    mapping = {i: [] for i in range(len(centers))}
+    for idx, Opos in enumerate(wc.waterO):
+        dists = np.linalg.norm(centers - Opos, axis=1)
+        best = int(np.argmin(dists))
+        assert dists[best] < tol
+        mapping[best].append(idx)
+    return mapping
+
+
+def _expanded_centers(centers):
+    normed = []
+    for center_vec in centers:
+        normed_center = center_vec / np.linalg.norm(center_vec)
+        normed.append(normed_center)
+    for i in range(len(normed)):
+        for j in range(i + 1, len(normed)):
+            summed = normed[i] + normed[j]
+            norm = np.linalg.norm(summed)
+            if norm > 1e-6:
+                normed.append(summed / norm)
+    return normed
+
+
+def _orientation_close(vec, centers, tol=0.25):
+    vec = vec / np.linalg.norm(vec)
+    for center_vec in _expanded_centers(centers):
+        center_normed = center_vec / np.linalg.norm(center_vec)
+        if np.linalg.norm(vec - center_normed) < tol:
+            return True
+    return False
+
+
+def _angle_near_water(h1, h2, tol_deg=15.0):
+    h1 = h1 / np.linalg.norm(h1)
+    h2 = h2 / np.linalg.norm(h2)
+    dot = float(np.dot(h1, h2))
+    dot = max(-1.0, min(1.0, dot))
+    angle = np.rad2deg(np.arccos(dot))
+    return abs(angle - 104.5) < tol_deg
+
+
+@pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
+def test_onlyO_mode_clustering(dataset_name):
+    Odata, _, _ = _load_cluster_dataset(dataset_name)
+    wc = WaterClustering(30, water_types_to_find=["onlyO"])
+    wc.single_clustering(
+        Odata, None, None, whichH=["onlyO"], clustering_algorithm="OPTICS"
+    )
+    assert len(wc.waterO) == 6
+    assert all(wt == "O_clust" for wt in wc.water_type)
+
+
+@pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
 @pytest.mark.parametrize(
-    ("clustering_func", "algorithm", "result_file", "tol"),
+    ("clustering_func", "algorithm"),
     [
-        ("single_clustering", None, "tests/data/Single_OPTICS.dat", 1e-4),
-        ("single_clustering", "HDBSCAN", "tests/data/Single_HDBSCAN.dat", 1e-4),
-        ("multi_stage_reclustering", None, "tests/data/MSR_OPTICS.dat", 1e-4),
-        ("multi_stage_reclustering", "HDBSCAN", "tests/data/MSR_HDBSCAN.dat", 1e-1),
-        ("quick_multi_stage_reclustering", None, "tests/data/MSR_OPTICS.dat", 1e-4),
-        (
-            "quick_multi_stage_reclustering",
-            "HDBSCAN",
-            "tests/data/MSR_HDBSCAN.dat",
-            1e-1,
-        ),
+        ("single_clustering", "OPTICS"),
+        ("single_clustering", "HDBSCAN"),
+        ("multi_stage_reclustering", "OPTICS"),
+        ("multi_stage_reclustering", "HDBSCAN"),
+        ("quick_multi_stage_reclustering", "OPTICS"),
+        ("quick_multi_stage_reclustering", "HDBSCAN"),
     ],
 )
-def test_clustering_methods(
-    water_clustering_data, clustering_func, algorithm, result_file, tol
-):
-    Nsnap = 20
-    Opos, Hpos = water_clustering_data
-    wc = WaterClustering(Nsnap)
+def test_clustering_all_water_types(dataset_name, clustering_func, algorithm):
+    Odata, H1, H2 = _load_cluster_dataset(dataset_name)
+    expected = expected_for(dataset_name)
+    wc = WaterClustering(30)
     func = getattr(wc, clustering_func)
-    if algorithm:
-        func(
-            *get_orientations_from_positions(Opos, Hpos), clustering_algorithm=algorithm
-        )
-    else:
-        func(*get_orientations_from_positions(Opos, Hpos))
-    compare_results(wc, result_file, tol)
+    func(Odata, H1, H2, clustering_algorithm=algorithm)
+
+    mapping = _match_results_to_centers(wc, expected["centers"])
+    assert len(mapping) == 6
+
+    for water_idx, result_indices in mapping.items():
+        assert result_indices
+        expected_type = expected["types"][water_idx]
+        hcw_mode = expected["hcw_modes"][water_idx]
+        for res_idx in result_indices:
+            assert wc.water_type[res_idx] == expected_type
+            h1_vec = wc.waterH1[res_idx] - wc.waterO[res_idx]
+            h2_vec = wc.waterH2[res_idx] - wc.waterO[res_idx]
+            centers = expected["orient_centers"][water_idx]
+            assert _orientation_close(h1_vec, centers)
+            if expected_type == "HCW" and hcw_mode == "random":
+                pass
+            else:
+                assert _orientation_close(h2_vec, centers)
+            if expected_type == "FCW" or (
+                expected_type == "HCW" and hcw_mode != "random"
+            ):
+                assert _angle_near_water(h1_vec, h2_vec)
 
 
-QMSRC_HDBSCAN_results_file = "tests/data/Clustering_results_HDBSCAN_QMSRC.dat"
+def _angle_deg(vec1, vec2):
+    vec1 = vec1 / np.linalg.norm(vec1)
+    vec2 = vec2 / np.linalg.norm(vec2)
+    dot = float(np.dot(vec1, vec2))
+    dot = max(-1.0, min(1.0, dot))
+    return float(np.rad2deg(np.arccos(dot)))
 
 
-@pytest.mark.parametrize(
-    ("clustering_func", "algorithm", "result_file", "tol"),
-    [
-        ("single_clustering", "OPTICS", "SC", 1e-4),
-        ("single_clustering", "HDBSCAN", "SC", 1e-4),
-        ("multi_stage_reclustering", "OPTICS", "MSRC", 1e-4),
-        ("multi_stage_reclustering", "HDBSCAN", "MSRC", 1e-4),
-        ("quick_multi_stage_reclustering", "OPTICS", "QMSRC", 1e-4),
-        ("quick_multi_stage_reclustering", "HDBSCAN", "QMSRC", 1e-4),
-    ],
-)
-def test_from_files_input_clustering(clustering_func, algorithm, result_file, tol):
-    Nsnap = 10
-    data = np.loadtxt("tests/data/CWS_input_3T73.dat")
-    O_coords = data[:, :3]
-    H1 = data[:, 3:6]
-    H2 = data[:, 6:9]
-    wc = WaterClustering(Nsnap)
-    # make temporary result file name but dont create it
-    temp_file_output_results = tempfile.NamedTemporaryFile(mode="w+", delete=True).name
-    func = getattr(wc, clustering_func)
-    func(O_coords, H1, H2, clustering_algorithm=algorithm)
-    wc.save_results(temp_file_output_results)
-    solution = f"tests/data/Clustering_results_{algorithm}_{result_file}.dat"
-
-    # Check if the temp file is the same as original files
-    with open(temp_file_output_results) as f1, open(solution) as f2:
-        data1 = f1.read().split("\n")
-        data2 = f2.read().split("\n")
-        assert len(data1) == len(data2)
-        for l1, l2 in zip(data1[27:], data2[27:]):
-            computed_l1 = l1.strip().split()
-            original_l2 = l2.strip().split()
-            if len(computed_l1) == 0 and len(original_l2) == 0:
-                continue
-            # first element is STRING  - compare these
-            assert computed_l1[0] == original_l2[0]
-            # rest are floats
-            npt.assert_allclose(
-                list(map(float, computed_l1[1:])),
-                list(map(float, original_l2[1:])),
-                rtol=1e-5,
-                atol=1e-5,
-            )
+@pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
+def test_hcw_generation_modes(dataset_name):
+    config = DATASET_CONFIGS[dataset_name]
+    data, expected = generate_dataset(
+        config["seed"], config["layout"], config["hcw_modes"]
+    )
+    per_water = [data[i::N_WATERS] for i in range(N_WATERS)]
+    for idx, wtype in enumerate(expected["types"]):
+        if wtype != "HCW":
+            continue
+        mode = expected["hcw_modes"][idx]
+        water = per_water[idx]
+        Opos = water[:, :3]
+        H1pos = water[:, 3:6]
+        H2pos = water[:, 6:9]
+        h1_dirs = H1pos - Opos
+        h2_dirs = H2pos - Opos
+        h1_dirs /= np.linalg.norm(h1_dirs, axis=1, keepdims=True)
+        h2_dirs /= np.linalg.norm(h2_dirs, axis=1, keepdims=True)
+        angles = np.array([_angle_deg(h1, h2) for h1, h2 in zip(h1_dirs, h2_dirs)])
+        assert abs(float(np.mean(angles)) - WATER_ANGLE_DEG) < 5.0
+        if mode == "bimodal":
+            centers = expected["orient_centers"][idx][1:]
+            assert len(centers) == 2
+            center_angle = _angle_deg(centers[0], centers[1])
+            assert center_angle >= 60.0
+            counts = [0, 0]
+            for h2 in h2_dirs:
+                d0 = _angle_deg(h2, centers[0])
+                d1 = _angle_deg(h2, centers[1])
+                counts[int(d1 < d0)] += 1
+            assert min(counts) >= int(0.3 * N_SNAPSHOTS)
+        elif mode == "random":
+            h2_mean = np.mean(h2_dirs, axis=0)
+            assert np.linalg.norm(h2_mean) < 0.7
+        else:
+            msg = f"Unexpected HCW mode: {mode}"
+            raise AssertionError(msg)

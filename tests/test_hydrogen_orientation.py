@@ -9,8 +9,27 @@ import ConservedWaterSearch.hydrogen_orientation
 make_ho_plots = 0
 
 
-def test_water_types(water_data):
-    orientations, data_label = water_data
+@pytest.mark.parametrize(
+    "data_file",
+    [
+        "tests/data/conserved_sample_FCW.dat",
+        "tests/data/conserved_sample_FCW2.dat",
+        "tests/data/dispersed_sample_HCW.dat",
+        "tests/data/dispersed_sample_HCW2.dat",
+        "tests/data/circ_sample_HCW.dat",
+        "tests/data/circ_sample_HCW2.dat",
+        "tests/data/circ_sample_HCW3.dat",
+        "tests/data/sample_WCW.dat",
+        "tests/data/sample_circular_only_WCW.dat",
+        "tests/data/dispersed_sample_WCW.dat",
+        "tests/data/2_by_2_WCW.dat",
+        "tests/data/dispersed_sample_not_conserved.dat",
+        "tests/data/not_conserved.dat",
+    ],
+)
+def test_water_types_from_files(data_file):
+    orientations = np.loadtxt(data_file)
+    data_label = data_file.split("/")[-1].split(".")[0]
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations, debugH=make_ho_plots
     )
@@ -23,6 +42,25 @@ def test_water_types(water_data):
     else:
         assert len(res) > 0
         assert res[0][2] in data_label.upper()
+
+
+def test_water_types(water_data):
+    orientations, expected = water_data
+    res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
+        orientations, debugH=make_ho_plots
+    )
+    if make_ho_plots > 0:
+        import matplotlib.pyplot as plt
+
+        plt.show()
+    if expected is None:
+        assert len(res) == 0
+    else:
+        assert len(res) > 0
+        if isinstance(expected, set):
+            assert res[0][2] in expected
+        else:
+            assert res[0][2] == expected
 
 
 @pytest.mark.parametrize(
