@@ -205,9 +205,7 @@ def sort_data_by_x(data):
 
 def _load_cluster_dataset(dataset_name):
     config = DATASET_CONFIGS[dataset_name]
-    data, _ = generate_dataset(
-        config["seed"], config["layout"], config["hcw_modes"]
-    )
+    data, _ = generate_dataset(config["seed"], config["layout"], config["hcw_modes"])
     Opos = data[:, :3]
     H1pos = data[:, 3:6]
     H2pos = data[:, 6:9]
@@ -229,9 +227,9 @@ def _match_results_to_centers(wc, centers, tol=0.25):
 
 def _expanded_centers(centers):
     normed = []
-    for center in centers:
-        center = center / np.linalg.norm(center)
-        normed.append(center)
+    for center_vec in centers:
+        normed_center = center_vec / np.linalg.norm(center_vec)
+        normed.append(normed_center)
     for i in range(len(normed)):
         for j in range(i + 1, len(normed)):
             summed = normed[i] + normed[j]
@@ -243,9 +241,9 @@ def _expanded_centers(centers):
 
 def _orientation_close(vec, centers, tol=0.25):
     vec = vec / np.linalg.norm(vec)
-    for center in _expanded_centers(centers):
-        center = center / np.linalg.norm(center)
-        if np.linalg.norm(vec - center) < tol:
+    for center_vec in _expanded_centers(centers):
+        center_normed = center_vec / np.linalg.norm(center_vec)
+        if np.linalg.norm(vec - center_normed) < tol:
             return True
     return False
 
@@ -257,16 +255,6 @@ def _angle_near_water(h1, h2, tol_deg=15.0):
     dot = max(-1.0, min(1.0, dot))
     angle = np.rad2deg(np.arccos(dot))
     return abs(angle - 104.5) < tol_deg
-    h1 = h1 / np.linalg.norm(h1)
-    h2 = h2 / np.linalg.norm(h2)
-    for e1, e2 in expected_pairs:
-        e1 = e1 / np.linalg.norm(e1)
-        e2 = e2 / np.linalg.norm(e2)
-        if np.linalg.norm(h1 - e1) < tol and np.linalg.norm(h2 - e2) < tol:
-            return True
-        if np.linalg.norm(h1 - e2) < tol and np.linalg.norm(h2 - e1) < tol:
-            return True
-    return False
 
 
 @pytest.mark.parametrize("dataset_name", sorted(DATASET_CONFIGS.keys()))
@@ -349,9 +337,7 @@ def test_hcw_generation_modes(dataset_name):
         h2_dirs = H2pos - Opos
         h1_dirs /= np.linalg.norm(h1_dirs, axis=1, keepdims=True)
         h2_dirs /= np.linalg.norm(h2_dirs, axis=1, keepdims=True)
-        angles = np.array(
-            [_angle_deg(h1, h2) for h1, h2 in zip(h1_dirs, h2_dirs)]
-        )
+        angles = np.array([_angle_deg(h1, h2) for h1, h2 in zip(h1_dirs, h2_dirs)])
         assert abs(float(np.mean(angles)) - WATER_ANGLE_DEG) < 5.0
         if mode == "bimodal":
             centers = expected["orient_centers"][idx][1:]
@@ -368,4 +354,5 @@ def test_hcw_generation_modes(dataset_name):
             h2_mean = np.mean(h2_dirs, axis=0)
             assert np.linalg.norm(h2_mean) < 0.7
         else:
-            raise AssertionError(f"Unexpected HCW mode: {mode}")
+            msg = f"Unexpected HCW mode: {mode}"
+            raise AssertionError(msg)

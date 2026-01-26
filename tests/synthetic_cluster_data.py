@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 
 from ConservedWaterSearch.hydrogen_orientation import hydrogen_orientation_analysis
@@ -17,9 +19,7 @@ def _random_unit(rng: np.random.Generator) -> np.ndarray:
     return vec / np.linalg.norm(vec)
 
 
-def _random_perpendicular(
-    rng: np.random.Generator, u: np.ndarray
-) -> np.ndarray:
+def _random_perpendicular(rng: np.random.Generator, u: np.ndarray) -> np.ndarray:
     vec = rng.normal(size=3)
     vec = vec - np.dot(vec, u) * u
     norm = np.linalg.norm(vec)
@@ -36,17 +36,13 @@ def _orthonormal_basis(
     return v, w / np.linalg.norm(w)
 
 
-def _make_h2_direction(
-    rng: np.random.Generator, h1: np.ndarray
-) -> np.ndarray:
+def _make_h2_direction(rng: np.random.Generator, h1: np.ndarray) -> np.ndarray:
     theta = np.deg2rad(WATER_ANGLE_DEG)
     perp = _random_perpendicular(rng, h1)
     return np.cos(theta) * h1 + np.sin(theta) * perp
 
 
-def _noisy_unit(
-    rng: np.random.Generator, vec: np.ndarray, sigma: float
-) -> np.ndarray:
+def _noisy_unit(rng: np.random.Generator, vec: np.ndarray, sigma: float) -> np.ndarray:
     noisy = vec + rng.normal(scale=sigma, size=3)
     return noisy / np.linalg.norm(noisy)
 
@@ -70,14 +66,13 @@ def _make_wcw_pair(
             continue
         if any(_angle_deg(h2b, h2) <= min_sep_deg for h2 in existing_h2):
             continue
-        cross_angles = [
-            _angle_deg(h1b, h2) for h2 in existing_h2
-        ] + [
+        cross_angles = [_angle_deg(h1b, h2) for h2 in existing_h2] + [
             _angle_deg(h2b, h1) for h1 in existing_h1
         ]
         if all(abs(ang - WATER_ANGLE_DEG) > 20.0 for ang in cross_angles):
             return h1b, h2b
-    raise RuntimeError("Failed to generate WCW orientations with separation.")
+    msg = "Failed to generate WCW orientations with separation."
+    raise RuntimeError(msg)
 
 
 def _build_centers(layout: str) -> np.ndarray:
@@ -89,7 +84,8 @@ def _build_centers(layout: str) -> np.ndarray:
         for idx in range(N_WATERS):
             centers.append([24.0, 9.0 * (idx % 3), 9.0 * (idx // 3)])
     else:
-        raise ValueError(f"Unknown layout: {layout}")
+        msg = f"Unknown layout: {layout}"
+        raise ValueError(msg)
     return np.asarray(centers)
 
 
@@ -102,7 +98,8 @@ def generate_dataset(
     if hcw_modes is None:
         hcw_modes = ["bimodal", "random"]
     if len(hcw_modes) != 2:
-        raise ValueError("hcw_modes must contain two entries.")
+        msg = "hcw_modes must contain two entries."
+        raise ValueError(msg)
 
     expected_orient_centers = []
     expected_hcw_modes = []
@@ -161,9 +158,11 @@ def generate_dataset(
                         expected_hcw_modes.append(mode)
                         break
                 else:
-                    raise ValueError(f"Unknown HCW mode: {mode}")
+                    msg = f"Unknown HCW mode: {mode}"
+                    raise ValueError(msg)
             else:
-                raise RuntimeError(f"Failed to generate HCW orientations for {mode}.")
+                msg = f"Failed to generate HCW orientations for {mode}."
+                raise RuntimeError(msg)
         elif wtype == "WCW":
             for _ in range(200):
                 h1a = _random_unit(rng)
@@ -189,15 +188,15 @@ def generate_dataset(
                     base_orientations.append(
                         ("WCW", np.asarray(h1_seq), np.asarray(h2_seq))
                     )
-                    expected_orient_centers.append(
-                        [h1a, h2a, h1b, h2b, h1c, h2c]
-                    )
+                    expected_orient_centers.append([h1a, h2a, h1b, h2b, h1c, h2c])
                     expected_hcw_modes.append(None)
                     break
             else:
-                raise RuntimeError("Failed to generate WCW orientations.")
+                msg = "Failed to generate WCW orientations."
+                raise RuntimeError(msg)
         else:
-            raise ValueError(f"Unknown water type: {wtype}")
+            msg = f"Unknown water type: {wtype}"
+            raise ValueError(msg)
 
     rows = []
     for snap in range(N_SNAPSHOTS):
@@ -262,16 +261,8 @@ def write_pdb(path: str, data: np.ndarray) -> None:
             coords,
         ):
             lines.append(
-                "ATOM  {atom:5d} {name:<4s} HOH A{res:4d}    "
-                "{x:8.3f}{y:8.3f}{z:8.3f}  1.00  0.00           {el:>2s}\n".format(
-                    atom=atom_idx,
-                    name=atom_name,
-                    res=res_idx,
-                    x=xyz[0],
-                    y=xyz[1],
-                    z=xyz[2],
-                    el=element,
-                )
+                f"ATOM  {atom_idx:5d} {atom_name:<4s} HOH A{res_idx:4d}    "
+                f"{xyz[0]:8.3f}{xyz[1]:8.3f}{xyz[2]:8.3f}  1.00  0.00           {element:>2s}\n"
             )
             atom_idx += 1
         res_idx += 1

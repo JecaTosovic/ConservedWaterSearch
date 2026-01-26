@@ -65,7 +65,8 @@ def generate_orientation_sample(
             orientations.append(h1)
             orientations.append(h2)
     else:
-        raise ValueError(f"Unknown kind: {kind}")
+        msg = f"Unknown kind: {kind}"
+        raise ValueError(msg)
     return np.asarray(orientations)
 
 
@@ -77,9 +78,7 @@ def generate_water_network(
     hydrogen_sigma: float = 0.02,
     bond_length: float = 1.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    base_oxygens = np.stack(
-        [np.array([4.0 * i, 0.0, 0.0]) for i in range(n_waters)]
-    )
+    base_oxygens = np.stack([np.array([4.0 * i, 0.0, 0.0]) for i in range(n_waters)])
     base_orientations = []
     for _ in range(n_waters):
         h1 = _random_unit_vector(rng)
@@ -167,7 +166,5 @@ def water_clustering_setup_for_deletion():
 @pytest.fixture()
 def water_clustering_data():
     rng = np.random.default_rng(2024)
-    Opos, Hpos, centers = generate_water_network(
-        nsnaps=12, n_waters=2, rng=rng
-    )
+    Opos, Hpos, centers = generate_water_network(nsnaps=12, n_waters=2, rng=rng)
     return Opos, Hpos, centers

@@ -15,7 +15,9 @@ from ConservedWaterSearch.water_clustering import WaterClustering
 
 
 def _write_sample_results_file(path, with_hydrogens=True):
-    wc = WaterClustering(10, water_types_to_find=["FCW"] if with_hydrogens else ["onlyO"])
+    wc = WaterClustering(
+        10, water_types_to_find=["FCW"] if with_hydrogens else ["onlyO"]
+    )
     wc._water_type = ["FCW", "HCW"] if with_hydrogens else ["O_clust", "O_clust"]
     wc._waterO = [
         np.asarray([0.0, 0.0, 0.0]),
