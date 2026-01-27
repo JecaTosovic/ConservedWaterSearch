@@ -1,6 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:best-practices",
+    ":semanticCommitsDisabled",
+    ":label(dependencies)"
+  ],
+  "github-actions": {
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "description": "Automate lockfile maintenance early on Thursdays.",
+    "enabled": true,
+    "automerge": true,
+    "schedule": ["* 0-3 * * 4"]
+  },
+  "pip-compile": {
+    "managerFilePatterns": ["/.*requirements.*\\.(txt|pip)$/"],
+    "automerge": true
+  },
+  "pip_requirements": {
+    "enabled": false
+  },
+  "pip_setup": {
+    "enabled": false
+  },
+  "pixi": {
+    "enabled": true
+  }
 }
