@@ -11,6 +11,7 @@ scikit-learn = "*"
 pytest = "*"
 pip = "*"
 uv = "*"
+pymol-open-source = "*"
 
 [feature.py311.dependencies]
 python = "3.11.*"

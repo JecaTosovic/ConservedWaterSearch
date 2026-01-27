@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
 
 jobs:
   pre-commit:
@@ -26,7 +27,7 @@ jobs:
     - name: Run pre-commit
       run: pre-commit run --all-files
 
-  build:
+  tests:
 
     runs-on: [ubuntu-latest]
     strategy:
@@ -57,3 +58,13 @@ jobs:
       run: python -m pip install -e .
     - name: Run Tests
       run: pytest tests/ -v
+
+  tests_complete:
+    name: All tests
+    if: always()
+    needs: [tests]
+    runs-on: ubuntu-latest
+    steps:
+    - run: jq --exit-status 'all(.result == "success")' <<< '${{ toJson(needs) }}'
+    - name: Done
+      run: echo "Done."
