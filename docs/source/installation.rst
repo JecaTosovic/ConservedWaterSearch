@@ -3,6 +3,7 @@ Installation
 ============
 
 The default installations from PyPI and conda-forge don't include any of the optional dependencies required for visualization (see below). This is done to avoid potential conflicts with user defined PyMOL installations.
+ConservedWaterSearch requires Python 3.11+ and NumPy 2+.
 
 Installation via conda
 ======================
