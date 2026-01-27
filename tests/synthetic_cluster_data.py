@@ -262,7 +262,8 @@ def write_pdb(path: str, data: np.ndarray) -> None:
         ):
             lines.append(
                 f"ATOM  {atom_idx:5d} {atom_name:<4s} HOH A{res_idx:4d}    "
-                f"{xyz[0]:8.3f}{xyz[1]:8.3f}{xyz[2]:8.3f}  1.00  0.00           {element:>2s}\n"
+                f"{xyz[0]:8.3f}{xyz[1]:8.3f}{xyz[2]:8.3f}  1.00  0.00           "
+                f"{element:>2s}\n"
             )
             atom_idx += 1
         res_idx += 1
