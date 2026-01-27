@@ -1,0 +1,50 @@
+name: Pre-commit Autoupdate
+
+on:
+  schedule:
+    - cron: "0 3 1 1,4,7,10 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          submodules: true
+      - name: Create Python Environment
+        uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7
+        with:
+          pixi-version: v0.54.1
+          cache: false
+          environments: py311
+          activate-environment: true
+      - name: Install pre-commit
+        run: python -m pip install pre-commit
+      - name: Run pre-commit autoupdate
+        run: pre-commit autoupdate
+      - name: Create PR if changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No updates needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          branch="pre-commit-autoupdate-$(date +%Y%m%d)"
+          git checkout -b "$branch"
+          git add .pre-commit-config.yaml
+          git commit -m "chore: pre-commit autoupdate"
+          git push --set-upstream origin "$branch"
+          gh pr create \
+            --title "chore: pre-commit autoupdate" \
+            --body "Automated pre-commit hook version update." \
+            --base main \
+            --head "$branch"
