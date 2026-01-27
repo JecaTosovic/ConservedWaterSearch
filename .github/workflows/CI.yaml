@@ -8,40 +8,29 @@ jobs:
     runs-on: [ubuntu-latest]
     strategy:
       matrix:
-        python-version: ["3.11","3.12","3.13","3.14"]
+        include:
+          - python: "3.11"
+            pixi-env: "py311"
+          - python: "3.12"
+            pixi-env: "py312"
+          - python: "3.13"
+            pixi-env: "py313"
+          - python: "3.14"
+            pixi-env: "py314"
 
     steps:
-    - uses: actions/checkout@v5
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Checkout Code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       with:
-        python-version: ${{ matrix.python-version }}
+        submodules: true
     - name: Create Python Environment
-      uses: conda-incubator/setup-miniconda@v3
+      uses: prefix-dev/setup-pixi@82d477f15f3a381dbcc8adc1206ce643fe110fb7
       with:
-        python-version: ${{ matrix.python-version }}
-        mamba-version: "*"
-        channels: conda-forge
-        channel-priority: true
-        activate-environment: test
-        show-channel-urls: true
-    - name: Check and Conditionally Install PyMOL
-      shell: bash -l {0}
-      run: |
-        PYMOL_VER=3.0.0
-        PYTHON_VER=${{ matrix.python-version }}
-        PYTHON_VER=${PYTHON_VER//./}  # Remove the dot from the Python version
-        if mamba search -c conda-forge pymol-open-source==${PYMOL_VER} | grep -q "py${PYTHON_VER}"; then
-           mamba install -c conda-forge pymol-open-source==${PYMOL_VER} --file requirements/requirements-test.txt
-        else
-           mamba install -c conda-forge --file requirements/requirements-test.txt
-        fi
+        pixi-version: v0.54.1
+        cache: false
+        environments: ${{ matrix.pixi-env }}
+        activate-environment: true
     - name: Install package
-      shell: bash -l {0}
-      run: |
-        pip install .
-    - name: Test with pytest
-      shell: bash -l {0}
-      run: |
-        which python
-        python -m pytest
+      run: python -m pip install -e .
+    - name: Run Tests
+      run: pytest tests/ -v
