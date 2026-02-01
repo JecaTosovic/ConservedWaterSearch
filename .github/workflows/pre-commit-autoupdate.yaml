@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: true
       - name: Create Python Environment
-        uses: prefix-dev/setup-pixi@c0d7209ec39354d7aa1f4c6081153c49a466ef35
+        uses: prefix-dev/setup-pixi@72f90fea0c1ead4b05cd43c746f64a247a189855
         with:
           pixi-version: v0.54.1
           cache: false
