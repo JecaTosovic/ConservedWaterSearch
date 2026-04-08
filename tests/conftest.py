@@ -99,12 +99,12 @@ def generate_water_network(
     return np.asarray(Opos), np.asarray(Hpos), base_oxygens
 
 
-@pytest.fixture()
+@pytest.fixture
 def orientations_normalized():
     return np.asarray([[1, 0, 0], [-0.25038 * 2, 0.96814764 * 2, 0]])
 
 
-@pytest.fixture()
+@pytest.fixture
 def orientations_not_normalized():
     return np.asarray([[1, 0, 0], [-0.25038, 0.96814764, 0]])
 
@@ -123,7 +123,7 @@ def water_data(request):
     return generate_orientation_sample(kind, nsnaps=24, rng=rng), expected
 
 
-@pytest.fixture()
+@pytest.fixture
 def _pymol_skip():
     pytest.importorskip("pymol")
 
@@ -151,7 +151,7 @@ def water_clustering_setup(request):
     return wc, request.param["onlyO"]
 
 
-@pytest.fixture()
+@pytest.fixture
 def water_clustering_setup_for_deletion():
     with tempfile.NamedTemporaryFile(
         mode="w+", delete=True
@@ -163,7 +163,7 @@ def water_clustering_setup_for_deletion():
         yield wc, dat.name, Odata, H1, H2
 
 
-@pytest.fixture()
+@pytest.fixture
 def water_clustering_data():
     rng = np.random.default_rng(2024)
     Opos, Hpos, centers = generate_water_network(nsnaps=12, n_waters=2, rng=rng)
