@@ -1,6 +1,11 @@
 """Unit and regression test for the ConservedWaterSearch package."""
 
 # Import package, test suite, and other packages as needed
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
 import numpy as np
 import pytest
 
@@ -33,9 +38,7 @@ def test_water_types_from_files(data_file):
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations, debugH=make_ho_plots
     )
-    if make_ho_plots > 0:
-        import matplotlib.pyplot as plt
-
+    if make_ho_plots > 0 and plt is not None:
         plt.show()
     if "not_conserved" in data_label:
         assert len(res) == 0
@@ -49,9 +52,7 @@ def test_water_types(water_data):
     res = ConservedWaterSearch.hydrogen_orientation.hydrogen_orientation_analysis(
         orientations, debugH=make_ho_plots
     )
-    if make_ho_plots > 0:
-        import matplotlib.pyplot as plt
-
+    if make_ho_plots > 0 and plt is not None:
         plt.show()
     if expected is None:
         assert len(res) == 0

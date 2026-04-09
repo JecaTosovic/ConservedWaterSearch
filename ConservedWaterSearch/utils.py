@@ -3,33 +3,43 @@ from __future__ import annotations
 
 import os
 import platform
+import warnings
 from typing import TYPE_CHECKING
 
 import numpy as np
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
+try:
+    import pymol
+    from pymol import cmd
+except ImportError:
+    pymol = None
+    cmd = None
+
+try:
+    import nglview as ngl
+except ImportError:
+    ngl = None
 
 if TYPE_CHECKING:
     try:
         from nglview import NGLWidget
     except ImportError:
         NGLWidget = None
-    try:
-        import pymol
-        from pymol import cmd
-    except ImportError:
-        pymol = None
-        cmd = None
 
 
 def _check_mpl_installation():
     """Check if matplotlib is installed."""
-    try:
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError as err:
+    if plt is None:
         msg = (
             "install matplotlib using conda install -c conda-forge"
             "matplotlib or pip install matplotlib"
         )
-        raise Exception(msg) from err
+        raise Exception(msg)
     return plt
 
 
@@ -154,8 +164,6 @@ def get_orientations_from_positions(
 
 
 def _make_protein_surface_with_ligand():
-    from pymol import cmd
-
     protein = cmd.get_unused_name("only_protein_")
     cmd.select(protein, "polymer", state=1)
     povrsina = cmd.get_unused_name("protein_surface_")
@@ -171,8 +179,6 @@ def _make_protein_surface_with_ligand():
 
 
 def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
-    from pymol import cmd
-
     if aminokis_u_am is not None:
         sele = aminokis_u_am + " or " + waters + " or organic"
     else:
@@ -187,8 +193,6 @@ def _add_polar_contacts(waters: str, aminokis_u_am: str | None = None):
 
 
 def _fix_pymol_camera(active_site_center: str | None = None, waters: str | None = None):
-    from pymol import cmd
-
     # reset camera
     cmd.reset()
     if active_site_center is not None:
@@ -198,8 +202,6 @@ def _fix_pymol_camera(active_site_center: str | None = None, waters: str | None 
 
 
 def _determine_active_site_ids(active_site_ids: list[int]):
-    from pymol import cmd
-
     selection = ""
     for i in active_site_ids:
         selection += str(i) + "+"
@@ -220,17 +222,13 @@ def _determine_active_site_ids(active_site_ids: list[int]):
 
 
 def _add_density_map(density_map: str):
-    from pymol import cmd
-
     cmd.load(density_map)
-    cmd.volume("water_density", density_map.split(".")[0])
+    cmd.volume("water_density", density_map.split(".", maxsplit=1)[0])
 
 
 def _add_crystal_waters(
     crystal_waters, protein, ligand_resname, dist, active_site_ids, active_site_center
 ):
-    from pymol import cmd
-
     cmd.fetch(crystal_waters)
     cmd.hide("everything", crystal_waters)
     cmd.align(
@@ -264,8 +262,6 @@ def _add_crystal_waters(
 
 
 def _add_hydrogen_and_bond(wname, Hpos, Hname, resn, resi):
-    from pymol import cmd
-
     cmd.pseudoatom(
         wname,
         pos=[Hpos[0], Hpos[1], Hpos[2]],
@@ -279,8 +275,6 @@ def _add_hydrogen_and_bond(wname, Hpos, Hname, resn, resi):
 
 
 def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
-    from pymol import cmd
-
     cntr = {
         name: (
             len(cmd.get_names("objects", False, f"model {name}*"))
@@ -340,7 +334,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
                     _add_hydrogen_and_bond(
                         wname,
                         waterH2[ind + add_ind + 1],
-                        f"H{add_ind+3}",
+                        f"H{add_ind + 3}",
                         resn,
                         highest_resi + 1,
                     )
@@ -367,7 +361,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
                         _add_hydrogen_and_bond(
                             wname,
                             waterH1[ind + add_ind + 1],
-                            f"H{add_ind+ghind+3}",
+                            f"H{add_ind + ghind + 3}",
                             resn,
                             highest_resi + 1,
                         )
@@ -387,7 +381,7 @@ def _make_water_objects(water_type, waterO, waterH1, waterH2, output_file):
                         _add_hydrogen_and_bond(
                             wname,
                             waterH2[ind + add_ind + 1],
-                            f"H{add_ind+hind+ghind+3}",
+                            f"H{add_ind + hind + ghind + 3}",
                             resn,
                             highest_resi + 1,
                         )
@@ -491,8 +485,6 @@ def visualise_pymol(
         lunch_pymol = False
     _initialize_pymol(reinitialize, lunch_pymol)
     if platform.system() == "Darwin" and output_file is None:
-        import warnings
-
         warnings.warn(
             (
                 "mac OS detected interactive pymol session cannot be lunched."
@@ -503,8 +495,6 @@ def visualise_pymol(
             stacklevel=2,
         )
         output_file = "pymol_water_visualization.pse"
-    from pymol import cmd
-
     cmd.hide("everything")
     active_site_center = None
     aminokis_u_am = None
@@ -599,7 +589,6 @@ def visualise_pymol_from_pdb(
     if platform.system() == "Darwin":
         lunch_pymol = False
     _initialize_pymol(reinitialize, lunch_pymol)
-    from pymol import cmd
 
     cmd.load(pdbfile)
     cmd.hide("everything")
@@ -640,7 +629,7 @@ def visualise_pymol_from_pdb(
     if crystal_waters is not None:
         _add_crystal_waters(
             crystal_waters,
-            pdbfile.split(".")[0],
+            pdbfile.split(".", maxsplit=1)[0],
             ligand_resname,
             dist,
             active_site_ids,
@@ -669,12 +658,9 @@ def _initialize_pymol(reinitialize: bool, finish: bool):
             in interactive mode. If `False` pymol will be
             imported without lunching. Defaults to True.
     """
-    try:
-        import pymol
-        from pymol import cmd
-    except ModuleNotFoundError as err:
+    if pymol is None or cmd is None:
         msg = "pymol not installed. Either install pymol or use nglview"
-        raise Exception(msg) from err
+        raise Exception(msg)
     if finish:
         pymol.finish_launching(["pymol", "-q"])
     if reinitialize:
@@ -734,11 +720,9 @@ def visualise_nglview(
         # initialise widget
         view
     """
-    try:
-        import nglview as ngl
-    except ModuleNotFoundError as err:
+    if ngl is None:
         msg = "nglview not installed. Either install pymol or nglview"
-        raise Exception(msg) from err
+        raise Exception(msg)
 
     if aligned_protein is not None:
         view: NGLWidget = ngl.show_file(aligned_protein, default_representation=False)
