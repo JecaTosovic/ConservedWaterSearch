@@ -7,6 +7,10 @@ platforms = ["linux-64", "osx-64", "osx-arm64","linux-aarch64", "win-64"]
 numpy = ">=2.0.0"
 matplotlib = "*"
 nglview = "*"
+# TODO: remove this pin when Python 3.10 support is dropped.
+# The py310 Pixi environment currently resolves nglview 3.1.4, which still
+# imports pkg_resources. setuptools 82 removed pkg_resources.
+setuptools = "<82"
 scikit-learn = "*"
 pytest = "*"
 pip = "*"

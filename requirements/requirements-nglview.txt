@@ -1,1 +1,4 @@
 nglview>3.0.0
+# TODO: remove this pin when Python 3.10 support is dropped.
+# Older nglview releases still import pkg_resources, which setuptools 82 removed.
+setuptools<82

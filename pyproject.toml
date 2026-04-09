@@ -32,6 +32,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
 ]
+# When this project stops supporting Python 3.10, revisit the setuptools<82
+# workaround in pixi.toml and requirements/requirements-{test,nglview}.txt.
+# It exists because the py310 environment currently resolves nglview 3.1.4,
+# which still imports pkg_resources removed in setuptools 82.
 requires-python = ">=3.10"
 dynamic = ["dependencies"]
 
