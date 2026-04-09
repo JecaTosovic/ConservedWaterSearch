@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
 if TYPE_CHECKING:
     try:
         from matplotlib.axes import Axes
@@ -360,7 +365,7 @@ def find_fully_conserved_orientations(
         sk = (
             f"Conserved - kmeans analysis:\n"
             f"angle - mean: {ang:.2f}(calced)<{kmeans_ang_cutoff:.2f};"
-            f" inertia per H: {kmeans.inertia_/len(orientations):.2f}"
+            f" inertia per H: {kmeans.inertia_ / len(orientations):.2f}"
             f"(calced)<{kmeans_inertia_cutoff:.2f}\n"
         )
     if debugH == 2 or (debugH == 1 and len(fully_conserved) > 0):
@@ -372,11 +377,11 @@ def find_fully_conserved_orientations(
             f" buffer:{pct_size_buffer:.2f}\n"
             f"cluster sizes: {counts}; clust labels:{values};biggest: {biggest}"
             f"; secondbiggest: {secondbiggest}\n"
-            f"clusters size: {neioc*pct_size_buffer:.2f}<"
+            f"clusters size: {neioc * pct_size_buffer:.2f}<"
             f"{len(orientations[labels == biggest])},"
             f"{len(orientations[labels == secondbiggest])}"
-            f"(calced)<{neioc*(2-pct_size_buffer):.2f}\n"
-            f"angle mean: {np.abs(np.mean(angs21)-np.mean(angs12)):.2f}(calced)"
+            f"(calced)<{neioc * (2 - pct_size_buffer):.2f}\n"
+            f"angle mean: {np.abs(np.mean(angs21) - np.mean(angs12)):.2f}(calced)"
             f"<{angdiff_cutoff:.2f}); 12 std : {np.std(angs12):.2f};21 std: "
             f"{np.std(angs21):.2f} (both <{angstd_cutoff:.2f})\n"
         )
@@ -391,7 +396,7 @@ def find_fully_conserved_orientations(
         ss,
         (
             f"Reachability of optics plot\n"
-            f"minsamples={int(neioc*pct_size_buffer)}; xi={xi}"
+            f"minsamples={int(neioc * pct_size_buffer)}; xi={xi}"
         ),
         len(fully_conserved) > 0,
         debugH,
@@ -480,8 +485,8 @@ def find_half_conserved_orientations(
         N_elems = len(orientations[labels == bestcand])
         # Debug
         if verbose > 0:
-            sk += f"Cluster {bestcand} has {neioc*pct_size_buffer:.2f}<"
-            sk += f"{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
+            sk += f"Cluster {bestcand} has {neioc * pct_size_buffer:.2f}<"
+            sk += f"{N_elems}<{neioc * (2 - pct_size_buffer):.2f} elements\n"
         # check if number of elements in hydrogen orientation cluster is
         # between 0.80 and 1.20 elements of Oxygen cluster
         if (
@@ -499,7 +504,7 @@ def find_half_conserved_orientations(
             # Debug
             if verbose > 0 or debugH > 0:
                 sk += "result angles: mean= "
-                sk += f"{np.abs(np.mean(angs1all)-104.5):.2f}(Calced)<"
+                sk += f"{np.abs(np.mean(angs1all) - 104.5):.2f}(Calced)<"
                 sk += f"{angdiff_cutoff:.2f}; std dev={np.std(angs1all):.2f}"
                 sk += f"(Calced)<{angstd_cutoff:.2f}\n"
             # check if angle and its std deviation is satisfactory
@@ -522,10 +527,10 @@ def find_half_conserved_orientations(
         ss = (
             f"Half Conserved - OPTICS analysis;xi={xi}"
             f"best: {bestcand}; N_hyd_cls (w/o -1): "
-            f"{len(np.unique(labels[labels!=-1]))};\n N elem in biggest:"
-            f"{neioc*(2-pct_size_buffer):.2f}>"
-            f"{len(orientations[labels==bestcand])}>"
-            f"{neioc*pct_size_buffer:.2f}\n"
+            f"{len(np.unique(labels[labels != -1]))};\n N elem in biggest:"
+            f"{neioc * (2 - pct_size_buffer):.2f}>"
+            f"{len(orientations[labels == bestcand])}>"
+            f"{neioc * pct_size_buffer:.2f}\n"
         )
     # Printing
     if verbose == 2 or (verbose == 1 and len(half_conserved) > 0):
@@ -538,7 +543,7 @@ def find_half_conserved_orientations(
         ss + sk,
         (
             f"Reachability of optics plot\n minsamples="
-            f"{int(neioc*min_samp_data_size_pct)}; xi={xi}"
+            f"{int(neioc * min_samp_data_size_pct)}; xi={xi}"
         ),
         len(half_conserved) > 0,
         debugH,
@@ -645,8 +650,8 @@ def find_weakly_conserved_orientations(
             N_elems = len(orientations[labels == ii])
             # Debug
             if verbose > 0 or debugH > 0:
-                sk += f"Cluster {ii} has {neioc*lower_bound_pct_buffer:.2f}<"
-                sk += f"{N_elems}<{neioc*(2-pct_size_buffer):.2f} elements\n"
+                sk += f"Cluster {ii} has {neioc * lower_bound_pct_buffer:.2f}<"
+                sk += f"{N_elems}<{neioc * (2 - pct_size_buffer):.2f} elements\n"
             # check if size of hydorgen orientation cluster is between 1.20
             # and lower_bound_pct_buffer times number of elements in oxygen cluster
             if (
@@ -675,11 +680,11 @@ def find_weakly_conserved_orientations(
                         maxcomp = np.max([N_elems, N_elems_jj])
                         calcedcomp = (1 - pct_size_buffer) * maxcomp
                         sk += f"cluster combo:{ii} & {jj}size:{N_elems},"
-                        sk += f"{neioc*lower_bound_pct_buffer:.2f}<{N_elems_jj}<"
-                        sk += f"{neioc*(2-pct_size_buffer):.2f}\n"
-                        sk += f"size comparison {np.abs(N_elems -N_elems_jj)}"
+                        sk += f"{neioc * lower_bound_pct_buffer:.2f}<{N_elems_jj}<"
+                        sk += f"{neioc * (2 - pct_size_buffer):.2f}\n"
+                        sk += f"size comparison {np.abs(N_elems - N_elems_jj)}"
                         sk += f"(calced) < {calcedcomp} \n"
-                        sk += f"ang diff={np.abs(np.mean(angs1j)-104.5):.2f}"
+                        sk += f"ang diff={np.abs(np.mean(angs1j) - 104.5):.2f}"
                         sk += f"(calced)<{angdiff_cutoff:.2f},std dev:"
                         sk += f"{angstd_cutoff:.2f}>{np.std(angs1j):.2f}(calced)\n"
                     # check if size of new cluster and check if size of clusters
@@ -796,20 +801,20 @@ def find_weakly_conserved_orientations(
                         sk += "size check "
                         sk += f"{np.abs(N_elems - (N_elems_jj + N_elems_kk))}"
                         sk += f"(calced)< {sizeingprint}\n"
-                        sk += f"ang diff={np.abs(np.mean(angs1jk)-104.5):.2f}"
+                        sk += f"ang diff={np.abs(np.mean(angs1jk) - 104.5):.2f}"
                         sk += f"(calced)<{angdiff_cutoff:.2f},std dev:"
                         sk += f"{angstd_cutoff:.2f}>{np.std(angs1jk):.2f}"
                         sk += "(calced)\n"
-                        sk += f"ij {ii},{jj}, {np.abs(np.mean(angs1j)-104.5)},"
+                        sk += f"ij {ii},{jj}, {np.abs(np.mean(angs1j) - 104.5)},"
                         sk += f"<,angdiff_cutoff,and std {np.std(angs1j)}<"
                         sk += f"{angstd_cutoff} \n"
-                        sk += f"ik {ii},{kk}, {np.abs(np.mean(angs1k)-104.5)},"
+                        sk += f"ik {ii},{kk}, {np.abs(np.mean(angs1k) - 104.5)},"
                         sk += f"<,angdiff_cutoff,and std {np.std(angs1k)}<"
                         sk += f"{angstd_cutoff} \n"
-                        sk += f"kj {kk},{jj}, {np.abs(np.mean(angskj)-104.5)},"
+                        sk += f"kj {kk},{jj}, {np.abs(np.mean(angskj) - 104.5)},"
                         sk += f"<,angdiff_cutoff,and std {np.std(angskj)}<"
                         sk += f"{angstd_cutoff} \n"
-                        sk += f"jk {jj},{kk}, {np.abs(np.mean(angsjk)-104.5)},"
+                        sk += f"jk {jj},{kk}, {np.abs(np.mean(angsjk) - 104.5)},"
                         sk += f"<,angdiff_cutoff,and std {np.std(angsjk)}<"
                         sk += f"{angstd_cutoff} \n"
                     # check if size of clusters is about equal ii==jj+kk
@@ -981,8 +986,8 @@ def find_weakly_conserved_orientations(
             f"weakly Conserved - OPTICS analysis;xi={xi}\n"
             f"Number of hydrogen clusters : {len(np.unique(labels))};\n"
             f"number of elements : {counts}; range needed for best cluster:"
-            f"(depends on numbpct) {neioc*(2-pct_size_buffer):.2f},"
-            f"{neioc*lower_bound_pct_buffer:.2f}\n"
+            f"(depends on numbpct) {neioc * (2 - pct_size_buffer):.2f},"
+            f"{neioc * lower_bound_pct_buffer:.2f}\n"
         )
     # Debug Printing
     if verbose == 2 or (verbose == 1 and len(weakly_conserved) > 0):
@@ -995,7 +1000,7 @@ def find_weakly_conserved_orientations(
         ss,
         (
             f"Reachability of optics plot\n"
-            f"minsamples={int(neioc*min_samp_data_size_pct)}; xi={xi}"
+            f"minsamples={int(neioc * min_samp_data_size_pct)}; xi={xi}"
         ),
         len(weakly_conserved) > 0,
         debugH,
@@ -1026,11 +1031,9 @@ def __plot3Dorients(subplot, labels: int, orientations: np.ndarray, tip: str) ->
     For debuging only.
 
     """
-    try:
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError as err:
+    if plt is None:
         msg = "install matplotlib"
-        raise Exception(msg) from err
+        raise Exception(msg)
 
     fig = plt.figure()
     if isinstance(labels, int):
@@ -1043,7 +1046,7 @@ def __plot3Dorients(subplot, labels: int, orientations: np.ndarray, tip: str) ->
             jaba[:, 0],
             jaba[:, 1],
             jaba[:, 2],
-            label=f"{j} ({len(labels[labels==j])})",
+            label=f"{j} ({len(labels[labels == j])})",
         )
         if j > -1:
             ax.quiver(
@@ -1075,15 +1078,13 @@ def __plotreachability(
     For debuging purposes only.
 
     """
-    try:
-        import matplotlib.pyplot as plt
-    except ModuleNotFoundError as err:
+    if plt is None:
         msg = "install matplotlib"
-        raise Exception(msg) from err
+        raise Exception(msg)
 
     if fig is None:
         fig: Figure = plt.figure()
-    if type(cc) != OPTICS:
+    if not isinstance(cc, OPTICS):
         return fig
     lblls = cc.labels_[cc.ordering_]
     labels = cc.labels_
@@ -1100,7 +1101,7 @@ def __plotreachability(
             ax2.plot(
                 space[lblls == clst],
                 reachability[lblls == clst],
-                label=f"{clst} ({len(space[lblls==clst])}), avg reach={label}",
+                label=f"{clst} ({len(space[lblls == clst])}), avg reach={label}",
                 color="blue",
             )
         else:
@@ -1108,7 +1109,7 @@ def __plotreachability(
             ax2.plot(
                 space[lblls == clst],
                 reachability[lblls == clst],
-                label=f"{clst} ({len(space[lblls==clst])}), avg reach={label}",
+                label=f"{clst} ({len(space[lblls == clst])}), avg reach={label}",
             )
     ax2.legend()
     return fig

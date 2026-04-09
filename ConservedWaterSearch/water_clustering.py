@@ -835,15 +835,15 @@ class WaterClustering:
                         if self.debugO > 0:
                             dbgt: str = ""
                             if self.verbose > 0:
-                                (aa, bb) = np.unique(clusters, return_counts=True)
+                                (_aa, bb) = np.unique(clusters, return_counts=True)
                                 dbgt = (
                                     f"Oxygen clustering {type(clust)} "
                                     f"minsamp={i}, xi={j}, "
-                                    f"{len(np.unique(clusters[clusters!=-1]))} "
+                                    f"{len(np.unique(clusters[clusters != -1]))} "
                                     f"clusters \n"
                                     f"Required N(elem) range:"
-                                    f"{self.nsnaps*self.numbpct_oxygen:.2f} to "
-                                    f"{(2-self.numbpct_oxygen)*self.nsnaps}; "
+                                    f"{self.nsnaps * self.numbpct_oxygen:.2f} to "
+                                    f"{(2 - self.numbpct_oxygen) * self.nsnaps}; "
                                     f"(tar cls size={self.nsnaps} and numbpct="
                                     f"{self.numbpct_oxygen:.2f})\n"
                                     f"N(elements) for each cluster: {bb}\n"
@@ -932,7 +932,7 @@ class WaterClustering:
             # Nsnap*0.85<Nelem<Nsnap*1.15 then ignore
             if min_neioc < neioc < max_neioc:
                 if self.verbose > 0:
-                    print(f"O clust {k}, size {len(clusters[clusters==k])}\n")
+                    print(f"O clust {k}, size {len(clusters[clusters == k])}\n")
                 O_center = np.mean(Odata[mask], axis=0)
                 if "onlyO" not in self.water_types_to_find:
                     # Construct array of hydrogen orientations
@@ -1214,7 +1214,7 @@ def _oxygen_clustering_plot(
                 jaba[:, 0],
                 jaba[:, 1],
                 jaba[:, 2],
-                label=f"{k} ({len(cc.labels_[cc.labels_==k])})",
+                label=f"{k} ({len(cc.labels_[cc.labels_ == k])})",
                 s=s,
             )
         ax.set_xlabel("X")
@@ -1234,14 +1234,14 @@ def _oxygen_clustering_plot(
                     ax.plot(
                         space[lblls == clst],
                         cc.reachability_[lblls == clst],
-                        label=f"{clst} ({len(space[lblls==clst])})",
+                        label=f"{clst} ({len(space[lblls == clst])})",
                         color="blue",
                     )
                 else:
                     ax.plot(
                         space[lblls == clst],
                         cc.reachability_[lblls == clst],
-                        label=f"{clst} ({len(space[lblls==clst])})",
+                        label=f"{clst} ({len(space[lblls == clst])})",
                     )
             ax.legend()
     if debugO == 2:
