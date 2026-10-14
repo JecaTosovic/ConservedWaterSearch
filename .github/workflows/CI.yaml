@@ -18,7 +18,7 @@ jobs:
     - name: Create Python Environment
       uses: prefix-dev/setup-pixi@b92f01076d41831104bdb4786cfe1f0a5462a1ce
       with:
-        pixi-version: v0.81.0
+        pixi-version: v0.82.0
         cache: false
         environments: py311
         activate-environment: true
@@ -52,7 +52,7 @@ jobs:
     - name: Create Python Environment
       uses: prefix-dev/setup-pixi@b92f01076d41831104bdb4786cfe1f0a5462a1ce
       with:
-        pixi-version: v0.81.0
+        pixi-version: v0.82.0
         cache: false
         environments: ${{ matrix.pixi-env }}
         activate-environment: true
