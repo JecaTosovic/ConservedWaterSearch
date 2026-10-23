@@ -10,7 +10,7 @@ nglview = "*"
 # TODO: remove this pin when Python 3.10 support is dropped.
 # The py310 Pixi environment currently resolves nglview 3.1.4, which still
 # imports pkg_resources. setuptools 82 removed pkg_resources.
-setuptools = "<83"
+setuptools = "<85"
 scikit-learn = "*"
 pytest = "*"
 pip = "*"
