@@ -18,19 +18,19 @@ uv = "*"
 pymol-open-source = "*"
 
 [feature.py311.dependencies]
-python = "3.11.*"
+python = "3.15.*"
 
 [feature.py310.dependencies]
-python = "3.10.*"
+python = "3.15.*"
 
 [feature.py312.dependencies]
-python = "3.12.*"
+python = "3.15.*"
 
 [feature.py313.dependencies]
-python = "3.13.*"
+python = "3.15.*"
 
 [feature.py314.dependencies]
-python = "3.14.*"
+python = "3.15.*"
 
 [environments]
 default = { features = ["py311"] }
